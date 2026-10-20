@@ -1,12 +1,24 @@
 # Trace to Scale
 
-**Version 1.2 (19 October 2026)**
+**Version 1.5 (20 October 2026)**
 
 **[Open the tool](https://kcow3.github.io/trace-to-scale/)** · [Repository](https://github.com/kcow3/trace-to-scale)
 
 Trace to Scale turns a photo of a real object into an accurate, to-scale sketch you can bring into Fusion 360. You photograph the part next to something of known size, calibrate the scale, trace the outline (by hand or automatically), adjust it for 3D-printing tolerances, and export a DXF in millimetres.
 
 It is a single HTML file. There is nothing to install and no internet connection is needed, apart from loading the fonts.
+
+### What's new in 1.5
+
+- **Symmetry tools for rotating.** An alignment grid with a centre line, a mirror check that overlays the outline flipped across that line, a live symmetry score, and **Straighten by symmetry**, which finds the most symmetrical angle for you. See [Getting a part symmetrical](#getting-a-part-symmetrical).
+
+### What's new in 1.4
+
+- **Rotate the photo with the drawing.** Rotating now turns the photo too, so your trace stays lined up and you can keep editing or trace more. If you rotated a drawing on its own, one click lines the photo up with it again.
+
+### What's new in 1.3
+
+- **Rotate shapes.** Straighten a traced part that sat slightly askew in the photo: drag a rotate handle, nudge by 1° or 0.1°, or click two points along a straight edge to level it. See [Rotating shapes](#rotating-shapes).
 
 ### What's new in 1.2
 
@@ -29,6 +41,8 @@ It is a single HTML file. There is nothing to install and no internet connection
 5. [Auto trace](#auto-trace)
 6. [Editing points](#editing-points)
 7. [Smoothing](#smoothing)
+   - [Rotating shapes](#rotating-shapes)
+   - [Getting a part symmetrical](#getting-a-part-symmetrical)
 8. [Print fit: scale and tolerances](#print-fit-scale-and-tolerances)
 9. [Bringing your work into Fusion 360](#bringing-your-work-into-fusion-360)
 10. [Mouse and keyboard reference](#mouse-and-keyboard-reference)
@@ -151,7 +165,7 @@ While drawing:
 
 ### Step 5: Refine (optional)
 
-Tidy up the traced shapes with **Edit points** and the **Smoothing** slider. See [Editing points](#editing-points) and [Smoothing](#smoothing).
+Tidy up the traced shapes with **Edit points**, the **Smoothing** slider and **Rotate**. See [Editing points](#editing-points), [Smoothing](#smoothing) and [Rotating shapes](#rotating-shapes).
 
 ### Step 6: Fit (optional)
 
@@ -218,6 +232,44 @@ The **Smoothing** slider is in **step 5 (Refine)** and appears once you have out
 - Higher values also round off sharp corners. Turn it down if corners need to stay crisp.
 - Smoothing doesn't permanently change the outline: setting the slider back to **0 (Off)** restores the original trace.
 - If you edit points by hand after smoothing, the current smoothed shape becomes the new starting point and the slider resets to 0 for that shape.
+
+### Rotating shapes
+
+Parts don't always sit perfectly square to the ruler. The **Rotate** section in step 5 turns your traced shapes so they come into Fusion straight.
+
+| Method | How |
+|---|---|
+| **Drag the handle** | Drag the round yellow handle above the shapes. The angle shows as you drag, in 0.1° steps. Hold **Shift** for 15° steps. |
+| **Nudge** | Click **⟲ 1°**, **⟲ 0.1°**, **0.1° ⟳** or **1° ⟳**. |
+| **Level by two points** | Click the button, then click both ends of a straight edge on the part (a USB slot or a flat side works well). The shapes rotate so that edge is exactly horizontal or vertical. |
+
+**Rotate the photo too** (on by default) decides what turns:
+
+- **On:** the photo and everything on it rotate together: shapes, measurements, the reference line and the origin. The trace stays exactly on the part, so you can go back and edit points, smooth, or trace more. The photo is always redrawn from the original, so repeated small turns don't blur it.
+- **Off:** only the drawing rotates and the photo stays put. All shapes rotate together around their shared centre, so holes stay in place on the outline. To rotate **one shape only**, select it with Edit points first.
+
+If you rotated the drawing on its own and later want to edit over the photo again, click **Line up the photo with the drawing**. The photo turns to match, and everything lines up as if you had rotated them together. The button appears only while that's possible; drawing a new shape afterwards ends the option, because the new shape was drawn on the unrotated photo.
+
+- Rectangles become 4-point outlines once rotated, so they can sit at an angle.
+- Undo (**Ctrl+Z**) reverses any rotation, including the photo's.
+- Rotation never changes sizes, so the scale stays correct.
+
+### Getting a part symmetrical
+
+Most parts are symmetrical, so symmetry is the best guide for getting them straight. These tools sit under the rotate buttons in step 5:
+
+| Tool | What it does |
+|---|---|
+| **Alignment grid** | A square grid over the canvas, with a dashed **yellow centre line** through the middle of the main outline. The grid stays fixed while the part turns underneath it. It also appears whenever you drag the rotate handle. |
+| **Mirror check** | Draws a **dashed pink copy** of every shape, flipped across the centre line. Choose **Left ↔ right** for parts that are symmetrical side to side, or **Top ↔ bottom** for parts that are symmetrical top to bottom. When the part is straight, the pink copy sits right on top of the outline. |
+| **Symmetry difference** | The average gap, in mm, between the outline and its mirror image. Lower is more symmetrical. While you drag the rotate handle it shows next to the angle, so you can turn until it's as low as it goes. |
+| **Straighten by symmetry** | Searches angles up to ±20° and rotates to the one with the lowest symmetry difference, to the nearest 0.02°. The message shows the angle and how much the difference dropped, for example *0.91 mm → 0.06 mm*. |
+
+- The score uses the largest closed outline. Holes are mirrored in the overlay so you can check they're centred, but they don't count towards the score.
+- A real part is never perfectly symmetrical, so the difference won't reach zero. A few hundredths of a millimetre is excellent.
+- It follows the **Rotate the photo too** setting, so the photo turns with the drawing when that's on.
+
+> **Step 2 or step 5?** Both can straighten the photo. **Level an edge** in step 2 is handy before you start tracing. The Rotate tools in step 5 work at any point and keep your drawing in place.
 
 ---
 
@@ -325,7 +377,7 @@ Choose **English**, **Afrikaans** or **Čeština** (Czech) from the language men
 |---|---|
 | `index.html` | The tool (latest version). GitHub Pages serves this as the home page. |
 | `README.md` | This guide. |
-| `versions/` | Earlier versions, kept for reference: `v1.0.html` (first release), `v1.1.html` (wizard), `v1.2.html` (languages, same as `index.html`). |
+| `versions/` | Earlier versions, kept for reference: `v1.0.html` (first release), `v1.1.html` (wizard), `v1.2.html` (languages), `v1.3.html` (rotate shapes), `v1.4.html` (rotate the photo with the drawing), `v1.5.html` (symmetry tools, same as `index.html`). |
 
 ---
 
@@ -361,4 +413,4 @@ Ideas for future versions:
 
 ---
 
-*Trace to Scale v1.2. A single-file HTML tool for creating to-scale Fusion 360 sketches from photos.*
+*Trace to Scale v1.5. A single-file HTML tool for creating to-scale Fusion 360 sketches from photos.*

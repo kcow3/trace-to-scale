@@ -120,6 +120,12 @@ input[type=range]{accent-color:var(--accent);width:100%}
 .fitrow input{text-align:center}
 .fitrow .u{color:var(--muted);font-size:13px}
 .smoothbox{margin:8px 0 0}
+.rotbox{margin:10px 0 0}
+.symbox{margin:10px 0 0;padding:10px 0 0;border-top:1px dashed var(--line);display:grid;gap:8px}
+.symbox .result,.symbox .note{margin:0}
+.rotrow{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:6px 0}
+.rotrow .btn{padding:7px 4px;font-size:13px}
+#cv.rot{cursor:grab}
 /* wizard */
 .wizard{position:sticky;top:0;z-index:2;background:var(--panel);border-bottom:1px solid var(--line);padding:12px 8px 10px}
 .wizard ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(7,1fr)}
@@ -239,7 +245,7 @@ details.keys dd{margin:0}
   </label>
   <a class="ghlink" href="https://github.com/kcow3/trace-to-scale" target="_blank" rel="noopener" title="View on GitHub" aria-label="View on GitHub">
     <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-    <span class="ver">v1.2</span>
+    <span class="ver">v1.5</span>
   </a>
 </header>
 
@@ -373,6 +379,29 @@ details.keys dd{margin:0}
       <div class="smoothbox" id="smoothBox" hidden>
         <label class="slider"><span>Smoothing</span><input type="range" id="smAmt" min="0" max="100" value="0"><output id="smOut"></output></label>
         <p class="note" id="smScope"></p>
+      </div>
+      <div class="rotbox" id="rotBox" hidden>
+        <p class="sublabel">Rotate</p>
+        <label class="inline"><input type="checkbox" id="rotPhoto" checked> Rotate the photo too</label>
+        <div class="rotrow">
+          <button class="btn" data-rot="-1" title="Rotate left 1°" aria-label="Rotate left 1°">⟲ 1°</button>
+          <button class="btn" data-rot="-0.1" title="Rotate left 0.1°" aria-label="Rotate left 0.1°">⟲ 0.1°</button>
+          <button class="btn" data-rot="0.1" title="Rotate right 0.1°" aria-label="Rotate right 0.1°">0.1° ⟳</button>
+          <button class="btn" data-rot="1" title="Rotate right 1°" aria-label="Rotate right 1°">1° ⟳</button>
+        </div>
+        <button class="btn full" id="rotLevel">Level by two points</button>
+        <div class="symbox">
+          <label class="inline"><input type="checkbox" id="rotGrid" checked> Alignment grid</label>
+          <label class="inline">Mirror check
+            <select id="mirrorMode" aria-label="Mirror check"><option value="off">Off</option><option value="lr" selected>Left ↔ right</option><option value="tb">Top ↔ bottom</option></select>
+          </label>
+          <div class="result" id="symInfo" hidden></div>
+          <p class="note" id="symNote" hidden>The dashed pink copy is the outline mirrored across the yellow centre line. When the part is straight, they overlap.</p>
+          <button class="btn full" id="symAuto">Straighten by symmetry</button>
+        </div>
+        <p class="note" id="rotScope"></p>
+        <button class="btn primary full" id="lineUp" hidden>Line up the photo with the drawing</button>
+        <p class="note">You can also drag the round handle above the shapes. Hold Shift for 15° steps.</p>
       </div>
       <p class="why" hidden></p>
       <div class="step-nav"><button class="btn ghost" data-back>‹ Back</button><button class="btn primary" data-next>Next ›</button></div>
@@ -556,11 +585,12 @@ const TOOLS = {
   persp:{ n:4, hint:['Click the first corner of the rectangle.','Click the next corner, going around the rectangle.','Click the third corner.','Click the last corner.'] },
   level:{ n:2, hint:['Click one end of an edge that should be level or upright.','Click the other end.'] },
   auto:{ n:2, hint:['Click one corner of a box around the part. Leave some background showing on every side.','Click the opposite corner.'] },
-  edit:{ hint:'Click a shape, then drag its points. Drag across empty space to select several. Double-click a line to add a point.' }
+  edit:{ hint:'Click a shape, then drag its points. Drag across empty space to select several. Double-click a line to add a point.' },
+  rlevel:{ n:2, hint:['Click one end of a straight edge on the part.','Click the other end. The shapes rotate to make it level or upright.'] }
 };
 
 /* ---------- languages ---------- */
-const L10N = {"View on GitHub":["Bekyk op GitHub","Zobrazit na GitHubu"],"Turn a photo into a to-scale Fusion 360 sketch":["Verander ’n foto in ’n skaalakkurate Fusion 360-skets","Udělejte z fotografie přesný náčrt v měřítku pro Fusion 360"],"2D from photo":["2D uit foto","2D z fotografie"],"3D model":["3D-model","3D model"],"Coming soon":["Kom binnekort","Již brzy"],"Load a photo":["Laai ’n foto","Nahrajte fotografii"],"Use a photo of the part with something of known size beside it, like a ruler, bank card or coin.":["Gebruik ’n foto van die onderdeel met iets van bekende grootte langsaan, soos ’n liniaal, bankkaart of muntstuk.","Použijte fotografii dílu, vedle kterého leží něco známé velikosti, například pravítko, platební karta nebo mince."],"Choose photo":["Kies foto","Vybrat fotografii"],"Open project":["Open projek","Otevřít projekt"],"You can also drop a photo onto the canvas, or paste one with Ctrl+V.":["Jy kan ook ’n foto op die werkarea laat val, of een met Ctrl+V plak.","Fotografii můžete také přetáhnout na plochu nebo vložit pomocí Ctrl+V."],"Next ›":["Volgende ›","Další ›"],"Straighten the photo":["Maak die foto reguit","Narovnejte fotografii"],"Optional":["Opsioneel","Volitelné"],"Shot at an angle? Mark the corners of a flat rectangle of known size lying beside the part. This removes the perspective":["Skuins afgeneem? Merk die hoeke van ’n plat reghoek van bekende grootte wat langs die onderdeel lê. Dit verwyder die perspektief","Fotili jste šikmo? Označte rohy plochého obdélníku známé velikosti, který leží vedle dílu. Tím odstraníte perspektivu"],"and":["en","a"],"sets the scale for you.":["stel sommer ook die skaal vir jou.","zároveň nastavíte měřítko."],"Bank card (85.60 × 53.98 mm)":["Bankkaart (85.60 × 53.98 mm)","Platební karta (85.60 × 53.98 mm)"],"A4 sheet (210 × 297 mm)":["A4-vel (210 × 297 mm)","List A4 (210 × 297 mm)"],"A5 sheet (148 × 210 mm)":["A5-vel (148 × 210 mm)","List A5 (148 × 210 mm)"],"Custom size":["Eie grootte","Vlastní velikost"],"Mark 4 corners":["Merk 4 hoeke","Označit 4 rohy"],"Apply correction":["Pas korreksie toe","Použít opravu"],"0 of 4 corners marked.":["0 van 4 hoeke gemerk.","Označeno 0 ze 4 rohů."],"Level an edge":["Maak ’n rand gelyk","Vyrovnat hranu"],"‹ Back":["‹ Terug","‹ Zpět"],"Set the scale":["Stel die skaal","Nastavte měřítko"],"Draw a line across something you know the size of, then enter its real length. The longer the reference, the more accurate the result.":["Trek ’n lyn oor iets waarvan jy die grootte ken, en tik dan die werklike lengte in. Hoe langer die verwysing, hoe akkurater die resultaat.","Nakreslete čáru přes něco, jehož velikost znáte, a zadejte jeho skutečnou délku. Čím delší reference, tím přesnější výsledek."],"Draw reference line":["Trek verwysingslyn","Nakreslit referenční čáru"],"Or pick a known object…":["Of kies ’n bekende voorwerp…","Nebo vyberte známý předmět…"],"Cards and paper":["Kaarte en papier","Karty a papír"],"Coins (diameter)":["Munte (deursnee)","Mince (průměr)"],"Other":["Ander","Ostatní"],"Bank card, long edge (85.60 mm)":["Bankkaart, lang kant (85.60 mm)","Platební karta, delší strana (85.60 mm)"],"Bank card, short edge (53.98 mm)":["Bankkaart, kort kant (53.98 mm)","Platební karta, kratší strana (53.98 mm)"],"A4 sheet, short edge (210 mm)":["A4-vel, kort kant (210 mm)","List A4, kratší strana (210 mm)"],"A4 sheet, long edge (297 mm)":["A4-vel, lang kant (297 mm)","List A4, delší strana (297 mm)"],"South African R5 (26.00 mm)":["Suid-Afrikaanse R5 (26.00 mm)","Jihoafrická mince R5 (26.00 mm)"],"South African R2 (23.00 mm)":["Suid-Afrikaanse R2 (23.00 mm)","Jihoafrická mince R2 (23.00 mm)"],"South African R1 (20.00 mm)":["Suid-Afrikaanse R1 (20.00 mm)","Jihoafrická mince R1 (20.00 mm)"],"US quarter (24.26 mm)":["VSA-kwartdollar (24.26 mm)","Americký quarter (24.26 mm)"],"€1 coin (23.25 mm)":["€1-muntstuk (23.25 mm)","Mince 1 € (23.25 mm)"],"AA battery, length (50.5 mm)":["AA-battery, lengte (50.5 mm)","Baterie AA, délka (50.5 mm)"],"Ruler, 100 mm span":["Liniaal, 100 mm-afstand","Pravítko, úsek 100 mm"],"No scale yet.":["Nog geen skaal nie.","Měřítko zatím není nastaveno."],"Trace the outline":["Trek die buitelyn na","Obtáhněte obrys"],"Let the tool find the outline for you, or draw it by hand.":["Laat die program die buitelyn vir jou vind, of teken dit met die hand.","Nechte nástroj najít obrys za vás, nebo ho nakreslete ručně."],"Auto trace outline":["Trek buitelyn outomaties na","Automaticky obtáhnout obrys"],"Draw a box around the part on the photo, or":["Trek ’n blokkie om die onderdeel op die foto, of","Nakreslete na fotografii rámeček kolem dílu, nebo"],"trace the whole photo":["trek die hele foto na","obtáhněte celou fotografii"],". A plain background that contrasts with the part works best.":[". ’n Effe agtergrond wat met die onderdeel kontrasteer, werk die beste.",". Nejlépe funguje jednolité pozadí, které s dílem kontrastuje."],"Sensitivity":["Sensitiwiteit","Citlivost"],"Simplify":["Vereenvoudig","Zjednodušit"],"Ignore specks":["Ignoreer spikkels","Ignorovat smítka"],"Include holes and cut-outs":["Sluit gate en uitsnydings in","Zahrnout otvory a výřezy"],"Turn round shapes into circles":["Maak ronde vorms sirkels","Převést kulaté tvary na kružnice"],"Reduce shadows":["Verminder skaduwees","Potlačit stíny"],"No box drawn yet.":["Nog geen blokkie getrek nie.","Zatím není nakreslen žádný rámeček."],"Add to drawing":["Voeg by tekening","Přidat do výkresu"],"Discard":["Gooi weg","Zahodit"],"Or draw by hand":["Of teken met die hand","Nebo kreslete ručně"],"Measure":["Meet","Měřit"],"Line":["Lyn","Čára"],"Polyline":["Polilyn","Lomená čára"],"Rectangle":["Reghoek","Obdélník"],"Circle":["Sirkel","Kružnice"],"Outline":["Buitelyn","Obrys"],"Set origin":["Stel oorsprong","Nastavit počátek"],"Refine the shape":["Verfyn die vorm","Dolaďte tvar"],"Fix glitches by moving or deleting points, and smooth out jagged edges.":["Herstel foutjies deur punte te skuif of uit te vee, en maak hoekige rande glad.","Opravte chyby posunutím nebo smazáním bodů a vyhlaďte zubaté okraje."],"Edit points":["Wysig punte","Upravit body"],"Click a shape to select it, then drag any point to move it. Drag across empty space to select several points. Double-click a line to add a point. Right-drag or hold Space to pan.":["Klik op ’n vorm om dit te kies, en sleep dan enige punt om dit te skuif. Sleep oor leë ruimte om verskeie punte te kies. Dubbelklik op ’n lyn om ’n punt by te voeg. Sleep met die regterknoppie, of hou Spasie in, om die aansig te skuif.","Kliknutím vyberte tvar a pak přetažením posuňte libovolný bod. Tažením přes prázdné místo vyberete více bodů. Dvojklikem na čáru přidáte bod. Zobrazení posunete tažením pravým tlačítkem nebo s podrženým mezerníkem."],"No shape selected.":["Geen vorm gekies nie.","Není vybrán žádný tvar."],"Smooth selected points":["Maak gekose punte glad","Vyhladit vybrané body"],"Delete points":["Vee punte uit","Smazat body"],"Delete shape":["Vee vorm uit","Smazat tvar"],"Smoothing":["Gladmaak","Vyhlazení"],"Fit for printing":["Pas aan vir 3D-druk","Úprava pro 3D tisk"],"Adjust the exported shape for your printer’s tolerances. The trace on the photo stays as it is.":["Pas die uitgevoerde vorm aan vir jou drukker se toleransies. Die natrekking op die foto bly soos dit is.","Upravte exportovaný tvar podle tolerancí vaší tiskárny. Obrys na fotografii zůstane beze změny."],"Scale":["Skaal","Měřítko"],"Outlines":["Buitelyne","Obrysy"],"Holes":["Gate","Otvory"],"Positive values make a shape bigger. For a case or pocket the part must fit into, grow outlines by your printer’s clearance, often 0.2 to 0.4 mm. Holes are shapes that sit inside another outline.":["Positiewe waardes maak ’n vorm groter. Vir ’n houer of holte waarin die onderdeel moet pas, vergroot die buitelyne met jou drukker se speling, gewoonlik 0.2 tot 0.4 mm. Gate is vorms wat binne ’n ander buitelyn lê.","Kladné hodnoty tvar zvětšují. U pouzdra nebo kapsy, do které musí díl zapadnout, zvětšete obrysy o vůli vaší tiskárny, obvykle 0.2 až 0.4 mm. Otvory jsou tvary, které leží uvnitř jiného obrysu."],"Show the print shape on the photo":["Wys die drukvorm op die foto","Zobrazit tiskový tvar na fotografii"],"Export to Fusion 360":["Voer uit na Fusion 360","Export do Fusion 360"],"Download sketch (DXF)":["Laai skets af (DXF)","Stáhnout náčrt (DXF)"],"Include measure lines on their own layer":["Sluit meetlyne op ’n eie laag in","Zahrnout měřicí čáry ve vlastní vrstvě"],"In Fusion: Insert › Insert DXF, pick a plane, set units to mm. Geometry is placed relative to your origin.":["In Fusion: Insert › Insert DXF, kies ’n vlak en stel die eenhede op mm. Die geometrie word relatief tot jou oorsprong geplaas.","Ve Fusion: Insert › Insert DXF, zvolte rovinu a nastavte jednotky na mm. Geometrie se umístí vzhledem k vašemu počátku."],"Download scaled photo (PNG)":["Laai geskaalde foto af (PNG)","Stáhnout fotografii v měřítku (PNG)"],"Add a scale bar":["Voeg ’n skaalstaaf by","Přidat měřítkovou úsečku"],"Include traced lines":["Sluit nagetrekte lyne in","Zahrnout obtažené čáry"],"In Fusion: Insert › Canvas, then right-click the canvas › Calibrate and click the two ends of the scale bar.":["In Fusion: Insert › Canvas, regsklik dan op die canvas › Calibrate en klik op die twee punte van die skaalstaaf.","Ve Fusion: Insert › Canvas, pak klikněte pravým tlačítkem na canvas › Calibrate a klikněte na oba konce měřítkové úsečky."],"Download vector drawing (SVG)":["Laai vektortekening af (SVG)","Stáhnout vektorový výkres (SVG)"],"Embed the photo":["Sluit die foto in","Vložit fotografii"],"Measurements (CSV)":["Metings (CSV)","Rozměry (CSV)"],"Save project":["Stoor projek","Uložit projekt"],"Start with a new photo":["Begin met ’n nuwe foto","Začít s novou fotografií"],"Your shapes":["Jou vorms","Vaše tvary"],"Nothing traced yet.":["Nog niks nagetrek nie.","Zatím nic není obtaženo."],"Undo":["Ontdoen","Vrátit"],"Clear drawing":["Maak tekening skoon","Vymazat výkres"],"View options":["Aansigopsies","Možnosti zobrazení"],"Show in":["Wys in","Zobrazit v"],"inches":["duim","palcích"],"Grid every":["Rooster elke","Mřížka po"],"Mouse and keyboard":["Muis en sleutelbord","Myš a klávesnice"],"Scroll":["Rol","Kolečko"],"Zoom at the cursor":["Zoem by die wyser","Přiblížení u kurzoru"],"Drag":["Sleep","Tažení"],"Pan (in any tool). Drag a point to move it":["Skuif die aansig (in enige hulpmiddel). Sleep ’n punt om dit te skuif","Posun zobrazení (v libovolném nástroji). Tažením bodu ho posunete"],"Lock angle to 15° steps":["Sluit die hoek in stappe van 15°","Zamknout úhel na kroky po 15°"],"Finish a polyline":["Voltooi ’n polilyn","Dokončit lomenou čáru"],"Cancel the current shape":["Kanselleer die huidige vorm","Zrušit rozkreslený tvar"],"Undo (Ctrl+Y redo)":["Ontdoen (Ctrl+Y herdoen)","Vrátit (Ctrl+Y znovu)"],"Edit points. Delete removes selected points":["Wysig punte. Delete vee gekose punte uit","Upravit body. Delete smaže vybrané body"],"Fit photo to view":["Pas foto in die aansig","Přizpůsobit fotografii zobrazení"],"Toggle grid":["Rooster aan/af","Zapnout/vypnout mřížku"],"Drop a photo here":["Laat val ’n foto hier","Přetáhněte sem fotografii"],"Or paste one with Ctrl+V, or choose a file.":["Of plak een met Ctrl+V, of kies ’n lêer.","Nebo ji vložte pomocí Ctrl+V či vyberte soubor."],"For accurate results, shoot straight down from as far away as you can and zoom in, so lens distortion stays low.":["Vir akkurate resultate, neem die foto reguit van bo af, so ver weg as moontlik, en zoem in sodat lensvervorming laag bly.","Pro přesné výsledky foťte kolmo shora z co největší vzdálenosti a přibližte zoomem, aby bylo zkreslení objektivu co nejmenší."],"Put the known object (a ruler, bank card or coin) flat beside the part, at the same height as the face you want to draw.":["Sit die bekende voorwerp (’n liniaal, bankkaart of muntstuk) plat langs die onderdeel, op dieselfde hoogte as die vlak wat jy wil teken.","Položte známý předmět (pravítko, platební kartu nebo minci) naplocho vedle dílu, do stejné výšky jako plocha, kterou chcete kreslit."],"not set":["nie gestel nie","nenastaveno"],"3D import is coming soon":["3D-invoer kom binnekort","3D import bude brzy k dispozici"],"The plan is to open STL, OBJ and 3MF files, measure them in true units, and slice them into section profiles you can bring into a Fusion 360 sketch.":["Die plan is om STL-, OBJ- en 3MF-lêers oop te maak, hulle in ware eenhede te meet, en hulle in deursnitprofiele te sny wat jy in ’n Fusion 360-skets kan gebruik.","V plánu je otevírání souborů STL, OBJ a 3MF, jejich měření ve skutečných jednotkách a řezání na profily průřezů, které můžete přenést do náčrtu ve Fusion 360."],"For now, the 2D photo workflow is ready to use.":["Vir eers is die 2D-fotowerkvloei gereed vir gebruik.","Zatím je připraven pracovní postup 2D z fotografie."],"Go to 2D from photo":["Gaan na 2D uit foto","Přejít na 2D z fotografie"],"Language":["Taal","Jazyk"],"Import type":["Invoertipe","Typ importu"],"Steps":["Stappe","Kroky"],"Reference rectangle":["Verwysingsreghoek","Referenční obdélník"],"Rectangle width in mm":["Reghoekwydte in mm","Šířka obdélníku v mm"],"Rectangle height in mm":["Reghoekhoogte in mm","Výška obdélníku v mm"],"Click two points along an edge that should be horizontal or vertical":["Klik op twee punte langs ’n rand wat horisontaal of vertikaal moet wees","Klikněte na dva body na hraně, která má být vodorovná nebo svislá"],"Rotate 90° left":["Draai 90° links","Otočit o 90° doleva"],"Rotate 90 degrees left":["Draai 90 grade links","Otočit o 90 stupňů doleva"],"Rotate 90° right":["Draai 90° regs","Otočit o 90° doprava"],"Rotate 90 degrees right":["Draai 90 grade regs","Otočit o 90 stupňů doprava"],"Real length":["Werklike lengte","Skutečná délka"],"Real length of the reference":["Werklike lengte van die verwysing","Skutečná délka reference"],"Reference unit":["Verwysingseenheid","Jednotka reference"],"Known object sizes":["Groottes van bekende voorwerpe","Velikosti známých předmětů"],"Drawing tools":["Tekenhulpmiddels","Kreslicí nástroje"],"Decrease scale":["Verklein skaal","Zmenšit měřítko"],"Scale percent":["Skaal in persent","Měřítko v procentech"],"Increase scale":["Vergroot skaal","Zvětšit měřítko"],"Shrink outlines":["Krimp buitelyne","Zmenšit obrysy"],"Outline offset in mm":["Buitelynverskuiwing in mm","Odsazení obrysů v mm"],"Grow outlines":["Vergroot buitelyne","Zvětšit obrysy"],"Shrink holes":["Krimp gate","Zmenšit otvory"],"Hole offset in mm":["Gatverskuiwing in mm","Odsazení otvorů v mm"],"Grow holes":["Vergroot gate","Zvětšit otvory"],"Measurements and traced shapes":["Metings en nagetrekte vorms","Rozměry a obtažené tvary"],"Display unit":["Vertooneenheid","Zobrazovaná jednotka"],"Grid spacing in mm":["Roosterspasiëring in mm","Rozteč mřížky v mm"],"Tools":["Hulpmiddels","Nástroje"],"Pan (V)":["Skuif aansig (V)","Posun (V)"],"Pan":["Skuif aansig","Posun"],"Reference line (K)":["Verwysingslyn (K)","Referenční čára (K)"],"Reference line":["Verwysingslyn","Referenční čára"],"Measure (M)":["Meet (M)","Měřit (M)"],"Line (L)":["Lyn (L)","Čára (L)"],"Polyline (P)":["Polilyn (P)","Lomená čára (P)"],"Rectangle (R)":["Reghoek (R)","Obdélník (R)"],"Circle (C)":["Sirkel (C)","Kružnice (C)"],"Auto trace (A)":["Outomatiese natrekking (A)","Automatické obtažení (A)"],"Auto trace":["Outomatiese natrekking","Automatické obtažení"],"Edit points (E)":["Wysig punte (E)","Upravit body (E)"],"Set origin (O)":["Stel oorsprong (O)","Nastavit počátek (O)"],"Undo (Ctrl+Z)":["Ontdoen (Ctrl+Z)","Vrátit (Ctrl+Z)"],"Grid (G)":["Rooster (G)","Mřížka (G)"],"Zoom out (-)":["Zoem uit (-)","Oddálit (-)"],"Zoom out":["Zoem uit","Oddálit"],"Zoom in (+)":["Zoem in (+)","Přiblížit (+)"],"Zoom in":["Zoem in","Přiblížit"],"Fit to view (F)":["Pas in aansig (F)","Přizpůsobit zobrazení (F)"],"Fit to view":["Pas in aansig","Přizpůsobit zobrazení"],"Drag to move around. Scroll to zoom.":["Sleep om rond te beweeg. Rol om te zoem.","Tažením se posunete, kolečkem přiblížíte."],"Click one end of the object you know the size of.":["Klik op die een punt van die voorwerp waarvan jy die grootte ken.","Klikněte na jeden konec předmětu, jehož velikost znáte."],"Click the other end.":["Klik op die ander punt.","Klikněte na druhý konec."],"Click the start of the distance to measure.":["Klik op die begin van die afstand wat jy wil meet.","Klikněte na začátek měřené vzdálenosti."],"Click the end.":["Klik op die einde.","Klikněte na konec."],"Click the start of the line.":["Klik op die begin van die lyn.","Klikněte na začátek čáry."],"Click the end of the line.":["Klik op die einde van die lyn.","Klikněte na konec čáry."],"Click one corner of the rectangle.":["Klik op een hoek van die reghoek.","Klikněte na jeden roh obdélníku."],"Click the opposite corner.":["Klik op die teenoorgestelde hoek.","Klikněte na protější roh."],"Click the centre of the circle.":["Klik op die middelpunt van die sirkel.","Klikněte na střed kružnice."],"Click any point on its edge.":["Klik op enige punt op die rand.","Klikněte na libovolný bod na jejím obvodu."],"Click the first point.":["Klik op die eerste punt.","Klikněte na první bod."],"Keep clicking. Click the first point to close, or press Enter to finish.":["Hou aan klik. Klik op die eerste punt om die vorm toe te maak, of druk Enter om klaar te maak.","Pokračujte v klikání. Kliknutím na první bod tvar uzavřete, klávesou Enter ho dokončíte."],"Click the point that should be 0,0 in Fusion.":["Klik op die punt wat 0,0 in Fusion moet wees.","Klikněte na bod, který má být ve Fusion 0,0."],"Click the first corner of the rectangle.":["Klik op die eerste hoek van die reghoek.","Klikněte na první roh obdélníku."],"Click the next corner, going around the rectangle.":["Klik op die volgende hoek, om die reghoek heen.","Klikněte na další roh, postupně kolem obdélníku."],"Click the third corner.":["Klik op die derde hoek.","Klikněte na třetí roh."],"Click the last corner.":["Klik op die laaste hoek.","Klikněte na poslední roh."],"Click one end of an edge that should be level or upright.":["Klik op die een punt van ’n rand wat gelyk of regop moet wees.","Klikněte na jeden konec hrany, která má být vodorovná nebo svislá."],"Click one corner of a box around the part. Leave some background showing on every side.":["Klik op een hoek van ’n blokkie om die onderdeel. Laat aan elke kant ’n bietjie agtergrond sigbaar.","Klikněte na jeden roh rámečku kolem dílu. Na každé straně nechte kousek pozadí."],"Click a shape, then drag its points. Drag across empty space to select several. Double-click a line to add a point.":["Klik op ’n vorm en sleep dan sy punte. Sleep oor leë ruimte om verskeie te kies. Dubbelklik op ’n lyn om ’n punt by te voeg.","Klikněte na tvar a táhněte jeho body. Tažením přes prázdné místo vyberete více bodů. Dvojklikem na čáru přidáte bod."],"Hold Shift to lock the angle.":["Hou Shift in om die hoek te sluit.","Podržením Shift zamknete úhel."],"Adjust the sliders in step 4, then choose “Add to drawing”. Or click to draw a new box.":["Stel die skuiwers in stap 4 en kies dan “Voeg by tekening”. Of klik om ’n nuwe blokkie te trek.","Upravte posuvníky v kroku 4 a zvolte „Přidat do výkresu“. Nebo klikněte a nakreslete nový rámeček."],"Drag corners to fine-tune, then choose “Apply correction”.":["Sleep die hoeke om fyn aan te pas, en kies dan “Pas korreksie toe”.","Přetažením rohů je dolaďte a pak zvolte „Použít opravu“."],"Reference set. Drag its ends to fine-tune, or click to draw a new one.":["Verwysing gestel. Sleep die punte om fyn aan te pas, of klik om ’n nuwe een te trek.","Reference je nastavena. Přetažením konců ji dolaďte, nebo klikněte a nakreslete novou."],"Now type the real length in step 3.":["Tik nou die werklike lengte in stap 3 in.","Nyní zadejte skutečnou délku v kroku 3."],"Photo":["Foto","Foto"],"Angle":["Hoek","Úhel"],"Trace":["Natrek","Obrys"],"Refine":["Verfyn","Doladit"],"Fit":["Pas","Tisk"],"Export":["Uitvoer","Export"],"Skip ›":["Slaan oor ›","Přeskočit ›"],"Skip to export ›":["Gaan na uitvoer ›","Přejít k exportu ›"],"Load a photo to continue.":["Laai ’n foto om voort te gaan.","Pro pokračování nahrajte fotografii."],"Enter the real length of the reference line to continue.":["Tik die werklike lengte van die verwysingslyn in om voort te gaan.","Pro pokračování zadejte skutečnou délku referenční čáry."],"Draw a reference line on the photo to continue.":["Trek ’n verwysingslyn op die foto om voort te gaan.","Pro pokračování nakreslete na fotografii referenční čáru."],"Step {n}: {name}":["Stap {n}: {name}","Krok {n}: {name}"],"Load a photo first":["Laai eers ’n foto","Nejprve nahrajte fotografii"],"Set the scale first":["Stel eers die skaal","Nejprve nastavte měřítko"],"Nothing to undo.":["Niks om te ontdoen nie.","Není co vrátit."],"That file isn’t an image. Use a JPG, PNG or WebP photo.":["Daardie lêer is nie ’n prent nie. Gebruik ’n JPG-, PNG- of WebP-foto.","Tento soubor není obrázek. Použijte fotografii JPG, PNG nebo WebP."],"This browser can’t open that image. HEIC photos need converting to JPG first.":["Hierdie blaaier kan nie daardie prent oopmaak nie. HEIC-foto’s moet eers na JPG omgeskakel word.","Tento prohlížeč obrázek neotevře. Fotografie HEIC je nejprve potřeba převést na JPG."],"Photo loaded. It was reduced to {w} × {h} px to stay responsive.":["Foto gelaai. Dit is na {w} × {h} px verklein sodat die program vinnig bly.","Fotografie načtena. Byla zmenšena na {w} × {h} px, aby aplikace zůstala svižná."],"Origin set. DXF coordinates are now measured from this point.":["Oorsprong gestel. DXF-koördinate word nou vanaf hierdie punt gemeet.","Počátek nastaven. Souřadnice DXF se nyní měří od tohoto bodu."],"Reference {v}":["Verwysing {v}","Reference {v}"],"Reference: enter its length":["Verwysing: tik die lengte in","Reference: zadejte délku"],"Radius {r}, Ø {d}":["Radius {r}, Ø {d}","Poloměr {r}, Ø {d}"],"Length {l} at {a}°":["Lengte {l} teen {a}°","Délka {l} pod úhlem {a}°"],"{n} pts, {len}":["{n} punte, {len}","bodů: {n}, {len}"],"Delete {item}":["Vee {item} uit","Smazat: {item}"],"Print: {v}":["Druk: {v}","Tisk: {v}"],"Loaded {name} ({w} × {h} px).":["{name} gelaai ({w} × {h} px).","Načteno: {name} ({w} × {h} px)."],"All 4 corners marked. Drag them to fine-tune if needed.":["Al 4 hoeke is gemerk. Sleep hulle om fyn aan te pas indien nodig.","Všechny 4 rohy jsou označeny. V případě potřeby je přetažením dolaďte."],"{n} of 4 corners marked.":["{n} van 4 hoeke gemerk.","Označeno {n} ze 4 rohů."],"{v} px per mm":["{v} px per mm","{v} px na mm"],"Scale set: {s}. Photo covers {w} × {h}.":["Skaal gestel: {s}. Die foto dek {w} × {h}.","Měřítko nastaveno: {s}. Fotografie pokrývá {w} × {h}."],"The reference is only {px} px long. Clicking 1 px off gives about {e}% error, so use a longer reference if you can.":["Die verwysing is net {px} px lank. As jy 1 px mis klik, gee dit sowat {e}% fout, so gebruik ’n langer verwysing as jy kan.","Reference je dlouhá jen {px} px. Chyba kliknutí o 1 px znamená asi {e}% odchylku, proto použijte delší referenci, pokud můžete."],"Reference drawn. Enter its real length above.":["Verwysing getrek. Tik die werklike lengte hierbo in.","Reference nakreslena. Výše zadejte její skutečnou délku."],"Exports are true to scale: 1 unit = 1 mm.":["Uitvoere is skaalgetrou: 1 eenheid = 1 mm.","Exporty jsou ve skutečném měřítku: 1 jednotka = 1 mm."],"Set the scale in step 3 to unlock exports.":["Stel die skaal in stap 3 om uitvoere te ontsluit.","Pro odemčení exportů nastavte měřítko v kroku 3."],"Set the scale first, so the grid can be drawn in real units.":["Stel eers die skaal sodat die rooster in ware eenhede geteken kan word.","Nejprve nastavte měřítko, aby se mřížka mohla vykreslit ve skutečných jednotkách."],"That edge is already level.":["Daardie rand is reeds gelyk.","Tato hrana už je vyrovnaná."],"Rotated by {a}°.":["Gedraai met {a}°.","Otočeno o {a}°."],"Enter the rectangle’s real width and height first.":["Tik eers die reghoek se werklike wydte en hoogte in.","Nejprve zadejte skutečnou šířku a výšku obdélníku."],"Those corners don’t form a usable rectangle. Check that no three are in a line.":["Daardie hoeke vorm nie ’n bruikbare reghoek nie. Maak seker dat geen drie in ’n lyn lê nie.","Tyto rohy netvoří použitelný obdélník. Zkontrolujte, že žádné tři neleží na jedné přímce."],"Correcting perspective…":["Korrigeer perspektief…","Opravuji perspektivu…"],"Perspective corrected and scale set, so step 3 is done. Check it any time with Measure (M).":["Perspektief gekorrigeer en skaal gestel, dus is stap 3 klaar. Toets dit enige tyd met Meet (M).","Perspektiva opravena a měřítko nastaveno, krok 3 je tedy hotový. Kdykoli ho můžete ověřit nástrojem Měřit (M)."],"No outline found. Raise the sensitivity, or redraw the box with background showing on every side.":["Geen buitelyn gevind nie. Verhoog die sensitiwiteit, of trek die blokkie weer met agtergrond sigbaar aan elke kant.","Nebyl nalezen žádný obrys. Zvyšte citlivost nebo nakreslete rámeček znovu tak, aby na každé straně bylo vidět pozadí."],"Found {list}.":["{list} gevind.","Nalezeno: {list}."]," and ":[" en "," a "],", 1 recognised as a circle":[", waarvan 1 as ’n sirkel herken is",", z toho 1 rozpoznán jako kružnice"],", {n} recognised as circles":[", waarvan {n} as sirkels herken is",", z toho rozpoznáno jako kružnice: {n}"],"Draw a bigger box around the part.":["Trek ’n groter blokkie om die onderdeel.","Nakreslete kolem dílu větší rámeček."],"Finding edges…":["Soek rande…","Hledám hrany…"],"Outline found. Fine-tune with the sliders, then choose “Add to drawing”.":["Buitelyn gevind. Stel fyn met die skuiwers en kies dan “Voeg by tekening”.","Obrys nalezen. Dolaďte ho posuvníky a zvolte „Přidat do výkresu“."],"No clear outline in that box. Try raising the sensitivity.":["Geen duidelike buitelyn in daardie blokkie nie. Probeer die sensitiwiteit verhoog.","V rámečku není zřetelný obrys. Zkuste zvýšit citlivost."],"Added {shapes}. Trace more, or choose Next to tidy and smooth the outline.":["{shapes} bygevoeg. Trek meer na, of kies Volgende om die buitelyn reg en glad te maak.","Přidáno: {shapes}. Obtáhněte další, nebo zvolte Další a obrys upravte a vyhlaďte."],"Point added. Drag it into place.":["Punt bygevoeg. Sleep dit op sy plek.","Bod přidán. Přetáhněte ho na místo."],"Only outline and polyline points can be deleted. Use “Delete shape” instead.":["Net punte van buitelyne en polilyne kan uitgevee word. Gebruik eerder “Vee vorm uit”.","Smazat lze jen body obrysů a lomených čar. Místo toho použijte „Smazat tvar“."],"That would leave too few points. Use “Delete shape” instead.":["Dan bly te min punte oor. Gebruik eerder “Vee vorm uit”.","Zůstalo by příliš málo bodů. Místo toho použijte „Smazat tvar“."],"Off":["Af","Vyp."],"No shape selected. Click one on the photo or in the list below.":["Geen vorm gekies nie. Klik op een op die foto of in die lys hieronder.","Není vybrán žádný tvar. Klikněte na některý na fotografii nebo v seznamu níže."],"Nothing to edit yet. Trace or draw a shape first.":["Nog niks om te wysig nie. Trek of teken eers ’n vorm.","Zatím není co upravovat. Nejprve obtáhněte nebo nakreslete tvar."],"{shape} with {points}, {n} selected.":["{shape} met {points}, {n} gekies.","{shape}: {points}, vybráno {n}."],"{shape} with {points}. Drag across points to select several.":["{shape} met {points}. Sleep oor punte om verskeie te kies.","{shape}: {points}. Tažením přes body jich vyberete více."],"Applies to the selected shape.":["Geld vir die gekose vorm.","Platí pro vybraný tvar."],"Applies to all outlines ({n}). Select one with Edit points to smooth just that shape.":["Geld vir alle buitelyne ({n}). Kies een met Wysig punte om net daardie vorm glad te maak.","Platí pro všechny obrysy ({n}). Chcete-li vyhladit jen jeden tvar, vyberte ho nástrojem Upravit body."],"Trace a shape to see its print size.":["Trek ’n vorm na om sy drukgrootte te sien.","Obtáhněte tvar a uvidíte jeho tiskovou velikost."],"Print size {w} × {h}.":["Drukgrootte {w} × {h}.","Tisková velikost {w} × {h}."],"Print size {w} × {h}, traced {w0} × {h0}.":["Drukgrootte {w} × {h}, nagetrek {w0} × {h0}.","Tisková velikost {w} × {h}, obtaženo {w0} × {h0}."],"Trace or draw a shape first.":["Trek of teken eers ’n vorm.","Nejprve obtáhněte nebo nakreslete tvar."],"The photo is too large to export as PNG in this browser.":["Die foto is te groot om in hierdie blaaier as PNG uit te voer.","Fotografie je pro export do PNG v tomto prohlížeči příliš velká."],"The scale bar is {l} mm long.":["Die skaalstaaf is {l} mm lank.","Měřítková úsečka je dlouhá {l} mm."],"That file isn’t a Trace to Scale project.":["Daardie lêer is nie ’n Trace to Scale-projek nie.","Tento soubor není projekt Trace to Scale."],"Project opened.":["Projek oopgemaak.","Projekt otevřen."],"The photo inside that project couldn’t be read.":["Die foto in daardie projek kon nie gelees word nie.","Fotografii v projektu nelze načíst."],"Saved {f}.":["{f} gestoor.","Uloženo: {f}."],"Unzip it to get {f}.":["Pak dit uit om {f} te kry.","Po rozbalení získáte {f}."],"Download cancelled.":["Aflaai gekanselleer.","Stahování zrušeno."],"A download prompt is already open. Try again in a moment.":["’n Aflaaivenster is reeds oop. Probeer weer oor ’n oomblik.","Okno stahování je už otevřené. Zkuste to za chvíli znovu."],"Downloads aren’t available in this view.":["Aflaaie is nie in hierdie aansig beskikbaar nie.","V tomto zobrazení není stahování k dispozici."],"Drawing cleared. Press Ctrl+Z to bring it back.":["Tekening skoongemaak. Druk Ctrl+Z om dit terug te kry.","Výkres vymazán. Obnovíte ho pomocí Ctrl+Z."],"Trace some lines, rectangles or circles first. The DXF only contains traced geometry.":["Trek eers ’n paar lyne, reghoeke of sirkels. Die DXF bevat net nagetrekte geometrie.","Nejprve obtáhněte nějaké čáry, obdélníky nebo kružnice. DXF obsahuje jen obtaženou geometrii."],"Step 1 of 7":["Stap 1 van 7","Krok 1 ze 7"],"Step 2 of 7":["Stap 2 van 7","Krok 2 ze 7"],"Step 3 of 7":["Stap 3 van 7","Krok 3 ze 7"],"Step 4 of 7":["Stap 4 van 7","Krok 4 ze 7"],"Step 5 of 7":["Stap 5 van 7","Krok 5 ze 7"],"Step 6 of 7":["Stap 6 van 7","Krok 6 ze 7"],"Step 7 of 7":["Stap 7 van 7","Krok 7 ze 7"]};
+const L10N = {"Alignment grid":["Belyningsrooster","Vyrovnávací mřížka"],"Mirror check":["Spieëltoets","Kontrola symetrie"],"Left ↔ right":["Links ↔ regs","Vlevo ↔ vpravo"],"Top ↔ bottom":["Bo ↔ onder","Nahoře ↔ dole"],"Straighten by symmetry":["Maak reguit volgens simmetrie","Narovnat podle symetrie"],"Symmetry difference: {v} on average. Lower is more symmetrical.":["Simmetrieverskil: gemiddeld {v}. Laer is meer simmetries.","Odchylka symetrie: průměrně {v}. Čím menší, tím symetričtější."],"The dashed pink copy is the outline mirrored across the yellow centre line. When the part is straight, they overlap.":["Die gestippelde pienk kopie is die buitelyn gespieël oor die geel middellyn. As die onderdeel reguit is, val hulle oor mekaar.","Čárkovaná růžová kopie je obrys zrcadlený podle žluté osy. Když je díl rovně, obě čáry se kryjí."],"Trace a closed outline first.":["Trek eers ’n geslote buitelyn na.","Nejprve obtáhněte uzavřený obrys."],"Already as straight as the outline allows.":["Reeds so reguit as wat die buitelyn toelaat.","Už je tak rovně, jak to obrys dovolí."],"Rotated by {a}°. Symmetry difference {b} → {c}.":["Gedraai met {a}°. Simmetrieverskil {b} → {c}.","Otočeno o {a}°. Odchylka symetrie {b} → {c}."],"Rotate the photo too":["Draai die foto ook","Otočit i fotografii"],"Line up the photo with the drawing":["Belyn die foto met die tekening","Srovnat fotografii s výkresem"],"Rotates the photo and everything on it together, so the drawing stays lined up and you can keep editing.":["Draai die foto en alles daarop saam, sodat die tekening in lyn bly en jy kan aanhou wysig.","Otáčí fotografii i vše na ní společně, takže výkres zůstane zarovnaný a můžete dál upravovat."],"The drawing was rotated on its own. Line up the photo to keep editing over it.":["Die tekening is alleen gedraai. Belyn die foto om bo-oor dit aan te hou wysig.","Výkres byl otočen samostatně. Srovnejte fotografii, abyste nad ní mohli dál upravovat."],"Photo lined up with the drawing.":["Foto is met die tekening belyn.","Fotografie srovnána s výkresem."],"Rotate":["Draai","Otočit"],"Level by two points":["Maak gelyk met twee punte","Vyrovnat podle dvou bodů"],"Rotates all shapes together around their centre. Select a shape with Edit points to rotate just that one.":["Draai alle vorms saam om hulle middelpunt. Kies ’n vorm met Wysig punte om net daardie een te draai.","Otáčí všechny tvary společně kolem jejich středu. Chcete-li otočit jen jeden tvar, vyberte ho nástrojem Upravit body."],"Rotates the selected shape around its centre.":["Draai die gekose vorm om sy middelpunt.","Otáčí vybraný tvar kolem jeho středu."],"You can also drag the round handle above the shapes. Hold Shift for 15° steps.":["Jy kan ook die ronde handvatsel bo die vorms sleep. Hou Shift in vir stappe van 15°.","Můžete také táhnout kulatý úchyt nad tvary. Se Shiftem se otáčí po 15°."],"Rotate left 1°":["Draai 1° links","Otočit o 1° doleva"],"Rotate left 0.1°":["Draai 0.1° links","Otočit o 0.1° doleva"],"Rotate right 0.1°":["Draai 0.1° regs","Otočit o 0.1° doprava"],"Rotate right 1°":["Draai 1° regs","Otočit o 1° doprava"],"Click one end of a straight edge on the part.":["Klik op die een punt van ’n reguit rand op die onderdeel.","Klikněte na jeden konec rovné hrany dílu."],"Click the other end. The shapes rotate to make it level or upright.":["Klik op die ander punt. Die vorms draai sodat dit gelyk of regop is.","Klikněte na druhý konec. Tvary se otočí tak, aby byla hrana vodorovná nebo svislá."],"View on GitHub":["Bekyk op GitHub","Zobrazit na GitHubu"],"Turn a photo into a to-scale Fusion 360 sketch":["Verander ’n foto in ’n skaalakkurate Fusion 360-skets","Udělejte z fotografie přesný náčrt v měřítku pro Fusion 360"],"2D from photo":["2D uit foto","2D z fotografie"],"3D model":["3D-model","3D model"],"Coming soon":["Kom binnekort","Již brzy"],"Load a photo":["Laai ’n foto","Nahrajte fotografii"],"Use a photo of the part with something of known size beside it, like a ruler, bank card or coin.":["Gebruik ’n foto van die onderdeel met iets van bekende grootte langsaan, soos ’n liniaal, bankkaart of muntstuk.","Použijte fotografii dílu, vedle kterého leží něco známé velikosti, například pravítko, platební karta nebo mince."],"Choose photo":["Kies foto","Vybrat fotografii"],"Open project":["Open projek","Otevřít projekt"],"You can also drop a photo onto the canvas, or paste one with Ctrl+V.":["Jy kan ook ’n foto op die werkarea laat val, of een met Ctrl+V plak.","Fotografii můžete také přetáhnout na plochu nebo vložit pomocí Ctrl+V."],"Next ›":["Volgende ›","Další ›"],"Straighten the photo":["Maak die foto reguit","Narovnejte fotografii"],"Optional":["Opsioneel","Volitelné"],"Shot at an angle? Mark the corners of a flat rectangle of known size lying beside the part. This removes the perspective":["Skuins afgeneem? Merk die hoeke van ’n plat reghoek van bekende grootte wat langs die onderdeel lê. Dit verwyder die perspektief","Fotili jste šikmo? Označte rohy plochého obdélníku známé velikosti, který leží vedle dílu. Tím odstraníte perspektivu"],"and":["en","a"],"sets the scale for you.":["stel sommer ook die skaal vir jou.","zároveň nastavíte měřítko."],"Bank card (85.60 × 53.98 mm)":["Bankkaart (85.60 × 53.98 mm)","Platební karta (85.60 × 53.98 mm)"],"A4 sheet (210 × 297 mm)":["A4-vel (210 × 297 mm)","List A4 (210 × 297 mm)"],"A5 sheet (148 × 210 mm)":["A5-vel (148 × 210 mm)","List A5 (148 × 210 mm)"],"Custom size":["Eie grootte","Vlastní velikost"],"Mark 4 corners":["Merk 4 hoeke","Označit 4 rohy"],"Apply correction":["Pas korreksie toe","Použít opravu"],"0 of 4 corners marked.":["0 van 4 hoeke gemerk.","Označeno 0 ze 4 rohů."],"Level an edge":["Maak ’n rand gelyk","Vyrovnat hranu"],"‹ Back":["‹ Terug","‹ Zpět"],"Set the scale":["Stel die skaal","Nastavte měřítko"],"Draw a line across something you know the size of, then enter its real length. The longer the reference, the more accurate the result.":["Trek ’n lyn oor iets waarvan jy die grootte ken, en tik dan die werklike lengte in. Hoe langer die verwysing, hoe akkurater die resultaat.","Nakreslete čáru přes něco, jehož velikost znáte, a zadejte jeho skutečnou délku. Čím delší reference, tím přesnější výsledek."],"Draw reference line":["Trek verwysingslyn","Nakreslit referenční čáru"],"Or pick a known object…":["Of kies ’n bekende voorwerp…","Nebo vyberte známý předmět…"],"Cards and paper":["Kaarte en papier","Karty a papír"],"Coins (diameter)":["Munte (deursnee)","Mince (průměr)"],"Other":["Ander","Ostatní"],"Bank card, long edge (85.60 mm)":["Bankkaart, lang kant (85.60 mm)","Platební karta, delší strana (85.60 mm)"],"Bank card, short edge (53.98 mm)":["Bankkaart, kort kant (53.98 mm)","Platební karta, kratší strana (53.98 mm)"],"A4 sheet, short edge (210 mm)":["A4-vel, kort kant (210 mm)","List A4, kratší strana (210 mm)"],"A4 sheet, long edge (297 mm)":["A4-vel, lang kant (297 mm)","List A4, delší strana (297 mm)"],"South African R5 (26.00 mm)":["Suid-Afrikaanse R5 (26.00 mm)","Jihoafrická mince R5 (26.00 mm)"],"South African R2 (23.00 mm)":["Suid-Afrikaanse R2 (23.00 mm)","Jihoafrická mince R2 (23.00 mm)"],"South African R1 (20.00 mm)":["Suid-Afrikaanse R1 (20.00 mm)","Jihoafrická mince R1 (20.00 mm)"],"US quarter (24.26 mm)":["VSA-kwartdollar (24.26 mm)","Americký quarter (24.26 mm)"],"€1 coin (23.25 mm)":["€1-muntstuk (23.25 mm)","Mince 1 € (23.25 mm)"],"AA battery, length (50.5 mm)":["AA-battery, lengte (50.5 mm)","Baterie AA, délka (50.5 mm)"],"Ruler, 100 mm span":["Liniaal, 100 mm-afstand","Pravítko, úsek 100 mm"],"No scale yet.":["Nog geen skaal nie.","Měřítko zatím není nastaveno."],"Trace the outline":["Trek die buitelyn na","Obtáhněte obrys"],"Let the tool find the outline for you, or draw it by hand.":["Laat die program die buitelyn vir jou vind, of teken dit met die hand.","Nechte nástroj najít obrys za vás, nebo ho nakreslete ručně."],"Auto trace outline":["Trek buitelyn outomaties na","Automaticky obtáhnout obrys"],"Draw a box around the part on the photo, or":["Trek ’n blokkie om die onderdeel op die foto, of","Nakreslete na fotografii rámeček kolem dílu, nebo"],"trace the whole photo":["trek die hele foto na","obtáhněte celou fotografii"],". A plain background that contrasts with the part works best.":[". ’n Effe agtergrond wat met die onderdeel kontrasteer, werk die beste.",". Nejlépe funguje jednolité pozadí, které s dílem kontrastuje."],"Sensitivity":["Sensitiwiteit","Citlivost"],"Simplify":["Vereenvoudig","Zjednodušit"],"Ignore specks":["Ignoreer spikkels","Ignorovat smítka"],"Include holes and cut-outs":["Sluit gate en uitsnydings in","Zahrnout otvory a výřezy"],"Turn round shapes into circles":["Maak ronde vorms sirkels","Převést kulaté tvary na kružnice"],"Reduce shadows":["Verminder skaduwees","Potlačit stíny"],"No box drawn yet.":["Nog geen blokkie getrek nie.","Zatím není nakreslen žádný rámeček."],"Add to drawing":["Voeg by tekening","Přidat do výkresu"],"Discard":["Gooi weg","Zahodit"],"Or draw by hand":["Of teken met die hand","Nebo kreslete ručně"],"Measure":["Meet","Měřit"],"Line":["Lyn","Čára"],"Polyline":["Polilyn","Lomená čára"],"Rectangle":["Reghoek","Obdélník"],"Circle":["Sirkel","Kružnice"],"Outline":["Buitelyn","Obrys"],"Set origin":["Stel oorsprong","Nastavit počátek"],"Refine the shape":["Verfyn die vorm","Dolaďte tvar"],"Fix glitches by moving or deleting points, and smooth out jagged edges.":["Herstel foutjies deur punte te skuif of uit te vee, en maak hoekige rande glad.","Opravte chyby posunutím nebo smazáním bodů a vyhlaďte zubaté okraje."],"Edit points":["Wysig punte","Upravit body"],"Click a shape to select it, then drag any point to move it. Drag across empty space to select several points. Double-click a line to add a point. Right-drag or hold Space to pan.":["Klik op ’n vorm om dit te kies, en sleep dan enige punt om dit te skuif. Sleep oor leë ruimte om verskeie punte te kies. Dubbelklik op ’n lyn om ’n punt by te voeg. Sleep met die regterknoppie, of hou Spasie in, om die aansig te skuif.","Kliknutím vyberte tvar a pak přetažením posuňte libovolný bod. Tažením přes prázdné místo vyberete více bodů. Dvojklikem na čáru přidáte bod. Zobrazení posunete tažením pravým tlačítkem nebo s podrženým mezerníkem."],"No shape selected.":["Geen vorm gekies nie.","Není vybrán žádný tvar."],"Smooth selected points":["Maak gekose punte glad","Vyhladit vybrané body"],"Delete points":["Vee punte uit","Smazat body"],"Delete shape":["Vee vorm uit","Smazat tvar"],"Smoothing":["Gladmaak","Vyhlazení"],"Fit for printing":["Pas aan vir 3D-druk","Úprava pro 3D tisk"],"Adjust the exported shape for your printer’s tolerances. The trace on the photo stays as it is.":["Pas die uitgevoerde vorm aan vir jou drukker se toleransies. Die natrekking op die foto bly soos dit is.","Upravte exportovaný tvar podle tolerancí vaší tiskárny. Obrys na fotografii zůstane beze změny."],"Scale":["Skaal","Měřítko"],"Outlines":["Buitelyne","Obrysy"],"Holes":["Gate","Otvory"],"Positive values make a shape bigger. For a case or pocket the part must fit into, grow outlines by your printer’s clearance, often 0.2 to 0.4 mm. Holes are shapes that sit inside another outline.":["Positiewe waardes maak ’n vorm groter. Vir ’n houer of holte waarin die onderdeel moet pas, vergroot die buitelyne met jou drukker se speling, gewoonlik 0.2 tot 0.4 mm. Gate is vorms wat binne ’n ander buitelyn lê.","Kladné hodnoty tvar zvětšují. U pouzdra nebo kapsy, do které musí díl zapadnout, zvětšete obrysy o vůli vaší tiskárny, obvykle 0.2 až 0.4 mm. Otvory jsou tvary, které leží uvnitř jiného obrysu."],"Show the print shape on the photo":["Wys die drukvorm op die foto","Zobrazit tiskový tvar na fotografii"],"Export to Fusion 360":["Voer uit na Fusion 360","Export do Fusion 360"],"Download sketch (DXF)":["Laai skets af (DXF)","Stáhnout náčrt (DXF)"],"Include measure lines on their own layer":["Sluit meetlyne op ’n eie laag in","Zahrnout měřicí čáry ve vlastní vrstvě"],"In Fusion: Insert › Insert DXF, pick a plane, set units to mm. Geometry is placed relative to your origin.":["In Fusion: Insert › Insert DXF, kies ’n vlak en stel die eenhede op mm. Die geometrie word relatief tot jou oorsprong geplaas.","Ve Fusion: Insert › Insert DXF, zvolte rovinu a nastavte jednotky na mm. Geometrie se umístí vzhledem k vašemu počátku."],"Download scaled photo (PNG)":["Laai geskaalde foto af (PNG)","Stáhnout fotografii v měřítku (PNG)"],"Add a scale bar":["Voeg ’n skaalstaaf by","Přidat měřítkovou úsečku"],"Include traced lines":["Sluit nagetrekte lyne in","Zahrnout obtažené čáry"],"In Fusion: Insert › Canvas, then right-click the canvas › Calibrate and click the two ends of the scale bar.":["In Fusion: Insert › Canvas, regsklik dan op die canvas › Calibrate en klik op die twee punte van die skaalstaaf.","Ve Fusion: Insert › Canvas, pak klikněte pravým tlačítkem na canvas › Calibrate a klikněte na oba konce měřítkové úsečky."],"Download vector drawing (SVG)":["Laai vektortekening af (SVG)","Stáhnout vektorový výkres (SVG)"],"Embed the photo":["Sluit die foto in","Vložit fotografii"],"Measurements (CSV)":["Metings (CSV)","Rozměry (CSV)"],"Save project":["Stoor projek","Uložit projekt"],"Start with a new photo":["Begin met ’n nuwe foto","Začít s novou fotografií"],"Your shapes":["Jou vorms","Vaše tvary"],"Nothing traced yet.":["Nog niks nagetrek nie.","Zatím nic není obtaženo."],"Undo":["Ontdoen","Vrátit"],"Clear drawing":["Maak tekening skoon","Vymazat výkres"],"View options":["Aansigopsies","Možnosti zobrazení"],"Show in":["Wys in","Zobrazit v"],"inches":["duim","palcích"],"Grid every":["Rooster elke","Mřížka po"],"Mouse and keyboard":["Muis en sleutelbord","Myš a klávesnice"],"Scroll":["Rol","Kolečko"],"Zoom at the cursor":["Zoem by die wyser","Přiblížení u kurzoru"],"Drag":["Sleep","Tažení"],"Pan (in any tool). Drag a point to move it":["Skuif die aansig (in enige hulpmiddel). Sleep ’n punt om dit te skuif","Posun zobrazení (v libovolném nástroji). Tažením bodu ho posunete"],"Lock angle to 15° steps":["Sluit die hoek in stappe van 15°","Zamknout úhel na kroky po 15°"],"Finish a polyline":["Voltooi ’n polilyn","Dokončit lomenou čáru"],"Cancel the current shape":["Kanselleer die huidige vorm","Zrušit rozkreslený tvar"],"Undo (Ctrl+Y redo)":["Ontdoen (Ctrl+Y herdoen)","Vrátit (Ctrl+Y znovu)"],"Edit points. Delete removes selected points":["Wysig punte. Delete vee gekose punte uit","Upravit body. Delete smaže vybrané body"],"Fit photo to view":["Pas foto in die aansig","Přizpůsobit fotografii zobrazení"],"Toggle grid":["Rooster aan/af","Zapnout/vypnout mřížku"],"Drop a photo here":["Laat val ’n foto hier","Přetáhněte sem fotografii"],"Or paste one with Ctrl+V, or choose a file.":["Of plak een met Ctrl+V, of kies ’n lêer.","Nebo ji vložte pomocí Ctrl+V či vyberte soubor."],"For accurate results, shoot straight down from as far away as you can and zoom in, so lens distortion stays low.":["Vir akkurate resultate, neem die foto reguit van bo af, so ver weg as moontlik, en zoem in sodat lensvervorming laag bly.","Pro přesné výsledky foťte kolmo shora z co největší vzdálenosti a přibližte zoomem, aby bylo zkreslení objektivu co nejmenší."],"Put the known object (a ruler, bank card or coin) flat beside the part, at the same height as the face you want to draw.":["Sit die bekende voorwerp (’n liniaal, bankkaart of muntstuk) plat langs die onderdeel, op dieselfde hoogte as die vlak wat jy wil teken.","Položte známý předmět (pravítko, platební kartu nebo minci) naplocho vedle dílu, do stejné výšky jako plocha, kterou chcete kreslit."],"not set":["nie gestel nie","nenastaveno"],"3D import is coming soon":["3D-invoer kom binnekort","3D import bude brzy k dispozici"],"The plan is to open STL, OBJ and 3MF files, measure them in true units, and slice them into section profiles you can bring into a Fusion 360 sketch.":["Die plan is om STL-, OBJ- en 3MF-lêers oop te maak, hulle in ware eenhede te meet, en hulle in deursnitprofiele te sny wat jy in ’n Fusion 360-skets kan gebruik.","V plánu je otevírání souborů STL, OBJ a 3MF, jejich měření ve skutečných jednotkách a řezání na profily průřezů, které můžete přenést do náčrtu ve Fusion 360."],"For now, the 2D photo workflow is ready to use.":["Vir eers is die 2D-fotowerkvloei gereed vir gebruik.","Zatím je připraven pracovní postup 2D z fotografie."],"Go to 2D from photo":["Gaan na 2D uit foto","Přejít na 2D z fotografie"],"Language":["Taal","Jazyk"],"Import type":["Invoertipe","Typ importu"],"Steps":["Stappe","Kroky"],"Reference rectangle":["Verwysingsreghoek","Referenční obdélník"],"Rectangle width in mm":["Reghoekwydte in mm","Šířka obdélníku v mm"],"Rectangle height in mm":["Reghoekhoogte in mm","Výška obdélníku v mm"],"Click two points along an edge that should be horizontal or vertical":["Klik op twee punte langs ’n rand wat horisontaal of vertikaal moet wees","Klikněte na dva body na hraně, která má být vodorovná nebo svislá"],"Rotate 90° left":["Draai 90° links","Otočit o 90° doleva"],"Rotate 90 degrees left":["Draai 90 grade links","Otočit o 90 stupňů doleva"],"Rotate 90° right":["Draai 90° regs","Otočit o 90° doprava"],"Rotate 90 degrees right":["Draai 90 grade regs","Otočit o 90 stupňů doprava"],"Real length":["Werklike lengte","Skutečná délka"],"Real length of the reference":["Werklike lengte van die verwysing","Skutečná délka reference"],"Reference unit":["Verwysingseenheid","Jednotka reference"],"Known object sizes":["Groottes van bekende voorwerpe","Velikosti známých předmětů"],"Drawing tools":["Tekenhulpmiddels","Kreslicí nástroje"],"Decrease scale":["Verklein skaal","Zmenšit měřítko"],"Scale percent":["Skaal in persent","Měřítko v procentech"],"Increase scale":["Vergroot skaal","Zvětšit měřítko"],"Shrink outlines":["Krimp buitelyne","Zmenšit obrysy"],"Outline offset in mm":["Buitelynverskuiwing in mm","Odsazení obrysů v mm"],"Grow outlines":["Vergroot buitelyne","Zvětšit obrysy"],"Shrink holes":["Krimp gate","Zmenšit otvory"],"Hole offset in mm":["Gatverskuiwing in mm","Odsazení otvorů v mm"],"Grow holes":["Vergroot gate","Zvětšit otvory"],"Measurements and traced shapes":["Metings en nagetrekte vorms","Rozměry a obtažené tvary"],"Display unit":["Vertooneenheid","Zobrazovaná jednotka"],"Grid spacing in mm":["Roosterspasiëring in mm","Rozteč mřížky v mm"],"Tools":["Hulpmiddels","Nástroje"],"Pan (V)":["Skuif aansig (V)","Posun (V)"],"Pan":["Skuif aansig","Posun"],"Reference line (K)":["Verwysingslyn (K)","Referenční čára (K)"],"Reference line":["Verwysingslyn","Referenční čára"],"Measure (M)":["Meet (M)","Měřit (M)"],"Line (L)":["Lyn (L)","Čára (L)"],"Polyline (P)":["Polilyn (P)","Lomená čára (P)"],"Rectangle (R)":["Reghoek (R)","Obdélník (R)"],"Circle (C)":["Sirkel (C)","Kružnice (C)"],"Auto trace (A)":["Outomatiese natrekking (A)","Automatické obtažení (A)"],"Auto trace":["Outomatiese natrekking","Automatické obtažení"],"Edit points (E)":["Wysig punte (E)","Upravit body (E)"],"Set origin (O)":["Stel oorsprong (O)","Nastavit počátek (O)"],"Undo (Ctrl+Z)":["Ontdoen (Ctrl+Z)","Vrátit (Ctrl+Z)"],"Grid (G)":["Rooster (G)","Mřížka (G)"],"Zoom out (-)":["Zoem uit (-)","Oddálit (-)"],"Zoom out":["Zoem uit","Oddálit"],"Zoom in (+)":["Zoem in (+)","Přiblížit (+)"],"Zoom in":["Zoem in","Přiblížit"],"Fit to view (F)":["Pas in aansig (F)","Přizpůsobit zobrazení (F)"],"Fit to view":["Pas in aansig","Přizpůsobit zobrazení"],"Drag to move around. Scroll to zoom.":["Sleep om rond te beweeg. Rol om te zoem.","Tažením se posunete, kolečkem přiblížíte."],"Click one end of the object you know the size of.":["Klik op die een punt van die voorwerp waarvan jy die grootte ken.","Klikněte na jeden konec předmětu, jehož velikost znáte."],"Click the other end.":["Klik op die ander punt.","Klikněte na druhý konec."],"Click the start of the distance to measure.":["Klik op die begin van die afstand wat jy wil meet.","Klikněte na začátek měřené vzdálenosti."],"Click the end.":["Klik op die einde.","Klikněte na konec."],"Click the start of the line.":["Klik op die begin van die lyn.","Klikněte na začátek čáry."],"Click the end of the line.":["Klik op die einde van die lyn.","Klikněte na konec čáry."],"Click one corner of the rectangle.":["Klik op een hoek van die reghoek.","Klikněte na jeden roh obdélníku."],"Click the opposite corner.":["Klik op die teenoorgestelde hoek.","Klikněte na protější roh."],"Click the centre of the circle.":["Klik op die middelpunt van die sirkel.","Klikněte na střed kružnice."],"Click any point on its edge.":["Klik op enige punt op die rand.","Klikněte na libovolný bod na jejím obvodu."],"Click the first point.":["Klik op die eerste punt.","Klikněte na první bod."],"Keep clicking. Click the first point to close, or press Enter to finish.":["Hou aan klik. Klik op die eerste punt om die vorm toe te maak, of druk Enter om klaar te maak.","Pokračujte v klikání. Kliknutím na první bod tvar uzavřete, klávesou Enter ho dokončíte."],"Click the point that should be 0,0 in Fusion.":["Klik op die punt wat 0,0 in Fusion moet wees.","Klikněte na bod, který má být ve Fusion 0,0."],"Click the first corner of the rectangle.":["Klik op die eerste hoek van die reghoek.","Klikněte na první roh obdélníku."],"Click the next corner, going around the rectangle.":["Klik op die volgende hoek, om die reghoek heen.","Klikněte na další roh, postupně kolem obdélníku."],"Click the third corner.":["Klik op die derde hoek.","Klikněte na třetí roh."],"Click the last corner.":["Klik op die laaste hoek.","Klikněte na poslední roh."],"Click one end of an edge that should be level or upright.":["Klik op die een punt van ’n rand wat gelyk of regop moet wees.","Klikněte na jeden konec hrany, která má být vodorovná nebo svislá."],"Click one corner of a box around the part. Leave some background showing on every side.":["Klik op een hoek van ’n blokkie om die onderdeel. Laat aan elke kant ’n bietjie agtergrond sigbaar.","Klikněte na jeden roh rámečku kolem dílu. Na každé straně nechte kousek pozadí."],"Click a shape, then drag its points. Drag across empty space to select several. Double-click a line to add a point.":["Klik op ’n vorm en sleep dan sy punte. Sleep oor leë ruimte om verskeie te kies. Dubbelklik op ’n lyn om ’n punt by te voeg.","Klikněte na tvar a táhněte jeho body. Tažením přes prázdné místo vyberete více bodů. Dvojklikem na čáru přidáte bod."],"Hold Shift to lock the angle.":["Hou Shift in om die hoek te sluit.","Podržením Shift zamknete úhel."],"Adjust the sliders in step 4, then choose “Add to drawing”. Or click to draw a new box.":["Stel die skuiwers in stap 4 en kies dan “Voeg by tekening”. Of klik om ’n nuwe blokkie te trek.","Upravte posuvníky v kroku 4 a zvolte „Přidat do výkresu“. Nebo klikněte a nakreslete nový rámeček."],"Drag corners to fine-tune, then choose “Apply correction”.":["Sleep die hoeke om fyn aan te pas, en kies dan “Pas korreksie toe”.","Přetažením rohů je dolaďte a pak zvolte „Použít opravu“."],"Reference set. Drag its ends to fine-tune, or click to draw a new one.":["Verwysing gestel. Sleep die punte om fyn aan te pas, of klik om ’n nuwe een te trek.","Reference je nastavena. Přetažením konců ji dolaďte, nebo klikněte a nakreslete novou."],"Now type the real length in step 3.":["Tik nou die werklike lengte in stap 3 in.","Nyní zadejte skutečnou délku v kroku 3."],"Photo":["Foto","Foto"],"Angle":["Hoek","Úhel"],"Trace":["Natrek","Obrys"],"Refine":["Verfyn","Doladit"],"Fit":["Pas","Tisk"],"Export":["Uitvoer","Export"],"Skip ›":["Slaan oor ›","Přeskočit ›"],"Skip to export ›":["Gaan na uitvoer ›","Přejít k exportu ›"],"Load a photo to continue.":["Laai ’n foto om voort te gaan.","Pro pokračování nahrajte fotografii."],"Enter the real length of the reference line to continue.":["Tik die werklike lengte van die verwysingslyn in om voort te gaan.","Pro pokračování zadejte skutečnou délku referenční čáry."],"Draw a reference line on the photo to continue.":["Trek ’n verwysingslyn op die foto om voort te gaan.","Pro pokračování nakreslete na fotografii referenční čáru."],"Step {n}: {name}":["Stap {n}: {name}","Krok {n}: {name}"],"Load a photo first":["Laai eers ’n foto","Nejprve nahrajte fotografii"],"Set the scale first":["Stel eers die skaal","Nejprve nastavte měřítko"],"Nothing to undo.":["Niks om te ontdoen nie.","Není co vrátit."],"That file isn’t an image. Use a JPG, PNG or WebP photo.":["Daardie lêer is nie ’n prent nie. Gebruik ’n JPG-, PNG- of WebP-foto.","Tento soubor není obrázek. Použijte fotografii JPG, PNG nebo WebP."],"This browser can’t open that image. HEIC photos need converting to JPG first.":["Hierdie blaaier kan nie daardie prent oopmaak nie. HEIC-foto’s moet eers na JPG omgeskakel word.","Tento prohlížeč obrázek neotevře. Fotografie HEIC je nejprve potřeba převést na JPG."],"Photo loaded. It was reduced to {w} × {h} px to stay responsive.":["Foto gelaai. Dit is na {w} × {h} px verklein sodat die program vinnig bly.","Fotografie načtena. Byla zmenšena na {w} × {h} px, aby aplikace zůstala svižná."],"Origin set. DXF coordinates are now measured from this point.":["Oorsprong gestel. DXF-koördinate word nou vanaf hierdie punt gemeet.","Počátek nastaven. Souřadnice DXF se nyní měří od tohoto bodu."],"Reference {v}":["Verwysing {v}","Reference {v}"],"Reference: enter its length":["Verwysing: tik die lengte in","Reference: zadejte délku"],"Radius {r}, Ø {d}":["Radius {r}, Ø {d}","Poloměr {r}, Ø {d}"],"Length {l} at {a}°":["Lengte {l} teen {a}°","Délka {l} pod úhlem {a}°"],"{n} pts, {len}":["{n} punte, {len}","bodů: {n}, {len}"],"Delete {item}":["Vee {item} uit","Smazat: {item}"],"Print: {v}":["Druk: {v}","Tisk: {v}"],"Loaded {name} ({w} × {h} px).":["{name} gelaai ({w} × {h} px).","Načteno: {name} ({w} × {h} px)."],"All 4 corners marked. Drag them to fine-tune if needed.":["Al 4 hoeke is gemerk. Sleep hulle om fyn aan te pas indien nodig.","Všechny 4 rohy jsou označeny. V případě potřeby je přetažením dolaďte."],"{n} of 4 corners marked.":["{n} van 4 hoeke gemerk.","Označeno {n} ze 4 rohů."],"{v} px per mm":["{v} px per mm","{v} px na mm"],"Scale set: {s}. Photo covers {w} × {h}.":["Skaal gestel: {s}. Die foto dek {w} × {h}.","Měřítko nastaveno: {s}. Fotografie pokrývá {w} × {h}."],"The reference is only {px} px long. Clicking 1 px off gives about {e}% error, so use a longer reference if you can.":["Die verwysing is net {px} px lank. As jy 1 px mis klik, gee dit sowat {e}% fout, so gebruik ’n langer verwysing as jy kan.","Reference je dlouhá jen {px} px. Chyba kliknutí o 1 px znamená asi {e}% odchylku, proto použijte delší referenci, pokud můžete."],"Reference drawn. Enter its real length above.":["Verwysing getrek. Tik die werklike lengte hierbo in.","Reference nakreslena. Výše zadejte její skutečnou délku."],"Exports are true to scale: 1 unit = 1 mm.":["Uitvoere is skaalgetrou: 1 eenheid = 1 mm.","Exporty jsou ve skutečném měřítku: 1 jednotka = 1 mm."],"Set the scale in step 3 to unlock exports.":["Stel die skaal in stap 3 om uitvoere te ontsluit.","Pro odemčení exportů nastavte měřítko v kroku 3."],"Set the scale first, so the grid can be drawn in real units.":["Stel eers die skaal sodat die rooster in ware eenhede geteken kan word.","Nejprve nastavte měřítko, aby se mřížka mohla vykreslit ve skutečných jednotkách."],"That edge is already level.":["Daardie rand is reeds gelyk.","Tato hrana už je vyrovnaná."],"Rotated by {a}°.":["Gedraai met {a}°.","Otočeno o {a}°."],"Enter the rectangle’s real width and height first.":["Tik eers die reghoek se werklike wydte en hoogte in.","Nejprve zadejte skutečnou šířku a výšku obdélníku."],"Those corners don’t form a usable rectangle. Check that no three are in a line.":["Daardie hoeke vorm nie ’n bruikbare reghoek nie. Maak seker dat geen drie in ’n lyn lê nie.","Tyto rohy netvoří použitelný obdélník. Zkontrolujte, že žádné tři neleží na jedné přímce."],"Correcting perspective…":["Korrigeer perspektief…","Opravuji perspektivu…"],"Perspective corrected and scale set, so step 3 is done. Check it any time with Measure (M).":["Perspektief gekorrigeer en skaal gestel, dus is stap 3 klaar. Toets dit enige tyd met Meet (M).","Perspektiva opravena a měřítko nastaveno, krok 3 je tedy hotový. Kdykoli ho můžete ověřit nástrojem Měřit (M)."],"No outline found. Raise the sensitivity, or redraw the box with background showing on every side.":["Geen buitelyn gevind nie. Verhoog die sensitiwiteit, of trek die blokkie weer met agtergrond sigbaar aan elke kant.","Nebyl nalezen žádný obrys. Zvyšte citlivost nebo nakreslete rámeček znovu tak, aby na každé straně bylo vidět pozadí."],"Found {list}.":["{list} gevind.","Nalezeno: {list}."]," and ":[" en "," a "],", 1 recognised as a circle":[", waarvan 1 as ’n sirkel herken is",", z toho 1 rozpoznán jako kružnice"],", {n} recognised as circles":[", waarvan {n} as sirkels herken is",", z toho rozpoznáno jako kružnice: {n}"],"Draw a bigger box around the part.":["Trek ’n groter blokkie om die onderdeel.","Nakreslete kolem dílu větší rámeček."],"Finding edges…":["Soek rande…","Hledám hrany…"],"Outline found. Fine-tune with the sliders, then choose “Add to drawing”.":["Buitelyn gevind. Stel fyn met die skuiwers en kies dan “Voeg by tekening”.","Obrys nalezen. Dolaďte ho posuvníky a zvolte „Přidat do výkresu“."],"No clear outline in that box. Try raising the sensitivity.":["Geen duidelike buitelyn in daardie blokkie nie. Probeer die sensitiwiteit verhoog.","V rámečku není zřetelný obrys. Zkuste zvýšit citlivost."],"Added {shapes}. Trace more, or choose Next to tidy and smooth the outline.":["{shapes} bygevoeg. Trek meer na, of kies Volgende om die buitelyn reg en glad te maak.","Přidáno: {shapes}. Obtáhněte další, nebo zvolte Další a obrys upravte a vyhlaďte."],"Point added. Drag it into place.":["Punt bygevoeg. Sleep dit op sy plek.","Bod přidán. Přetáhněte ho na místo."],"Only outline and polyline points can be deleted. Use “Delete shape” instead.":["Net punte van buitelyne en polilyne kan uitgevee word. Gebruik eerder “Vee vorm uit”.","Smazat lze jen body obrysů a lomených čar. Místo toho použijte „Smazat tvar“."],"That would leave too few points. Use “Delete shape” instead.":["Dan bly te min punte oor. Gebruik eerder “Vee vorm uit”.","Zůstalo by příliš málo bodů. Místo toho použijte „Smazat tvar“."],"Off":["Af","Vyp."],"No shape selected. Click one on the photo or in the list below.":["Geen vorm gekies nie. Klik op een op die foto of in die lys hieronder.","Není vybrán žádný tvar. Klikněte na některý na fotografii nebo v seznamu níže."],"Nothing to edit yet. Trace or draw a shape first.":["Nog niks om te wysig nie. Trek of teken eers ’n vorm.","Zatím není co upravovat. Nejprve obtáhněte nebo nakreslete tvar."],"{shape} with {points}, {n} selected.":["{shape} met {points}, {n} gekies.","{shape}: {points}, vybráno {n}."],"{shape} with {points}. Drag across points to select several.":["{shape} met {points}. Sleep oor punte om verskeie te kies.","{shape}: {points}. Tažením přes body jich vyberete více."],"Applies to the selected shape.":["Geld vir die gekose vorm.","Platí pro vybraný tvar."],"Applies to all outlines ({n}). Select one with Edit points to smooth just that shape.":["Geld vir alle buitelyne ({n}). Kies een met Wysig punte om net daardie vorm glad te maak.","Platí pro všechny obrysy ({n}). Chcete-li vyhladit jen jeden tvar, vyberte ho nástrojem Upravit body."],"Trace a shape to see its print size.":["Trek ’n vorm na om sy drukgrootte te sien.","Obtáhněte tvar a uvidíte jeho tiskovou velikost."],"Print size {w} × {h}.":["Drukgrootte {w} × {h}.","Tisková velikost {w} × {h}."],"Print size {w} × {h}, traced {w0} × {h0}.":["Drukgrootte {w} × {h}, nagetrek {w0} × {h0}.","Tisková velikost {w} × {h}, obtaženo {w0} × {h0}."],"Trace or draw a shape first.":["Trek of teken eers ’n vorm.","Nejprve obtáhněte nebo nakreslete tvar."],"The photo is too large to export as PNG in this browser.":["Die foto is te groot om in hierdie blaaier as PNG uit te voer.","Fotografie je pro export do PNG v tomto prohlížeči příliš velká."],"The scale bar is {l} mm long.":["Die skaalstaaf is {l} mm lank.","Měřítková úsečka je dlouhá {l} mm."],"That file isn’t a Trace to Scale project.":["Daardie lêer is nie ’n Trace to Scale-projek nie.","Tento soubor není projekt Trace to Scale."],"Project opened.":["Projek oopgemaak.","Projekt otevřen."],"The photo inside that project couldn’t be read.":["Die foto in daardie projek kon nie gelees word nie.","Fotografii v projektu nelze načíst."],"Saved {f}.":["{f} gestoor.","Uloženo: {f}."],"Unzip it to get {f}.":["Pak dit uit om {f} te kry.","Po rozbalení získáte {f}."],"Download cancelled.":["Aflaai gekanselleer.","Stahování zrušeno."],"A download prompt is already open. Try again in a moment.":["’n Aflaaivenster is reeds oop. Probeer weer oor ’n oomblik.","Okno stahování je už otevřené. Zkuste to za chvíli znovu."],"Downloads aren’t available in this view.":["Aflaaie is nie in hierdie aansig beskikbaar nie.","V tomto zobrazení není stahování k dispozici."],"Drawing cleared. Press Ctrl+Z to bring it back.":["Tekening skoongemaak. Druk Ctrl+Z om dit terug te kry.","Výkres vymazán. Obnovíte ho pomocí Ctrl+Z."],"Trace some lines, rectangles or circles first. The DXF only contains traced geometry.":["Trek eers ’n paar lyne, reghoeke of sirkels. Die DXF bevat net nagetrekte geometrie.","Nejprve obtáhněte nějaké čáry, obdélníky nebo kružnice. DXF obsahuje jen obtaženou geometrii."],"Step 1 of 7":["Stap 1 van 7","Krok 1 ze 7"],"Step 2 of 7":["Stap 2 van 7","Krok 2 ze 7"],"Step 3 of 7":["Stap 3 van 7","Krok 3 ze 7"],"Step 4 of 7":["Stap 4 van 7","Krok 4 ze 7"],"Step 5 of 7":["Stap 5 van 7","Krok 5 ze 7"],"Step 6 of 7":["Stap 6 van 7","Krok 6 ze 7"],"Step 7 of 7":["Stap 7 van 7","Krok 7 ze 7"]};
 const PLURALS = {"en":{"outline":["outline","outlines"],"hole":["hole","holes"],"shape":["shape","shapes"],"point":["point","points"]},"af":{"outline":["buitelyn","buitelyne"],"hole":["gat","gate"],"shape":["vorm","vorms"],"point":["punt","punte"]},"cs":{"outline":["obrys","obrysy","obrysů"],"hole":["otvor","otvory","otvorů"],"shape":["tvar","tvary","tvarů"],"point":["bod","body","bodů"]}};
 let LANG = 'en';
 function tx(key, vars){
@@ -636,9 +666,13 @@ function toast(msg, ms=3200){
 const safeName = () => (S.name || 'photo').replace(/[^\w\-]+/g,'_').slice(0,60) || 'photo';
 
 /* ---------- history ---------- */
-const snapshot = () => JSON.stringify({ shapes:S.shapes, measures:S.measures, calLine:S.calLine, persp:S.persp, origin:S.origin });
+const snapshot = () => JSON.stringify({ shapes:S.shapes, measures:S.measures, calLine:S.calLine, persp:S.persp, origin:S.origin, drawM:S.drawM || null, photoAng:S.rotBase ? S.rotBase.ang : 0 });
 function commit(){ S.hist.push(snapshot()); if (S.hist.length > 300) S.hist.shift(); S.future = []; }
-function restore(str){ Object.assign(S, JSON.parse(str)); S.selPts = new Set(); if (S.sel >= S.shapes.length) S.sel = -1; }
+function restore(str){
+  const o = JSON.parse(str), pa = o.photoAng; delete o.photoAng;
+  if (S.rotBase && pa != null && Math.abs(pa - S.rotBase.ang) > 1e-12) renderPhoto(pa);
+  Object.assign(S, o); S.selPts = new Set(); if (S.sel >= S.shapes.length) S.sel = -1; S.pg = null;
+}
 function undo(){
   if (S.pending.length){ S.pending.pop(); updateUI(); return; }
   if (!S.hist.length){ toast(tx('Nothing to undo.')); return; }
@@ -685,7 +719,7 @@ function setImage(im, name){
   const maxPx = 36e6; let note = '';
   if (w*h > maxPx){ const f = Math.sqrt(maxPx/(w*h)); w = Math.round(w*f); h = Math.round(h*f); note = 'y'; }
   const c = mk(w,h); c.getContext('2d').drawImage(im, 0, 0, w, h);
-  Object.assign(S, { src:c, name, mmpp:null, calLine:null, origin:null, shapes:[], measures:[], persp:[], pending:[], hist:[], future:[], corrected:false, hover:null, hl:null, auto:null, sel:-1, selPts:new Set() });
+  Object.assign(S, { src:c, name, mmpp:null, calLine:null, origin:null, shapes:[], measures:[], persp:[], pending:[], hist:[], future:[], corrected:false, hover:null, hl:null, auto:null, sel:-1, selPts:new Set(), rotBase:null, drawM:null, photoPreview:null });
   $('#calLen').value = '';
   fit(); goStep(2);
   if (note) toast(tx('Photo loaded. It was reduced to {w} × {h} px to stay responsive.', { w, h }), 5000);
@@ -696,7 +730,7 @@ const STEPS = [
   { id:'s1', lbl:'Photo' }, { id:'s2', lbl:'Angle' }, { id:'s3', lbl:'Scale' }, { id:'s4', lbl:'Trace' },
   { id:'s5', lbl:'Refine' }, { id:'s6', lbl:'Fit' }, { id:'s7', lbl:'Export' }
 ];
-const TOOL_STEP = { persp:2, level:2, cal:3, auto:4, measure:4, line:4, poly:4, rect:4, circle:4, origin:4, edit:5 };
+const TOOL_STEP = { persp:2, level:2, cal:3, auto:4, measure:4, line:4, poly:4, rect:4, circle:4, origin:4, edit:5, rlevel:5 };
 const reachable = n => n === 1 || (!!S.src && (n <= 3 || !!S.mmpp));
 const stepDone = n => [!!S.src, S.corrected, !!S.mmpp, S.shapes.length > 0, S.shapes.some(s => s.smooth > 0), printActive(), false][n-1];
 const canNext = n => n === 1 ? !!S.src : n === 3 ? !!S.mmpp : true;
@@ -752,7 +786,7 @@ function setTool(t, fromStep){
   if (!fromStep){ const w = TOOL_STEP[t]; if (w && w !== S.step && reachable(w)) S.step = w; }
   S.tool = t; S.pending = [];
   if (t !== 'auto') S.auto = null;
-  if (t !== 'edit'){ S.sel = -1; S.selPts = new Set(); }
+  if (t !== 'edit' && t !== 'rlevel'){ S.sel = -1; S.selPts = new Set(); }
   updateUI();
 }
 function hintText(){
@@ -814,15 +848,16 @@ function place(p){
     if (dist(a,b) < 0.5){ updateUI(); return; }
     if (t === 'cal'){ commit(); S.calLine = [a,b]; updateUI(); const inp = $('#calLen'); if (!inp.value) inp.focus(); return; }
     if (t === 'measure'){ commit(); S.measures.push({a,b}); }
-    else if (t === 'line' || t === 'rect' || t === 'circle'){ commit(); S.shapes.push({ type:t, pts:[a,b] }); }
+    else if (t === 'line' || t === 'rect' || t === 'circle'){ commit(); S.shapes.push({ type:t, pts:[a,b] }); S.drawM = null; }
     else if (t === 'auto'){ runAuto(a,b); updateUI(); return; }
+    else if (t === 'rlevel'){ rotLevel(a,b); return; }
     else if (t === 'level'){ levelImage(a,b); return; }
   }
   updateUI();
 }
 function finishPoly(closed){
   const pts = S.pending.slice(); S.pending = [];
-  if (pts.length >= 2){ commit(); S.shapes.push({ type:'poly', pts, closed:!!closed }); }
+  if (pts.length >= 2){ commit(); S.shapes.push({ type:'poly', pts, closed:!!closed }); S.drawM = null; }
   updateUI();
 }
 
@@ -843,6 +878,14 @@ cv.addEventListener('pointerdown', e => {
   }
   if (e.button !== 0) return;
   if (S.tool === 'edit'){
+    let rh = rotHandle();
+    if (rh && Math.hypot(m.x-rh.x, m.y-rh.y) < 13){
+      const photo = $('#rotPhoto').checked;
+      if (photo && S.drawM){ lineUpPhoto(true); rh = rotHandle(); }
+      const ip = toImg(m);
+      drag = { kind:'rot', photo, T:rotTargets(), pivot:rh.pivot, a0:Math.atan2(ip.y-rh.pivot.y, ip.x-rh.pivot.x), sx:m.x, sy:m.y, moved:false, orig:null, ang:0 };
+      return;
+    }
     const v = hitVertex(m);
     if (v){
       if (S.sel !== v.i){ S.sel = v.i; S.selPts = new Set(); }
@@ -884,6 +927,28 @@ cv.addEventListener('pointermove', e => {
   if (drag && drag.kind === 'pan'){
     S.view.x = drag.vx + m.x - drag.sx; S.view.y = drag.vy + m.y - drag.sy;
   }
+  if (drag && drag.kind === 'rot'){
+    if (!drag.moved && Math.hypot(m.x-drag.sx, m.y-drag.sy) > 3){
+      drag.moved = true;
+      if (drag.photo){ prepRotate(drag.T); drag.snap = snapshot(); }
+      else { commit(); prepRotate(drag.T); drag.orig = drag.T.map(i => ({ pts:copyPts(S.shapes[i].pts), base:S.shapes[i].base ? copyPts(S.shapes[i].base) : null })); }
+    }
+    if (drag.moved){
+      const ip = toImg(m);
+      let ang = Math.atan2(ip.y-drag.pivot.y, ip.x-drag.pivot.x) - drag.a0;
+      ang = Math.atan2(Math.sin(ang), Math.cos(ang));
+      const stepR = (shift ? 15 : 0.1) * Math.PI/180;
+      ang = Math.round(ang/stepR)*stepR;
+      drag.ang = ang;
+      if (drag.photo){ restore(drag.snap); rotateAll(ang, drag.pivot); S.photoPreview = { ang, pivot:drag.pivot }; }
+      else {
+        drag.T.forEach((i, k) => { const s = S.shapes[i]; s.pts = copyPts(drag.orig[k].pts); s.base = drag.orig[k].base ? copyPts(drag.orig[k].base) : null; });
+        rotateShapes(drag.T, ang, drag.pivot);
+      }
+      S.rotAng = ang; S.pg = null; S.rotSym = mirrorMode() ? currentSym() : null;
+    }
+    S.curScreen = m; S.cur = toImg(m); updateStatus(); draw(); return;
+  }
   if (drag && (drag.kind === 'edpts' || drag.kind === 'edshape')){
     if (!drag.moved && Math.hypot(m.x-drag.sx, m.y-drag.sy) > 3){ drag.moved = true; commit(); if (drag.kind === 'edpts') bake(drag.i); }
     if (drag.moved){
@@ -906,7 +971,10 @@ cv.addEventListener('pointermove', e => {
     const r = cursorPoint(m); S.cur = r.p; S.snapObj = r.snapObj;
     S.hover = (!drag && !S.pending.length && S.tool !== 'pan') ? hitHandle(m) : null;
   }
-  cv.classList.toggle('move', !!S.hover || (drag && drag.kind === 'pt'));
+  const rhh = !drag && S.tool === 'edit' ? rotHandle() : null;
+  const onRot = !!(rhh && Math.hypot(m.x-rhh.x, m.y-rhh.y) < 13) || (drag && drag.kind === 'rot');
+  cv.classList.toggle('rot', onRot);
+  cv.classList.toggle('move', !onRot && (!!S.hover || (drag && drag.kind === 'pt')));
   updateStatus(); draw();
 });
 function endPointer(e){
@@ -915,6 +983,12 @@ function endPointer(e){
   const m = mpos(e);
   if (drag.kind === 'pinch'){ if (ptrs.size < 2) drag = null; return; }
   if (drag.kind === 'edpts' || drag.kind === 'edshape'){ drag = null; updateUI(); return; }
+  if (drag.kind === 'rot'){
+    const d = drag; drag = null; S.rotAng = null; S.rotSym = null; cv.classList.remove('rot');
+    if (d.moved && d.photo){ restore(d.snap); S.photoPreview = null; if (Math.abs(d.ang) > 1e-9) photoRotateBy(d.ang, d.pivot); else updateUI(); }
+    else { if (d.moved && d.ang && d.T.length === S.shapes.length) composeM(d.ang, d.pivot); updateUI(); }
+    return;
+  }
   if (drag.kind === 'marquee'){
     const x0 = Math.min(drag.sx, drag.ex), x1 = Math.max(drag.sx, drag.ex), y0 = Math.min(drag.sy, drag.ey), y1 = Math.max(drag.sy, drag.ey);
     if (x1-x0 < 4 && y1-y0 < 4){ if (!drag.add){ S.sel = -1; S.selPts = new Set(); } }
@@ -1092,8 +1166,8 @@ function drawPending(){
   const t = S.tool, P = S.pending, c = S.cur;
   if (!P.length || !c) return;
   const a = P[0];
-  if (t === 'cal' || t === 'measure' || t === 'line' || t === 'level'){
-    const col = t === 'cal' ? C.cal : t === 'measure' ? C.meas : t === 'level' ? '#fff' : C.trace;
+  if (t === 'cal' || t === 'measure' || t === 'line' || t === 'level' || t === 'rlevel'){
+    const col = t === 'cal' ? C.cal : t === 'measure' ? C.meas : (t === 'level' || t === 'rlevel') ? '#fff' : C.trace;
     stroke(() => { moveTo(a); lineTo(c); }, col, 2, [6,5]);
     segLabel(a, c, fmtLen(dist(a,c)), col, 20);
   } else if (t === 'rect' || t === 'auto'){
@@ -1131,12 +1205,16 @@ function draw(){
   if (!S.src){ lp.style.display = 'none'; return; }
   const v = S.view;
   ctx.save(); ctx.translate(v.x, v.y); ctx.scale(v.s, v.s);
+  if (S.photoPreview){ const pp = S.photoPreview; ctx.translate(pp.pivot.x, pp.pivot.y); ctx.rotate(pp.ang); ctx.translate(-pp.pivot.x, -pp.pivot.y); }
   ctx.imageSmoothingEnabled = v.s < 3; ctx.imageSmoothingQuality = 'high';
   ctx.drawImage(S.src, 0, 0); ctx.restore();
   if (S.grid && S.mmpp) drawGrid();
+  drawAlignGrid();
   drawOrigin();
   S.shapes.forEach(drawShape);
   drawPrint();
+  drawMirror();
+  drawRotHandle();
   S.measures.forEach(drawMeasure);
   drawAuto(); drawCal(); drawPersp(); drawPending();
   if (drag && drag.kind === 'marquee'){
@@ -1295,7 +1373,7 @@ function remapAll(fn){
   if (S.calLine) S.calLine.forEach(m);
   if (S.origin) m(S.origin);
   S.persp.forEach(m);
-  S.pending = []; S.hist = []; S.future = []; S.auto = null; S.sel = -1; S.selPts = new Set();
+  S.pending = []; S.hist = []; S.future = []; S.auto = null; S.sel = -1; S.selPts = new Set(); S.rotBase = null; S.drawM = null;
 }
 function rotate90(dir){
   if (!S.src) return;
@@ -1637,7 +1715,7 @@ function retrace(rebuild){
 }
 function addAuto(){
   const A = S.auto; if (!A || !A.loops.length) return;
-  commit();
+  commit(); S.drawM = null;
   A.loops.forEach(l => {
     if (l.circle){ const c = l.circle.c; S.shapes.push({ type:'circle', pts:[{ x:c.x, y:c.y }, { x:c.x + l.circle.r, y:c.y }] }); }
     else S.shapes.push({ type:'poly', pts:l.pts.map(p => ({ x:p.x, y:p.y })), closed:true });
@@ -1735,6 +1813,243 @@ function straightenSel(){
   updateUI();
 }
 function deleteSelShape(){ if (S.sel < 0) return; commit(); S.shapes.splice(S.sel, 1); S.sel = -1; S.selPts = new Set(); updateUI(); }
+
+/* ---------- rotating shapes ---------- */
+function rotTargets(){
+  if ($('#rotPhoto').checked) return S.shapes.map((_, i) => i);
+  if ((S.tool === 'edit' || S.tool === 'rlevel') && S.sel >= 0 && S.shapes[S.sel]) return [S.sel];
+  return S.shapes.map((_, i) => i);
+}
+function targetsBounds(T){
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  const e = (x, y) => { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; };
+  T.forEach(i => {
+    const s = S.shapes[i]; if (!s) return;
+    if (s.type === 'circle'){ const r = dist(s.pts[0], s.pts[1]); e(s.pts[0].x-r, s.pts[0].y-r); e(s.pts[0].x+r, s.pts[0].y+r); }
+    else s.pts.forEach(p => e(p.x, p.y));
+  });
+  return isFinite(x0) ? { x0, y0, x1, y1, cx:(x0+x1)/2, cy:(y0+y1)/2 } : null;
+}
+function prepRotate(T){
+  T.forEach(i => {
+    const s = S.shapes[i];
+    if (s.type === 'rect'){ s.pts = rectCorners(s.pts[0], s.pts[1]).map(p => ({ x:p.x, y:p.y })); s.type = 'poly'; s.closed = true; s.base = null; s.smooth = 0; }
+  });
+}
+function rotateShapes(T, ang, pv){
+  const c = Math.cos(ang), sn = Math.sin(ang);
+  const f = p => { const dx = p.x-pv.x, dy = p.y-pv.y; p.x = pv.x + c*dx - sn*dy; p.y = pv.y + sn*dx + c*dy; };
+  T.forEach(i => { const s = S.shapes[i]; s.pts.forEach(f); if (s.base) s.base.forEach(f); });
+}
+function nudgeRotate(deg){ rotateByRad(deg*Math.PI/180); }
+function rotateByRad(d){
+  const T = rotTargets(); if (!T.length) return;
+  if ($('#rotPhoto').checked){ rotateWithPhoto(d); return; }
+  commit(); prepRotate(T);
+  const b = targetsBounds(T), pv = { x:b.cx, y:b.cy };
+  rotateShapes(T, d, pv);
+  if (T.length === S.shapes.length) composeM(d, pv);
+  updateUI();
+}
+function rotLevel(a, b){
+  const T = rotTargets();
+  setTool('edit');
+  if (!T.length) return;
+  const ang = Math.atan2(b.y-a.y, b.x-a.x), target = Math.round(ang/(Math.PI/2))*(Math.PI/2), th = target - ang;
+  if (Math.abs(th) < 1e-4){ toast(tx('That edge is already level.')); return; }
+  if ($('#rotPhoto').checked) rotateWithPhoto(th);
+  else {
+    commit(); prepRotate(T);
+    const bb = targetsBounds(T), pv = { x:bb.cx, y:bb.cy };
+    rotateShapes(T, th, pv);
+    if (T.length === S.shapes.length) composeM(th, pv);
+    updateUI();
+  }
+  toast(tx('Rotated by {a}°.', { a:(th*180/Math.PI).toFixed(2) }));
+}
+/* drawing-only rotations are recorded so the photo can be lined up later */
+function composeM(d, pv){
+  const M = S.drawM || { a:0, tx:0, ty:0 }, c = Math.cos(d), sn = Math.sin(d);
+  const N = { a:M.a + d, tx:c*M.tx - sn*M.ty - (c*pv.x - sn*pv.y) + pv.x, ty:sn*M.tx + c*M.ty - (sn*pv.x + c*pv.y) + pv.y };
+  const an = Math.atan2(Math.sin(N.a), Math.cos(N.a));
+  S.drawM = (Math.abs(an) < 1e-9 && Math.abs(N.tx) < 1e-6 && Math.abs(N.ty) < 1e-6) ? null : N;
+}
+function rotateAll(ang, pv){
+  const c = Math.cos(ang), sn = Math.sin(ang);
+  mapAllPts(p => { const dx = p.x-pv.x, dy = p.y-pv.y; return { x:pv.x + c*dx - sn*dy, y:pv.y + sn*dx + c*dy }; });
+}
+function mapAllPts(f){
+  const m = p => { const r = f(p); p.x = r.x; p.y = r.y; };
+  S.shapes.forEach(s => { s.pts.forEach(m); if (s.base) s.base.forEach(m); });
+  S.measures.forEach(x => { m(x.a); m(x.b); });
+  if (S.calLine) S.calLine.forEach(m);
+  if (S.origin) m(S.origin);
+  S.persp.forEach(m);
+  S.pending = [];
+}
+/* the photo is always re-rendered from the unrotated original, so repeated turns don't blur it */
+function frameOf(ang){
+  const bw = S.rotBase.src.width, bh = S.rotBase.src.height, c = Math.cos(ang), sn = Math.sin(ang), z = Math.abs(ang) < 1e-12;
+  return { bw, bh, c, s:sn, nw:z ? bw : Math.ceil(Math.abs(bw*c) + Math.abs(bh*sn)), nh:z ? bh : Math.ceil(Math.abs(bw*sn) + Math.abs(bh*c)) };
+}
+const frameFwd = F => p => ({ x:F.nw/2 + F.c*(p.x-F.bw/2) - F.s*(p.y-F.bh/2), y:F.nh/2 + F.s*(p.x-F.bw/2) + F.c*(p.y-F.bh/2) });
+const frameInv = F => p => { const dx = p.x-F.nw/2, dy = p.y-F.nh/2; return { x:F.bw/2 + F.c*dx + F.s*dy, y:F.bh/2 - F.s*dx + F.c*dy }; };
+function renderPhoto(ang){
+  const F = frameOf(ang);
+  if (Math.abs(ang) < 1e-12) S.src = S.rotBase.src;
+  else {
+    const c = mk(F.nw, F.nh), x = c.getContext('2d');
+    x.imageSmoothingQuality = 'high'; x.translate(F.nw/2, F.nh/2); x.rotate(ang); x.drawImage(S.rotBase.src, -F.bw/2, -F.bh/2);
+    S.src = c;
+  }
+  S.rotBase.ang = ang;
+}
+function photoRotateBy(d, pivot, opts = {}){
+  if (!S.rotBase) S.rotBase = { src:S.src, ang:0 };
+  if (!opts.noCommit) commit();
+  prepRotate(S.shapes.map((_, i) => i));
+  const old = S.rotBase.ang, neu = old + d;
+  const f0 = frameInv(frameOf(old)), f1 = frameFwd(frameOf(neu)), f = p => f1(f0(p));
+  const scr = opts.screenAt || (pivot ? sp(pivot) : null), np = pivot ? f(pivot) : null;
+  mapAllPts(f); renderPhoto(neu);
+  if (np && scr){ S.view.x = scr.x - np.x*S.view.s; S.view.y = scr.y - np.y*S.view.s; }
+  S.auto = null; S.pg = null; updateUI();
+}
+function rotateWithPhoto(d){
+  if (S.drawM) lineUpPhoto(true);
+  const b = targetsBounds(S.shapes.map((_, i) => i));
+  photoRotateBy(d, b ? { x:b.cx, y:b.cy } : { x:S.src.width/2, y:S.src.height/2 });
+}
+function lineUpPhoto(silent){
+  const M = S.drawM; if (!M) return;
+  const all = S.shapes.map((_, i) => i), b0 = targetsBounds(all), scr = b0 ? sp({ x:b0.cx, y:b0.cy }) : null;
+  commit();
+  const c = Math.cos(M.a), sn = Math.sin(M.a);
+  const un = p => { const dx = p.x-M.tx, dy = p.y-M.ty; return { x:c*dx + sn*dy, y:-sn*dx + c*dy }; };
+  S.shapes.forEach(sh => { sh.pts.forEach(p => Object.assign(p, un(p))); if (sh.base) sh.base.forEach(p => Object.assign(p, un(p))); });
+  S.drawM = null;
+  const b1 = targetsBounds(all);
+  photoRotateBy(M.a, b1 ? { x:b1.cx, y:b1.cy } : null, { noCommit:true, screenAt:scr });
+  if (!silent) toast(tx('Photo lined up with the drawing.'));
+}
+function rotHandle(){
+  if (S.tool !== 'edit' || !S.shapes.length) return null;
+  const b = targetsBounds(rotTargets()); if (!b) return null;
+  const tc = sp({ x:b.cx, y:b.y0 });
+  return { x:tc.x, y:tc.y - 34, pivot:{ x:b.cx, y:b.cy }, b };
+}
+function drawRotHandle(){
+  const rh = (drag && drag.kind === 'rot') ? null : rotHandle();
+  const h = rh || (drag && drag.kind === 'rot' ? (() => { const b = targetsBounds(drag.T); const tc = sp({ x:b.cx, y:b.y0 }); return { x:tc.x, y:tc.y - 34, pivot:drag.pivot, b }; })() : null);
+  if (!h) return;
+  const A = sp({ x:h.b.x0, y:h.b.y0 }), B = sp({ x:h.b.x1, y:h.b.y1 }), P = sp(h.pivot);
+  ctx.save();
+  ctx.setLineDash([3,4]); ctx.strokeStyle = 'rgba(255,255,255,.45)'; ctx.lineWidth = 1;
+  ctx.strokeRect(A.x, A.y, B.x-A.x, B.y-A.y);
+  ctx.setLineDash([]); ctx.beginPath(); ctx.moveTo(h.x, A.y); ctx.lineTo(h.x, h.y + 10); ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(P.x-6, P.y); ctx.lineTo(P.x+6, P.y); ctx.moveTo(P.x, P.y-6); ctx.lineTo(P.x, P.y+6); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.beginPath(); ctx.arc(h.x, h.y, 10, 0, Math.PI*2); ctx.fillStyle = '#FFC21A'; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(0,0,0,.7)'; ctx.stroke();
+  ctx.beginPath(); ctx.arc(h.x, h.y, 5, -Math.PI*0.9, Math.PI*0.5); ctx.strokeStyle = '#1B1400'; ctx.lineWidth = 1.6; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(h.x + 0.5, h.y + 5); ctx.lineTo(h.x - 2.5, h.y + 2.5); ctx.lineTo(h.x - 2, h.y + 6.5); ctx.closePath(); ctx.fillStyle = '#1B1400'; ctx.fill();
+  ctx.restore();
+  if (S.rotAng != null) label((S.rotAng*180/Math.PI).toFixed(1) + '°' + (S.rotSym != null ? '   ' + fmtSym(S.rotSym) : ''), h.x, h.y - 22, '#FFC21A');
+}
+
+/* ---------- symmetry ---------- */
+const mirrorMode = () => { const v = $('#mirrorMode').value; return v === 'off' ? null : v; };
+function mainOutline(){
+  let best = -1, ba = 0;
+  S.shapes.forEach((s, i) => {
+    let a = 0;
+    if (s.type === 'poly' && s.closed && s.pts.length >= 3) a = Math.abs(polyArea(s.pts));
+    else if (s.type === 'rect') a = Math.abs((s.pts[1].x-s.pts[0].x)*(s.pts[1].y-s.pts[0].y));
+    if (a > ba){ ba = a; best = i; }
+  });
+  return best;
+}
+const outlinePts = i => { const s = S.shapes[i]; return s.type === 'rect' ? rectCorners(s.pts[0], s.pts[1]) : s.pts; };
+function symAxis(){
+  const i = mainOutline();
+  const b = i >= 0 ? geoBoundsPts(outlinePts(i)) : targetsBounds(S.shapes.map((_, k) => k));
+  return b ? { cx:(b.x0+b.x1)/2, cy:(b.y0+b.y1)/2 } : null;
+}
+function geoBoundsPts(pts){
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const p of pts){ if (p.x < x0) x0 = p.x; if (p.x > x1) x1 = p.x; if (p.y < y0) y0 = p.y; if (p.y > y1) y1 = p.y; }
+  return isFinite(x0) ? { x0, y0, x1, y1 } : null;
+}
+function distToPoly(q, poly){
+  let best = Infinity; const n = poly.length;
+  for (let i=0, j=n-1; i<n; j=i++){
+    const a = poly[j], b = poly[i], dx = b.x-a.x, dy = b.y-a.y, L2 = dx*dx + dy*dy;
+    let t = L2 ? ((q.x-a.x)*dx + (q.y-a.y)*dy)/L2 : 0; t = t < 0 ? 0 : t > 1 ? 1 : t;
+    const ex = a.x + dx*t - q.x, ey = a.y + dy*t - q.y, d = ex*ex + ey*ey;
+    if (d < best) best = d;
+  }
+  return Math.sqrt(best);
+}
+/* average distance between the outline and its mirror image, in image pixels */
+function symScoreSamp(samp, axis){
+  const b = geoBoundsPts(samp), cx = (b.x0+b.x1)/2, cy = (b.y0+b.y1)/2;
+  let sum = 0;
+  for (const p of samp) sum += distToPoly(axis === 'tb' ? { x:p.x, y:2*cy-p.y } : { x:2*cx-p.x, y:p.y }, samp);
+  return sum/samp.length;
+}
+function sampleOutline(i){ const pts = outlinePts(i), P = perimeter(pts, true); return resample(pts, P/160, true); }
+function currentSym(){
+  const i = mainOutline(), axis = mirrorMode(); if (i < 0 || !axis) return null;
+  return symScoreSamp(sampleOutline(i), axis);
+}
+const fmtSym = v => S.mmpp ? fmtMM(v*S.mmpp) : v.toFixed(1) + ' px';
+function bestSymAngle(axis){
+  const i = mainOutline(); if (i < 0) return null;
+  const base = sampleOutline(i);
+  const c0 = base.reduce((a, p) => ({ x:a.x + p.x/base.length, y:a.y + p.y/base.length }), { x:0, y:0 });
+  const score = a => { const c = Math.cos(a), sn = Math.sin(a); return symScoreSamp(base.map(p => ({ x:c*(p.x-c0.x) - sn*(p.y-c0.y), y:sn*(p.x-c0.x) + c*(p.y-c0.y) })), axis); };
+  const before = score(0); let bestA = 0, bestS = before;
+  for (let d=-20; d<=20.001; d+=0.5){ const a = d*Math.PI/180, sc = score(a); if (sc < bestS){ bestS = sc; bestA = a; } }
+  for (const step of [0.1, 0.02]){ const c = bestA; for (let k=-5; k<=5; k++){ const a = c + k*step*Math.PI/180, sc = score(a); if (sc < bestS){ bestS = sc; bestA = a; } } }
+  return { a:bestA, before, after:bestS };
+}
+function symAuto(){
+  const axis = mirrorMode() || 'lr', r = bestSymAngle(axis);
+  if (!r){ toast(tx('Trace a closed outline first.')); return; }
+  if (Math.abs(r.a) < 0.01*Math.PI/180){ toast(tx('Already as straight as the outline allows.')); return; }
+  rotateByRad(r.a);
+  toast(tx('Rotated by {a}°. Symmetry difference {b} → {c}.', { a:(r.a*180/Math.PI).toFixed(2), b:fmtSym(r.before), c:fmtSym(r.after) }), 5000);
+}
+function drawAlignGrid(){
+  const show = (S.step === 5 && S.shapes.length && $('#rotGrid').checked) || (drag && drag.kind === 'rot');
+  if (!show) return;
+  const ax = symAxis(); if (!ax) return;
+  const C = sp({ x:ax.cx, y:ax.cy });
+  let stepImg;
+  if (S.mmpp){ const mm = [1,2,5,10,20,50,100].find(v => v/S.mmpp*S.view.s >= 28) || 100; stepImg = mm/S.mmpp; }
+  else stepImg = [10,20,50,100,200,500].find(v => v*S.view.s >= 28) || 500;
+  const st = stepImg*S.view.s;
+  ctx.save(); ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(255,255,255,.17)'; ctx.beginPath();
+  for (let x = ((C.x % st) + st) % st; x < W; x += st){ const X = Math.round(x) + 0.5; ctx.moveTo(X, 0); ctx.lineTo(X, H); }
+  for (let y = ((C.y % st) + st) % st; y < H; y += st){ const Y = Math.round(y) + 0.5; ctx.moveTo(0, Y); ctx.lineTo(W, Y); }
+  ctx.stroke();
+  ctx.setLineDash([9,6]); ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(255,194,26,.95)'; ctx.beginPath();
+  const m = mirrorMode();
+  if (m !== 'tb'){ ctx.moveTo(Math.round(C.x)+0.5, 0); ctx.lineTo(Math.round(C.x)+0.5, H); }
+  if (m !== 'lr'){ ctx.moveTo(0, Math.round(C.y)+0.5); ctx.lineTo(W, Math.round(C.y)+0.5); }
+  ctx.stroke(); ctx.restore();
+}
+function drawMirror(){
+  const m = mirrorMode();
+  if (!m || !S.shapes.length || !(S.step === 5 || (drag && drag.kind === 'rot'))) return;
+  const ax = symAxis(); if (!ax) return;
+  const f = p => m === 'tb' ? { x:p.x, y:2*ax.cy - p.y } : { x:2*ax.cx - p.x, y:p.y };
+  ctx.save(); ctx.globalAlpha = 0.9;
+  S.shapes.forEach(s => {
+    if (s.type === 'circle'){ const c = sp(f(s.pts[0])); stroke(() => ctx.arc(c.x, c.y, dist(s.pts[0], s.pts[1])*S.view.s, 0, Math.PI*2), '#FF5E95', 1.5, [6,5]); return; }
+    const pts = (s.type === 'rect' ? rectCorners(s.pts[0], s.pts[1]) : s.pts).map(f);
+    stroke(() => { moveTo(pts[0]); pts.slice(1).forEach(lineTo); if (s.type === 'rect' || s.closed) ctx.closePath(); }, '#FF5E95', 1.5, [6,5]);
+  });
+  ctx.restore();
+}
 
 /* ---------- smoothing ---------- */
 function perimeter(pts, closed){ let L = 0; for (let i=1;i<pts.length;i++) L += dist(pts[i-1], pts[i]); if (closed && pts.length > 1) L += dist(pts[pts.length-1], pts[0]); return L; }
@@ -1891,6 +2206,20 @@ function updateEditUI(){
   $('#edDelPts').disabled = !(poly && S.selPts.size);
   $('#edStraighten').disabled = !(poly && S.selPts.size);
   $('#edDelShape').disabled = !s;
+  $('#rotBox').hidden = !S.shapes.length;
+  $('#rotLevel').classList.toggle('active', S.tool === 'rlevel');
+  const rp = $('#rotPhoto').checked;
+  $('#rotScope').textContent = S.drawM ? tx('The drawing was rotated on its own. Line up the photo to keep editing over it.')
+    : rp ? tx('Rotates the photo and everything on it together, so the drawing stays lined up and you can keep editing.')
+    : ((S.tool === 'edit' || S.tool === 'rlevel') && S.sel >= 0) ? tx('Rotates the selected shape around its centre.')
+    : tx('Rotates all shapes together around their centre. Select a shape with Edit points to rotate just that one.');
+  $('#lineUp').hidden = !S.drawM;
+  const symOn = !!mirrorMode(), hasOutline = mainOutline() >= 0;
+  $('#symNote').hidden = !symOn;
+  $('#symAuto').disabled = !hasOutline;
+  const sv = symOn && hasOutline && S.step === 5 ? currentSym() : null;
+  $('#symInfo').hidden = sv == null;
+  if (sv != null) $('#symInfo').textContent = tx('Symmetry difference: {v} on average. Lower is more symmetrical.', { v:fmtSym(sv) });
   const T = smoothTargets();
   $('#smoothBox').hidden = !T.length;
   if (T.length){
@@ -2029,7 +2358,7 @@ function saveProject(){
   const data = { app:'trace-to-scale', version:1, name:S.name, image:S.src.toDataURL('image/png'),
     state:{ shapes:S.shapes, measures:S.measures, calLine:S.calLine, origin:S.origin, persp:S.persp, corrected:S.corrected,
       calLen:$('#calLen').value, calUnit:$('#calUnit').value, unit:S.unit, gridMM:S.gridMM,
-      pScale:$('#pScale').value, pOuter:$('#pOuter').value, pHole:$('#pHole').value } };
+      pScale:$('#pScale').value, pOuter:$('#pOuter').value, pHole:$('#pHole').value, drawM:S.drawM || null } };
   saveFile(safeName() + '.trace.json', JSON.stringify(data));
 }
 function loadProject(file){
@@ -2041,7 +2370,7 @@ function loadProject(file){
     im.onload = () => {
       setImage(im, d.name || 'project');
       const st = d.state || {};
-      Object.assign(S, { shapes:st.shapes || [], measures:st.measures || [], calLine:st.calLine || null, origin:st.origin || null, persp:st.persp || [], corrected:!!st.corrected, unit:st.unit || 'mm', gridMM:st.gridMM || 10 });
+      Object.assign(S, { shapes:st.shapes || [], measures:st.measures || [], calLine:st.calLine || null, origin:st.origin || null, persp:st.persp || [], corrected:!!st.corrected, unit:st.unit || 'mm', gridMM:st.gridMM || 10, drawM:st.drawM || null });
       $('#calLen').value = st.calLen || ''; $('#calUnit').value = st.calUnit || 'mm';
       $('#unit').value = S.unit; $('#gridMM').value = S.gridMM;
       $('#pScale').value = st.pScale || 100; $('#pOuter').value = st.pOuter || 0; $('#pHole').value = st.pHole || 0;
@@ -2166,6 +2495,13 @@ $('#expCSV').onclick = exportCSV2;
 $('#edDelPts').onclick = deleteSelPts;
 $('#edStraighten').onclick = straightenSel;
 $('#edDelShape').onclick = deleteSelShape;
+$$('[data-rot]').forEach(b => b.addEventListener('click', () => nudgeRotate(parseFloat(b.dataset.rot))));
+$('#rotLevel').onclick = () => setTool(S.tool === 'rlevel' ? 'edit' : 'rlevel');
+$('#lineUp').onclick = () => lineUpPhoto(false);
+$('#symAuto').onclick = symAuto;
+$('#rotGrid').addEventListener('change', draw);
+$('#mirrorMode').addEventListener('change', updateUI);
+$('#rotPhoto').addEventListener('change', updateUI);
 $('#smAmt').addEventListener('input', e => { const v = +e.target.value; $('#smOut').textContent = smLabel(v); cancelAnimationFrame(smRAF); smRAF = requestAnimationFrame(() => applySmooth(v)); });
 $('#smAmt').addEventListener('change', () => { smCommitted = false; });
 ['#pScale','#pOuter','#pHole'].forEach(id => $(id).addEventListener('input', updateUI));
