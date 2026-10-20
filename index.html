@@ -1,0 +1,2192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trace to Scale for Fusion 360</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E3E6E0; --panel:#F7F8F4; --panel2:#ECEEE8; --ink:#1B2325; --muted:#586466;
+  --line:#CAD0C6; --accent:#0F5E63; --accent-ink:#FFFFFF; --focus:#E09A00;
+  --mat:#2D4A43; --mat-line:rgba(255,255,255,.06); --mat-line2:rgba(255,255,255,.13);
+  --warn:#8A5A00; --danger:#A3261E;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#141A1B; --panel:#1D2526; --panel2:#182021; --ink:#E3E9E6; --muted:#93A2A1;
+    --line:#314040; --accent:#4DB2AD; --accent-ink:#0E1A1A; --focus:#F2B630;
+    --mat:#1F3631; --mat-line:rgba(255,255,255,.045); --mat-line2:rgba(255,255,255,.1);
+    --warn:#E4B455; --danger:#F08A80;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#141A1B; --panel:#1D2526; --panel2:#182021; --ink:#E3E9E6; --muted:#93A2A1;
+  --line:#314040; --accent:#4DB2AD; --accent-ink:#0E1A1A; --focus:#F2B630;
+  --mat:#1F3631; --mat-line:rgba(255,255,255,.045); --mat-line2:rgba(255,255,255,.1);
+  --warn:#E4B455; --danger:#F08A80;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{height:100%;margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.45 "Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+[hidden]{display:none!important}
+
+/* header */
+.top{display:flex;align-items:center;gap:20px;padding:10px 18px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand svg{flex:none}
+.brand b{font-family:"Barlow Semi Condensed",system-ui,sans-serif;font-weight:700;font-size:21px;line-height:1}
+.brand small{color:var(--muted);font-size:13px}
+.tabs{display:flex;gap:4px;margin-left:auto;background:var(--panel2);padding:4px;border-radius:10px;border:1px solid var(--line)}
+.tabs button{border:0;background:transparent;padding:6px 14px;border-radius:7px;font-weight:600;cursor:pointer;display:flex;gap:8px;align-items:center}
+.tabs button[aria-selected="true"]{background:var(--panel);box-shadow:0 1px 0 var(--line),0 0 0 1px var(--line)}
+.langpick{display:flex;align-items:center;gap:6px;color:var(--muted)}
+.langpick select{padding:6px 8px;font-weight:600;color:var(--ink)}
+.soon{font-size:11px;font-weight:600;padding:1px 7px;border-radius:999px;background:var(--focus);color:#1B1400}
+
+/* layout */
+.work{flex:1;min-height:0;display:grid;grid-template-columns:330px 1fr}
+.side{overflow:auto;background:var(--panel);border-right:1px solid var(--line)}
+.step{padding:14px 18px 16px;border-bottom:1px solid var(--line)}
+.step h2{display:flex;align-items:center;gap:10px;margin:0 0 6px;font:600 17px/1.2 "Barlow Semi Condensed",system-ui,sans-serif}
+.step h2 .opt{margin-left:auto;font:500 12px "Barlow",sans-serif;color:var(--muted)}
+.n{flex:none;width:23px;height:23px;border-radius:50%;display:grid;place-items:center;font:600 12px "Barlow",sans-serif;border:1.5px solid var(--muted);color:var(--muted)}
+.step.done .n{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.step.locked > :not(h2){opacity:.45;pointer-events:none}
+.note{font-size:13.5px;color:var(--muted);margin:4px 0 8px;max-width:60ch}
+.note.warn{color:var(--warn)}
+.note strong{color:var(--ink);font-weight:600}
+.row{display:flex;gap:8px;align-items:center;margin:8px 0;flex-wrap:wrap}
+.row > .grow{flex:1 1 90px;min-width:0}
+label.inline{display:flex;gap:7px;align-items:center;font-size:14px;cursor:pointer}
+input[type=number],input[type=text],select{padding:7px 9px;border:1px solid var(--line);border-radius:7px;background:var(--panel2);min-width:0;font-variant-numeric:tabular-nums}
+input[type=number]{width:100%}
+input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);font-weight:600;font-size:14px;cursor:pointer;line-height:1.1}
+.btn:hover:not(:disabled){border-color:var(--muted)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.btn.active{outline:2px solid var(--accent);outline-offset:-2px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.full{width:100%}
+.chips{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}
+.chips .btn{padding:8px 6px;font-size:13px}
+.autobtn{margin:6px 0 2px}
+.autopanel{border:1px solid var(--line);border-radius:9px;padding:10px 11px;background:var(--panel2);margin:8px 0 4px}
+.autopanel .note{margin-top:0}
+.autopanel .inline{margin:5px 0}
+.slider{display:grid;grid-template-columns:92px 1fr 62px;align-items:center;gap:8px;font-size:14px;margin:7px 0}
+.slider output{font-size:13px;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+input[type=range]{accent-color:var(--accent);width:100%}
+.linkbtn{border:0;background:none;padding:0;color:var(--accent);font-weight:600;text-decoration:underline;cursor:pointer;font-size:inherit}
+.result{margin:8px 0 0;padding:9px 11px;border-radius:8px;background:var(--panel2);border:1px solid var(--line);font-size:14px;font-variant-numeric:tabular-nums}
+.result b{font-weight:600}
+.items{list-style:none;margin:8px 0 0;padding:0;max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:8px}
+.items:empty{display:none}
+.items li{display:flex;align-items:center;gap:8px;padding:6px 6px 6px 10px;border-bottom:1px solid var(--line);font-size:14px;font-variant-numeric:tabular-nums}
+.items li:last-child{border-bottom:0}
+.items li{cursor:pointer}
+.items li.sel{background:var(--panel2);box-shadow:inset 3px 0 0 var(--accent)}
+.items .pv{font-weight:500;color:var(--muted);font-size:12.5px}
+.items .sw{width:10px;height:10px;border-radius:3px;flex:none}
+.items .lbl{color:var(--muted);min-width:68px}
+.items .val{flex:1;font-weight:600}
+.items button{border:0;background:transparent;cursor:pointer;color:var(--muted);width:28px;height:28px;border-radius:6px;font-size:18px;line-height:1}
+.items button:hover{color:var(--danger);background:var(--panel2)}
+.exports{display:grid;gap:10px}
+.exp{border:1px solid var(--line);border-radius:9px;padding:10px 11px;background:var(--panel2)}
+.exp .btn{width:100%}
+.exp .note{margin:6px 0 0}
+.fitrow{display:grid;grid-template-columns:72px 34px 1fr 34px 30px;gap:6px;align-items:center;margin:6px 0;font-size:14px}
+.fitrow .btn{padding:6px 0;font-size:16px;width:100%}
+.fitrow input{text-align:center}
+.fitrow .u{color:var(--muted);font-size:13px}
+.smoothbox{margin:8px 0 0}
+/* wizard */
+.wizard{position:sticky;top:0;z-index:2;background:var(--panel);border-bottom:1px solid var(--line);padding:12px 8px 10px}
+.wizard ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(7,1fr)}
+.wizard li{position:relative}
+.wizard li::before{content:"";position:absolute;top:13px;left:-50%;right:50%;height:2px;background:var(--line)}
+.wizard li:first-child::before{display:none}
+.wizard li.done::before,.wizard li.current::before{background:var(--accent)}
+.wizard button{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;position:relative;z-index:1}
+.wizard button:disabled{cursor:not-allowed}
+.wizard .dot{width:27px;height:27px;border-radius:50%;display:grid;place-items:center;font:600 12px "Barlow",sans-serif;background:var(--panel);border:1.5px solid var(--line);color:var(--muted)}
+.wizard li.done .dot{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.wizard li.current .dot{border:2px solid var(--accent);color:var(--accent);box-shadow:0 0 0 4px var(--panel2)}
+.wizard li.locked .dot{opacity:.45}
+.wizard .lbl{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.01em}
+.wizard li.current .lbl{color:var(--ink)}
+.wizard li.locked .lbl{opacity:.5}
+.wizard button:focus-visible .dot{outline:2px solid var(--focus);outline-offset:2px}
+.step{display:none;padding:16px 18px 18px}
+.step.current{display:block}
+.kicker{margin:0 0 2px;font-size:12px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--accent)}
+.step h2{font-size:21px;margin:0 0 6px}
+.lead{font-size:14.5px;color:var(--muted);margin:0 0 12px;max-width:60ch}
+.lead strong{color:var(--ink);font-weight:600}
+.sublabel{margin:14px 0 2px;font-size:13px;font-weight:600;color:var(--muted)}
+.why{font-size:13.5px;color:var(--warn);margin:14px 0 0}
+.step-nav{display:flex;gap:8px;align-items:center;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.step-nav [data-next]{margin-left:auto;padding:9px 18px}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--muted)}
+.btn.ghost:hover:not(:disabled){color:var(--ink);border-color:var(--line)}
+.shared{padding:14px 18px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--panel2)}
+.shared h3{font:600 15px/1.2 "Barlow Semi Condensed",system-ui,sans-serif;margin:0 0 6px}
+.shared .items{background:var(--panel)}
+details.mini{margin-top:8px;font-size:14px}
+details.mini summary{cursor:pointer;font-weight:600;color:var(--muted)}
+details.keys{padding:12px 18px 18px;font-size:13.5px;color:var(--muted)}
+details.keys summary{cursor:pointer;font-weight:600;color:var(--ink)}
+details.keys dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:10px 0 0}
+details.keys dt{font-weight:600;color:var(--ink)}
+details.keys dd{margin:0}
+
+/* stage */
+.stage{display:grid;grid-template-rows:auto 1fr auto;min-width:0;min-height:0}
+.toolbar{display:flex;align-items:center;gap:2px;padding:6px 10px;background:var(--panel2);border-bottom:1px solid var(--line);overflow-x:auto}
+.toolbar .sep{width:1px;height:24px;background:var(--line);margin:0 6px;flex:none}
+.tb{position:relative;flex:none;width:38px;height:38px;border:0;border-radius:8px;background:transparent;display:grid;place-items:center;cursor:pointer}
+.tb:hover:not(:disabled){background:var(--panel)}
+.tb[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.tb:disabled{opacity:.35;cursor:not-allowed}
+.tb .k{position:absolute;right:3px;bottom:1px;font-size:9.5px;font-weight:600;opacity:.65}
+.toolbar .spacer{flex:1}
+.zoomlbl{min-width:52px;text-align:center;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.canvas-wrap{position:relative;overflow:hidden;min-height:0;
+  background-color:var(--mat);
+  background-image:
+    linear-gradient(var(--mat-line2) 1px,transparent 1px),
+    linear-gradient(90deg,var(--mat-line2) 1px,transparent 1px),
+    linear-gradient(var(--mat-line) 1px,transparent 1px),
+    linear-gradient(90deg,var(--mat-line) 1px,transparent 1px);
+  background-size:120px 120px,120px 120px,24px 24px,24px 24px}
+#cv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair;display:block}
+#cv.pan{cursor:grab}
+#cv.grabbing{cursor:grabbing}
+#cv.move{cursor:move}
+#loupe{position:absolute;top:14px;right:14px;width:168px;height:168px;border-radius:50%;pointer-events:none;display:none;
+  box-shadow:0 0 0 2px #fff,0 0 0 4px rgba(0,0,0,.45),0 8px 24px rgba(0,0,0,.35)}
+#loupe.left{right:auto;left:14px}
+.hint{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);background:rgba(15,21,22,.88);color:#fff;padding:8px 16px;border-radius:999px;font-size:14px;max-width:min(92%,640px);text-align:center;pointer-events:none}
+.hint:empty{display:none}
+.empty{position:absolute;inset:0;display:grid;place-items:center;padding:24px}
+.empty .card{max-width:440px;text-align:center;color:#EAF2EE}
+.empty h3{font:700 30px/1.1 "Barlow Semi Condensed",system-ui,sans-serif;margin:14px 0 8px;color:#fff}
+.empty p{margin:0 0 18px;color:#C8D7D1}
+.empty .tips{margin-top:22px;font-size:13.5px;color:#AFC4BD;text-align:left;border-top:1px dashed rgba(255,255,255,.25);padding-top:14px}
+.empty .tips p{margin:0 0 6px;color:inherit}
+.canvas-wrap.dragover::after{content:"Drop to load";position:absolute;inset:12px;border:2px dashed #FFC21A;border-radius:14px;display:grid;place-items:center;color:#FFC21A;font:700 24px "Barlow Semi Condensed",sans-serif;background:rgba(0,0,0,.25)}
+.status{display:flex;gap:20px;padding:6px 14px;font-size:13px;color:var(--muted);background:var(--panel);border-top:1px solid var(--line);flex-wrap:wrap;font-variant-numeric:tabular-nums}
+.status b{color:var(--ink);font-weight:600}
+
+/* 3d */
+.soonview{flex:1;display:grid;place-items:center;padding:32px}
+.soonview .card{max-width:520px}
+.soonview h2{font:700 34px/1.1 "Barlow Semi Condensed",system-ui,sans-serif;margin:0 0 10px}
+.soonview p{color:var(--muted);margin:0 0 10px}
+
+#toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 16px);transform:translate(-50%,-8px);background:var(--ink);color:var(--panel);padding:10px 16px;border-radius:10px;font-size:14px;max-width:min(92vw,520px);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:10}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+@media (prefers-reduced-motion:reduce){#toast{transition:none}}
+
+@media (max-width:860px){
+  html,body{height:auto}
+  body{min-height:100%}
+  .work{display:flex;flex-direction:column}
+  .stage{order:1;height:72vh;min-height:420px}
+  .side{order:2;border-right:0;overflow:visible}
+  .brand small{display:none}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
+      <rect x="1.5" y="1.5" width="27" height="27" rx="6" fill="#2D4A43"/>
+      <path d="M7 22 L22 7" stroke="#FFC21A" stroke-width="3" stroke-linecap="round"/>
+      <path d="M7 22v-4M7 22h4M22 7h-4M22 7v4" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+    <b>Trace to Scale</b>
+    <small>Turn a photo into a to-scale Fusion 360 sketch</small>
+  </div>
+  <nav class="tabs" role="tablist" aria-label="Import type">
+    <button role="tab" id="tab2d" aria-selected="true" aria-controls="view2d">2D from photo</button>
+    <button role="tab" id="tab3d" aria-selected="false" aria-controls="view3d">3D model <span class="soon">Coming soon</span></button>
+  </nav>
+  <label class="langpick">
+    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="10" cy="10" r="8"/><path d="M2 10h16M10 2c2.5 2.7 2.5 13.3 0 16M10 2c-2.5 2.7-2.5 13.3 0 16"/></svg>
+    <select id="lang" aria-label="Language"><option value="en">English</option><option value="af">Afrikaans</option><option value="cs">Čeština</option></select>
+  </label>
+</header>
+
+<main id="view2d" class="work" role="tabpanel" aria-labelledby="tab2d">
+  <aside class="side" id="side">
+    <nav class="wizard" aria-label="Steps"><ol id="wizSteps"></ol></nav>
+
+    <section class="step" id="s1">
+      <p class="kicker">Step 1 of 7</p>
+      <h2>Load a photo</h2>
+      <p class="lead">Use a photo of the part with something of known size beside it, like a ruler, bank card or coin.</p>
+      <div class="row">
+        <button class="btn primary" id="openImg">Choose photo</button>
+        <button class="btn" id="openProj">Open project</button>
+      </div>
+      <p class="note" id="imgInfo">You can also drop a photo onto the canvas, or paste one with Ctrl+V.</p>
+      <p class="why" hidden></p>
+      <div class="step-nav"><button class="btn primary" data-next>Next ›</button></div>
+    </section>
+
+    <section class="step" id="s2">
+      <p class="kicker">Step 2 of 7</p>
+      <h2>Straighten the photo<span class="opt">Optional</span></h2>
+      <p class="lead">Shot at an angle? Mark the corners of a flat rectangle of known size lying beside the part. This removes the perspective <strong>and</strong> sets the scale for you.</p>
+      <div class="row">
+        <select id="rectPreset" class="grow" aria-label="Reference rectangle">
+          <option value="85.60x53.98">Bank card (85.60 × 53.98 mm)</option>
+          <option value="210x297">A4 sheet (210 × 297 mm)</option>
+          <option value="148x210">A5 sheet (148 × 210 mm)</option>
+          <option value="215.9x279.4">US Letter (215.9 × 279.4 mm)</option>
+          <option value="custom">Custom size</option>
+        </select>
+      </div>
+      <div class="row">
+        <input type="number" id="rw" class="grow" value="85.60" min="0" step="0.01" aria-label="Rectangle width in mm">
+        <span>×</span>
+        <input type="number" id="rh" class="grow" value="53.98" min="0" step="0.01" aria-label="Rectangle height in mm">
+        <span>mm</span>
+      </div>
+      <div class="row">
+        <button class="btn grow" id="markCorners">Mark 4 corners</button>
+        <button class="btn primary grow" id="applyPersp" disabled>Apply correction</button>
+      </div>
+      <p class="note" id="perspNote">0 of 4 corners marked.</p>
+      <div class="row">
+        <button class="btn grow" id="levelBtn" title="Click two points along an edge that should be horizontal or vertical">Level an edge</button>
+        <button class="btn" id="rotL" title="Rotate 90° left" aria-label="Rotate 90 degrees left">⟲ 90°</button>
+        <button class="btn" id="rotR" title="Rotate 90° right" aria-label="Rotate 90 degrees right">⟳ 90°</button>
+      </div>
+      <p class="why" hidden></p>
+      <div class="step-nav"><button class="btn ghost" data-back>‹ Back</button><button class="btn primary" data-next>Next ›</button></div>
+    </section>
+
+    <section class="step" id="s3">
+      <p class="kicker">Step 3 of 7</p>
+      <h2>Set the scale</h2>
+      <p class="lead">Draw a line across something you know the size of, then enter its real length. The longer the reference, the more accurate the result.</p>
+      <button class="btn full" id="calBtn">Draw reference line</button>
+      <div class="row">
+        <input type="number" id="calLen" class="grow" min="0" step="0.01" placeholder="Real length" aria-label="Real length of the reference">
+        <select id="calUnit" aria-label="Reference unit">
+          <option value="mm">mm</option><option value="cm">cm</option><option value="in">in</option>
+        </select>
+      </div>
+      <select id="calPreset" class="full" style="width:100%" aria-label="Known object sizes">
+        <option value="">Or pick a known object…</option>
+        <optgroup label="Cards and paper">
+          <option value="85.60">Bank card, long edge (85.60 mm)</option>
+          <option value="53.98">Bank card, short edge (53.98 mm)</option>
+          <option value="210">A4 sheet, short edge (210 mm)</option>
+          <option value="297">A4 sheet, long edge (297 mm)</option>
+        </optgroup>
+        <optgroup label="Coins (diameter)">
+          <option value="26">South African R5 (26.00 mm)</option>
+          <option value="23">South African R2 (23.00 mm)</option>
+          <option value="20">South African R1 (20.00 mm)</option>
+          <option value="24.26">US quarter (24.26 mm)</option>
+          <option value="23.25">€1 coin (23.25 mm)</option>
+        </optgroup>
+        <optgroup label="Other">
+          <option value="50.5">AA battery, length (50.5 mm)</option>
+          <option value="100">Ruler, 100 mm span</option>
+        </optgroup>
+      </select>
+      <div class="result" id="scaleOut">No scale yet.</div>
+      <p class="note warn" id="scaleWarn" hidden></p>
+      <p class="why" hidden></p>
+      <div class="step-nav"><button class="btn ghost" data-back>‹ Back</button><button class="btn primary" data-next>Next ›</button></div>
+    </section>
+
+    <section class="step" id="s4">
+      <p class="kicker">Step 4 of 7</p>
+      <h2>Trace the outline</h2>
+      <p class="lead">Let the tool find the outline for you, or draw it by hand.</p>
+      <button class="btn full autobtn" data-tool="auto">Auto trace outline</button>
+      <div class="autopanel" id="autoPanel" hidden>
+        <p class="note">Draw a box around the part on the photo, or <button class="linkbtn" id="atWhole">trace the whole photo</button>. A plain background that contrasts with the part works best.</p>
+        <label class="slider"><span>Sensitivity</span><input type="range" id="atSens" min="0" max="100" value="50"><output id="atSensOut"></output></label>
+        <label class="slider"><span>Simplify</span><input type="range" id="atSmooth" min="0" max="100" value="50"><output id="atSmoothOut"></output></label>
+        <label class="slider"><span>Ignore specks</span><input type="range" id="atMin" min="0" max="100" value="40"><output id="atMinOut"></output></label>
+        <label class="inline"><input type="checkbox" id="atHoles" checked> Include holes and cut-outs</label>
+        <label class="inline"><input type="checkbox" id="atCircles" checked> Turn round shapes into circles</label>
+        <label class="inline"><input type="checkbox" id="atShadow"> Reduce shadows</label>
+        <div class="result" id="atInfo">No box drawn yet.</div>
+        <div class="row"><button class="btn primary grow" id="atAdd" disabled>Add to drawing</button><button class="btn" id="atCancel" disabled>Discard</button></div>
+      </div>
+      <p class="sublabel">Or draw by hand</p>
+      <div class="chips" role="group" aria-label="Drawing tools">
+        <button class="btn" data-tool="measure">Measure</button>
+        <button class="btn" data-tool="line">Line</button>
+        <button class="btn" data-tool="poly">Polyline</button>
+        <button class="btn" data-tool="rect">Rectangle</button>
+        <button class="btn" data-tool="circle">Circle</button>
+        <button class="btn" data-tool="origin">Set origin</button>
+      </div>
+      <p class="why" hidden></p>
+      <div class="step-nav"><button class="btn ghost" data-back>‹ Back</button><button class="btn primary" data-next>Next ›</button></div>
+    </section>
+
+    <section class="step" id="s5">
+      <p class="kicker">Step 5 of 7</p>
+      <h2>Refine the shape<span class="opt">Optional</span></h2>
+      <p class="lead">Fix glitches by moving or deleting points, and smooth out jagged edges.</p>
+      <button class="btn full" data-tool="edit">Edit points</button>
+      <div class="autopanel" id="editPanel" hidden>
+        <p class="note">Click a shape to select it, then drag any point to move it. Drag across empty space to select several points. Double-click a line to add a point. Right-drag or hold Space to pan.</p>
+        <div class="result" id="editInfo">No shape selected.</div>
+        <div class="row"><button class="btn grow" id="edStraighten" disabled>Smooth selected points</button><button class="btn grow" id="edDelPts" disabled>Delete points</button></div>
+        <button class="btn full" id="edDelShape" disabled>Delete shape</button>
+      </div>
+      <div class="smoothbox" id="smoothBox" hidden>
+        <label class="slider"><span>Smoothing</span><input type="range" id="smAmt" min="0" max="100" value="0"><output id="smOut"></output></label>
+        <p class="note" id="smScope"></p>
+      </div>
+      <p class="why" hidden></p>
+      <div class="step-nav"><button class="btn ghost" data-back>‹ Back</button><button class="btn primary" data-next>Next ›</button></div>
+    </section>
+
+    <section class="step" id="s6">
+      <p class="kicker">Step 6 of 7</p>
+      <h2>Fit for printing<span class="opt">Optional</span></h2>
+      <p class="lead">Adjust the exported shape for your printer’s tolerances. The trace on the photo stays as it is.</p>
+      <div class="exp" id="printBox">
+          <div class="fitrow"><span>Scale</span><button class="btn" data-step="pScale:-0.1" aria-label="Decrease scale">−</button><input type="number" id="pScale" value="100" step="0.1" min="1" aria-label="Scale percent"><button class="btn" data-step="pScale:0.1" aria-label="Increase scale">+</button><span class="u">%</span></div>
+          <div class="fitrow"><span>Outlines</span><button class="btn" data-step="pOuter:-0.05" aria-label="Shrink outlines">−</button><input type="number" id="pOuter" value="0" step="0.05" aria-label="Outline offset in mm"><button class="btn" data-step="pOuter:0.05" aria-label="Grow outlines">+</button><span class="u">mm</span></div>
+          <div class="fitrow"><span>Holes</span><button class="btn" data-step="pHole:-0.05" aria-label="Shrink holes">−</button><input type="number" id="pHole" value="0" step="0.05" aria-label="Hole offset in mm"><button class="btn" data-step="pHole:0.05" aria-label="Grow holes">+</button><span class="u">mm</span></div>
+          <p class="note">Positive values make a shape bigger. For a case or pocket the part must fit into, grow outlines by your printer’s clearance, often 0.2 to 0.4 mm. Holes are shapes that sit inside another outline.</p>
+          <label class="inline" style="margin-top:6px"><input type="checkbox" id="pShow" checked> Show the print shape on the photo</label>
+          <div class="result" id="printInfo"></div>
+      </div>
+      <p class="why" hidden></p>
+      <div class="step-nav"><button class="btn ghost" data-back>‹ Back</button><button class="btn primary" data-next>Next ›</button></div>
+    </section>
+
+    <section class="step" id="s7">
+      <p class="kicker">Step 7 of 7</p>
+      <h2>Export to Fusion 360</h2>
+      <p class="note" id="sizeNote"></p>
+      <div class="exports">
+        <div class="exp">
+          <button class="btn primary" id="expDXF">Download sketch (DXF)</button>
+          <label class="inline" style="margin-top:8px"><input type="checkbox" id="dxfMeas"> Include measure lines on their own layer</label>
+          <p class="note">In Fusion: Insert › Insert DXF, pick a plane, set units to mm. Geometry is placed relative to your origin.</p>
+        </div>
+        <div class="exp">
+          <button class="btn" id="expPNG">Download scaled photo (PNG)</button>
+          <label class="inline" style="margin-top:8px"><input type="checkbox" id="pngBar" checked> Add a scale bar</label>
+          <label class="inline" style="margin-top:4px"><input type="checkbox" id="pngDraw"> Include traced lines</label>
+          <p class="note">In Fusion: Insert › Canvas, then right-click the canvas › Calibrate and click the two ends of the scale bar.</p>
+        </div>
+        <div class="exp">
+          <button class="btn" id="expSVG">Download vector drawing (SVG)</button>
+          <label class="inline" style="margin-top:8px"><input type="checkbox" id="svgImg"> Embed the photo</label>
+        </div>
+        <div class="row" style="margin:0">
+          <button class="btn grow" id="expCSV">Measurements (CSV)</button>
+          <button class="btn grow" id="saveProj">Save project</button>
+        </div>
+      </div>
+      <p class="why" hidden></p>
+      <div class="step-nav"><button class="btn ghost" data-back>‹ Back</button><button class="btn" id="newPhoto">Start with a new photo</button></div>
+    </section>
+
+    <div class="shared" id="shared" hidden>
+      <h3>Your shapes</h3>
+      <ul class="items" id="items" aria-label="Measurements and traced shapes"></ul>
+      <p class="note" id="itemsEmpty">Nothing traced yet.</p>
+      <div class="row">
+        <button class="btn" id="undoBtn">Undo</button>
+        <button class="btn" id="clearBtn">Clear drawing</button>
+      </div>
+      <details class="mini">
+        <summary>View options</summary>
+        <div class="row">
+          <label class="inline">Show in
+            <select id="unit" aria-label="Display unit"><option value="mm">mm</option><option value="cm">cm</option><option value="in">inches</option></select>
+          </label>
+        </div>
+        <div class="row">
+          <label class="inline"><input type="checkbox" id="gridOn"> Grid every</label>
+          <input type="number" id="gridMM" value="10" min="0.1" step="1" style="width:80px" aria-label="Grid spacing in mm"> <span>mm</span>
+        </div>
+      </details>
+    </div>
+
+    <details class="keys">
+      <summary>Mouse and keyboard</summary>
+      <dl>
+        <dt>Scroll</dt><dd>Zoom at the cursor</dd>
+        <dt>Drag</dt><dd>Pan (in any tool). Drag a point to move it</dd>
+        <dt>Shift</dt><dd>Lock angle to 15° steps</dd>
+        <dt>Enter</dt><dd>Finish a polyline</dd>
+        <dt>Esc</dt><dd>Cancel the current shape</dd>
+        <dt>Ctrl+Z</dt><dd>Undo (Ctrl+Y redo)</dd>
+        <dt>E</dt><dd>Edit points. Delete removes selected points</dd>
+        <dt>F</dt><dd>Fit photo to view</dd>
+        <dt>G</dt><dd>Toggle grid</dd>
+      </dl>
+    </details>
+  </aside>
+
+  <div class="stage">
+    <div class="toolbar" role="toolbar" aria-label="Tools">
+      <button class="tb" data-tool="pan" title="Pan (V)" aria-label="Pan"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v16M2 10h16M10 2 7.5 4.5M10 2l2.5 2.5M10 18l-2.5-2.5M10 18l2.5-2.5M2 10l2.5-2.5M2 10l2.5 2.5M18 10l-2.5-2.5M18 10l-2.5 2.5"/></svg><span class="k">V</span></button>
+      <button class="tb" data-tool="cal" title="Reference line (K)" aria-label="Reference line"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="1.5" y="6.5" width="17" height="7" rx="1"/><path d="M5 6.5v3M8.5 6.5v2M12 6.5v3M15.5 6.5v2"/></svg><span class="k">K</span></button>
+      <button class="tb" data-tool="measure" title="Measure (M)" aria-label="Measure"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 10h14M3 6v8M17 6v8"/></svg><span class="k">M</span></button>
+      <span class="sep"></span>
+      <button class="tb" data-tool="line" title="Line (L)" aria-label="Line"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 16 16 4"/><circle cx="4" cy="16" r="1.6" fill="currentColor"/><circle cx="16" cy="4" r="1.6" fill="currentColor"/></svg><span class="k">L</span></button>
+      <button class="tb" data-tool="poly" title="Polyline (P)" aria-label="Polyline"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m3 15 5-8 5 5 4-8"/></svg><span class="k">P</span></button>
+      <button class="tb" data-tool="rect" title="Rectangle (R)" aria-label="Rectangle"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="14" height="10" rx="1"/></svg><span class="k">R</span></button>
+      <button class="tb" data-tool="circle" title="Circle (C)" aria-label="Circle"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="10" cy="10" r="7"/><path d="M10 10h7" stroke-dasharray="2 2"/></svg><span class="k">C</span></button>
+      <button class="tb" data-tool="auto" title="Auto trace (A)" aria-label="Auto trace"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 9-9"/><path d="M14 2v4M12 4h4M16.5 9v3M15 10.5h3M8 3v2M7 4h2"/></svg><span class="k">A</span></button>
+      <button class="tb" data-tool="edit" title="Edit points (E)" aria-label="Edit points"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15c3-8 8-11 14-11"/><rect x="8" y="6.5" width="4" height="4" fill="currentColor"/><path d="m11 12 2 6 1.5-2.5L17 15z" fill="currentColor"/></svg><span class="k">E</span></button>
+      <button class="tb" data-tool="origin" title="Set origin (O)" aria-label="Set origin"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 16V4M5 16h12M5 4 3 6.5M5 4l2 2.5M17 16l-2.5-2M17 16l-2.5 2"/></svg><span class="k">O</span></button>
+      <span class="sep"></span>
+      <button class="tb" id="tbUndo" title="Undo (Ctrl+Z)" aria-label="Undo"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 5 3 9l4 4"/><path d="M3 9h9a5 5 0 0 1 0 10h-2"/></svg></button>
+      <button class="tb" id="tbGrid" title="Grid (G)" aria-label="Toggle grid" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 7h16M2 13h16M7 2v16M13 2v16"/></svg></button>
+      <span class="spacer"></span>
+      <button class="tb" id="zOut" title="Zoom out (-)" aria-label="Zoom out"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 10h10"/></svg></button>
+      <span class="zoomlbl" id="zoomLbl">100%</span>
+      <button class="tb" id="zIn" title="Zoom in (+)" aria-label="Zoom in"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 10h10M10 5v10"/></svg></button>
+      <button class="tb" id="zFit" title="Fit to view (F)" aria-label="Fit to view"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V3h4M13 3h4v4M17 13v4h-4M7 17H3v-4"/></svg></button>
+    </div>
+
+    <div class="canvas-wrap" id="wrap">
+      <canvas id="cv"></canvas>
+      <canvas id="loupe" aria-hidden="true"></canvas>
+      <div class="empty" id="empty">
+        <div class="card">
+          <svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true" fill="none" stroke="#FFC21A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="14" width="48" height="36" rx="4"/><path d="M8 40l14-12 10 9 8-6 16 13"/><circle cx="44" cy="25" r="4"/></svg>
+          <h3>Drop a photo here</h3>
+          <p>Or paste one with Ctrl+V, or choose a file.</p>
+          <button class="btn primary" id="openImg2">Choose photo</button>
+          <div class="tips">
+            <p>For accurate results, shoot straight down from as far away as you can and zoom in, so lens distortion stays low.</p>
+            <p>Put the known object (a ruler, bank card or coin) flat beside the part, at the same height as the face you want to draw.</p>
+          </div>
+        </div>
+      </div>
+      <div class="hint" id="hint" aria-live="polite"></div>
+    </div>
+
+    <div class="status" aria-live="off">
+      <span>X <b id="stX">–</b></span>
+      <span>Y <b id="stY">–</b></span>
+      <span id="stLiveWrap" hidden><b id="stLive"></b></span>
+      <span>Scale <b id="stScale">not set</b></span>
+    </div>
+  </div>
+</main>
+
+<main id="view3d" class="soonview" role="tabpanel" aria-labelledby="tab3d" hidden>
+  <div class="card">
+    <h2>3D import is coming soon</h2>
+    <p>The plan is to open STL, OBJ and 3MF files, measure them in true units, and slice them into section profiles you can bring into a Fusion 360 sketch.</p>
+    <p>For now, the 2D photo workflow is ready to use.</p>
+    <button class="btn primary" id="back2d">Go to 2D from photo</button>
+  </div>
+</main>
+
+<div id="toast" role="status" aria-live="polite"></div>
+<input type="file" id="fileImg" accept="image/*" hidden>
+<input type="file" id="fileProj" accept=".json,application/json" hidden>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const cv = $('#cv'), ctx = cv.getContext('2d');
+const lp = $('#loupe'), lctx = lp.getContext('2d');
+const wrap = $('#wrap');
+
+const C = { trace:'#3FD3E3', meas:'#FF5E95', cal:'#FFC21A', persp:'#B88EFF', ox:'#FF6B5A', oy:'#5BE38A' };
+const S = {
+  src:null, name:'photo', view:{x:0,y:0,s:1}, tool:'pan',
+  mmpp:null, calLine:null, origin:null, shapes:[], measures:[], persp:[], pending:[],
+  unit:'mm', grid:false, gridMM:10, corrected:false,
+  cur:null, curScreen:null, snapObj:null, hover:null, hl:null,
+  hist:[], future:[], auto:null, sel:-1, selPts:new Set(), pg:null, step:1
+};
+let W = 0, H = 0, dpr = 1, drag = null, shift = false, space = false;
+const ptrs = new Map();
+
+const TOOLS = {
+  pan:{ hint:'Drag to move around. Scroll to zoom.' },
+  cal:{ n:2, hint:['Click one end of the object you know the size of.','Click the other end.'] },
+  measure:{ n:2, hint:['Click the start of the distance to measure.','Click the end.'] },
+  line:{ n:2, hint:['Click the start of the line.','Click the end of the line.'] },
+  rect:{ n:2, hint:['Click one corner of the rectangle.','Click the opposite corner.'] },
+  circle:{ n:2, hint:['Click the centre of the circle.','Click any point on its edge.'] },
+  poly:{ n:Infinity, hint:['Click the first point.','Keep clicking. Click the first point to close, or press Enter to finish.'] },
+  origin:{ n:1, hint:['Click the point that should be 0,0 in Fusion.'] },
+  persp:{ n:4, hint:['Click the first corner of the rectangle.','Click the next corner, going around the rectangle.','Click the third corner.','Click the last corner.'] },
+  level:{ n:2, hint:['Click one end of an edge that should be level or upright.','Click the other end.'] },
+  auto:{ n:2, hint:['Click one corner of a box around the part. Leave some background showing on every side.','Click the opposite corner.'] },
+  edit:{ hint:'Click a shape, then drag its points. Drag across empty space to select several. Double-click a line to add a point.' }
+};
+
+/* ---------- languages ---------- */
+const L10N = {"Turn a photo into a to-scale Fusion 360 sketch":["Verander ’n foto in ’n skaalakkurate Fusion 360-skets","Udělejte z fotografie přesný náčrt v měřítku pro Fusion 360"],"2D from photo":["2D uit foto","2D z fotografie"],"3D model":["3D-model","3D model"],"Coming soon":["Kom binnekort","Již brzy"],"Load a photo":["Laai ’n foto","Nahrajte fotografii"],"Use a photo of the part with something of known size beside it, like a ruler, bank card or coin.":["Gebruik ’n foto van die onderdeel met iets van bekende grootte langsaan, soos ’n liniaal, bankkaart of muntstuk.","Použijte fotografii dílu, vedle kterého leží něco známé velikosti, například pravítko, platební karta nebo mince."],"Choose photo":["Kies foto","Vybrat fotografii"],"Open project":["Open projek","Otevřít projekt"],"You can also drop a photo onto the canvas, or paste one with Ctrl+V.":["Jy kan ook ’n foto op die werkarea laat val, of een met Ctrl+V plak.","Fotografii můžete také přetáhnout na plochu nebo vložit pomocí Ctrl+V."],"Next ›":["Volgende ›","Další ›"],"Straighten the photo":["Maak die foto reguit","Narovnejte fotografii"],"Optional":["Opsioneel","Volitelné"],"Shot at an angle? Mark the corners of a flat rectangle of known size lying beside the part. This removes the perspective":["Skuins afgeneem? Merk die hoeke van ’n plat reghoek van bekende grootte wat langs die onderdeel lê. Dit verwyder die perspektief","Fotili jste šikmo? Označte rohy plochého obdélníku známé velikosti, který leží vedle dílu. Tím odstraníte perspektivu"],"and":["en","a"],"sets the scale for you.":["stel sommer ook die skaal vir jou.","zároveň nastavíte měřítko."],"Bank card (85.60 × 53.98 mm)":["Bankkaart (85.60 × 53.98 mm)","Platební karta (85.60 × 53.98 mm)"],"A4 sheet (210 × 297 mm)":["A4-vel (210 × 297 mm)","List A4 (210 × 297 mm)"],"A5 sheet (148 × 210 mm)":["A5-vel (148 × 210 mm)","List A5 (148 × 210 mm)"],"Custom size":["Eie grootte","Vlastní velikost"],"Mark 4 corners":["Merk 4 hoeke","Označit 4 rohy"],"Apply correction":["Pas korreksie toe","Použít opravu"],"0 of 4 corners marked.":["0 van 4 hoeke gemerk.","Označeno 0 ze 4 rohů."],"Level an edge":["Maak ’n rand gelyk","Vyrovnat hranu"],"‹ Back":["‹ Terug","‹ Zpět"],"Set the scale":["Stel die skaal","Nastavte měřítko"],"Draw a line across something you know the size of, then enter its real length. The longer the reference, the more accurate the result.":["Trek ’n lyn oor iets waarvan jy die grootte ken, en tik dan die werklike lengte in. Hoe langer die verwysing, hoe akkurater die resultaat.","Nakreslete čáru přes něco, jehož velikost znáte, a zadejte jeho skutečnou délku. Čím delší reference, tím přesnější výsledek."],"Draw reference line":["Trek verwysingslyn","Nakreslit referenční čáru"],"Or pick a known object…":["Of kies ’n bekende voorwerp…","Nebo vyberte známý předmět…"],"Cards and paper":["Kaarte en papier","Karty a papír"],"Coins (diameter)":["Munte (deursnee)","Mince (průměr)"],"Other":["Ander","Ostatní"],"Bank card, long edge (85.60 mm)":["Bankkaart, lang kant (85.60 mm)","Platební karta, delší strana (85.60 mm)"],"Bank card, short edge (53.98 mm)":["Bankkaart, kort kant (53.98 mm)","Platební karta, kratší strana (53.98 mm)"],"A4 sheet, short edge (210 mm)":["A4-vel, kort kant (210 mm)","List A4, kratší strana (210 mm)"],"A4 sheet, long edge (297 mm)":["A4-vel, lang kant (297 mm)","List A4, delší strana (297 mm)"],"South African R5 (26.00 mm)":["Suid-Afrikaanse R5 (26.00 mm)","Jihoafrická mince R5 (26.00 mm)"],"South African R2 (23.00 mm)":["Suid-Afrikaanse R2 (23.00 mm)","Jihoafrická mince R2 (23.00 mm)"],"South African R1 (20.00 mm)":["Suid-Afrikaanse R1 (20.00 mm)","Jihoafrická mince R1 (20.00 mm)"],"US quarter (24.26 mm)":["VSA-kwartdollar (24.26 mm)","Americký quarter (24.26 mm)"],"€1 coin (23.25 mm)":["€1-muntstuk (23.25 mm)","Mince 1 € (23.25 mm)"],"AA battery, length (50.5 mm)":["AA-battery, lengte (50.5 mm)","Baterie AA, délka (50.5 mm)"],"Ruler, 100 mm span":["Liniaal, 100 mm-afstand","Pravítko, úsek 100 mm"],"No scale yet.":["Nog geen skaal nie.","Měřítko zatím není nastaveno."],"Trace the outline":["Trek die buitelyn na","Obtáhněte obrys"],"Let the tool find the outline for you, or draw it by hand.":["Laat die program die buitelyn vir jou vind, of teken dit met die hand.","Nechte nástroj najít obrys za vás, nebo ho nakreslete ručně."],"Auto trace outline":["Trek buitelyn outomaties na","Automaticky obtáhnout obrys"],"Draw a box around the part on the photo, or":["Trek ’n blokkie om die onderdeel op die foto, of","Nakreslete na fotografii rámeček kolem dílu, nebo"],"trace the whole photo":["trek die hele foto na","obtáhněte celou fotografii"],". A plain background that contrasts with the part works best.":[". ’n Effe agtergrond wat met die onderdeel kontrasteer, werk die beste.",". Nejlépe funguje jednolité pozadí, které s dílem kontrastuje."],"Sensitivity":["Sensitiwiteit","Citlivost"],"Simplify":["Vereenvoudig","Zjednodušit"],"Ignore specks":["Ignoreer spikkels","Ignorovat smítka"],"Include holes and cut-outs":["Sluit gate en uitsnydings in","Zahrnout otvory a výřezy"],"Turn round shapes into circles":["Maak ronde vorms sirkels","Převést kulaté tvary na kružnice"],"Reduce shadows":["Verminder skaduwees","Potlačit stíny"],"No box drawn yet.":["Nog geen blokkie getrek nie.","Zatím není nakreslen žádný rámeček."],"Add to drawing":["Voeg by tekening","Přidat do výkresu"],"Discard":["Gooi weg","Zahodit"],"Or draw by hand":["Of teken met die hand","Nebo kreslete ručně"],"Measure":["Meet","Měřit"],"Line":["Lyn","Čára"],"Polyline":["Polilyn","Lomená čára"],"Rectangle":["Reghoek","Obdélník"],"Circle":["Sirkel","Kružnice"],"Outline":["Buitelyn","Obrys"],"Set origin":["Stel oorsprong","Nastavit počátek"],"Refine the shape":["Verfyn die vorm","Dolaďte tvar"],"Fix glitches by moving or deleting points, and smooth out jagged edges.":["Herstel foutjies deur punte te skuif of uit te vee, en maak hoekige rande glad.","Opravte chyby posunutím nebo smazáním bodů a vyhlaďte zubaté okraje."],"Edit points":["Wysig punte","Upravit body"],"Click a shape to select it, then drag any point to move it. Drag across empty space to select several points. Double-click a line to add a point. Right-drag or hold Space to pan.":["Klik op ’n vorm om dit te kies, en sleep dan enige punt om dit te skuif. Sleep oor leë ruimte om verskeie punte te kies. Dubbelklik op ’n lyn om ’n punt by te voeg. Sleep met die regterknoppie, of hou Spasie in, om die aansig te skuif.","Kliknutím vyberte tvar a pak přetažením posuňte libovolný bod. Tažením přes prázdné místo vyberete více bodů. Dvojklikem na čáru přidáte bod. Zobrazení posunete tažením pravým tlačítkem nebo s podrženým mezerníkem."],"No shape selected.":["Geen vorm gekies nie.","Není vybrán žádný tvar."],"Smooth selected points":["Maak gekose punte glad","Vyhladit vybrané body"],"Delete points":["Vee punte uit","Smazat body"],"Delete shape":["Vee vorm uit","Smazat tvar"],"Smoothing":["Gladmaak","Vyhlazení"],"Fit for printing":["Pas aan vir 3D-druk","Úprava pro 3D tisk"],"Adjust the exported shape for your printer’s tolerances. The trace on the photo stays as it is.":["Pas die uitgevoerde vorm aan vir jou drukker se toleransies. Die natrekking op die foto bly soos dit is.","Upravte exportovaný tvar podle tolerancí vaší tiskárny. Obrys na fotografii zůstane beze změny."],"Scale":["Skaal","Měřítko"],"Outlines":["Buitelyne","Obrysy"],"Holes":["Gate","Otvory"],"Positive values make a shape bigger. For a case or pocket the part must fit into, grow outlines by your printer’s clearance, often 0.2 to 0.4 mm. Holes are shapes that sit inside another outline.":["Positiewe waardes maak ’n vorm groter. Vir ’n houer of holte waarin die onderdeel moet pas, vergroot die buitelyne met jou drukker se speling, gewoonlik 0.2 tot 0.4 mm. Gate is vorms wat binne ’n ander buitelyn lê.","Kladné hodnoty tvar zvětšují. U pouzdra nebo kapsy, do které musí díl zapadnout, zvětšete obrysy o vůli vaší tiskárny, obvykle 0.2 až 0.4 mm. Otvory jsou tvary, které leží uvnitř jiného obrysu."],"Show the print shape on the photo":["Wys die drukvorm op die foto","Zobrazit tiskový tvar na fotografii"],"Export to Fusion 360":["Voer uit na Fusion 360","Export do Fusion 360"],"Download sketch (DXF)":["Laai skets af (DXF)","Stáhnout náčrt (DXF)"],"Include measure lines on their own layer":["Sluit meetlyne op ’n eie laag in","Zahrnout měřicí čáry ve vlastní vrstvě"],"In Fusion: Insert › Insert DXF, pick a plane, set units to mm. Geometry is placed relative to your origin.":["In Fusion: Insert › Insert DXF, kies ’n vlak en stel die eenhede op mm. Die geometrie word relatief tot jou oorsprong geplaas.","Ve Fusion: Insert › Insert DXF, zvolte rovinu a nastavte jednotky na mm. Geometrie se umístí vzhledem k vašemu počátku."],"Download scaled photo (PNG)":["Laai geskaalde foto af (PNG)","Stáhnout fotografii v měřítku (PNG)"],"Add a scale bar":["Voeg ’n skaalstaaf by","Přidat měřítkovou úsečku"],"Include traced lines":["Sluit nagetrekte lyne in","Zahrnout obtažené čáry"],"In Fusion: Insert › Canvas, then right-click the canvas › Calibrate and click the two ends of the scale bar.":["In Fusion: Insert › Canvas, regsklik dan op die canvas › Calibrate en klik op die twee punte van die skaalstaaf.","Ve Fusion: Insert › Canvas, pak klikněte pravým tlačítkem na canvas › Calibrate a klikněte na oba konce měřítkové úsečky."],"Download vector drawing (SVG)":["Laai vektortekening af (SVG)","Stáhnout vektorový výkres (SVG)"],"Embed the photo":["Sluit die foto in","Vložit fotografii"],"Measurements (CSV)":["Metings (CSV)","Rozměry (CSV)"],"Save project":["Stoor projek","Uložit projekt"],"Start with a new photo":["Begin met ’n nuwe foto","Začít s novou fotografií"],"Your shapes":["Jou vorms","Vaše tvary"],"Nothing traced yet.":["Nog niks nagetrek nie.","Zatím nic není obtaženo."],"Undo":["Ontdoen","Vrátit"],"Clear drawing":["Maak tekening skoon","Vymazat výkres"],"View options":["Aansigopsies","Možnosti zobrazení"],"Show in":["Wys in","Zobrazit v"],"inches":["duim","palcích"],"Grid every":["Rooster elke","Mřížka po"],"Mouse and keyboard":["Muis en sleutelbord","Myš a klávesnice"],"Scroll":["Rol","Kolečko"],"Zoom at the cursor":["Zoem by die wyser","Přiblížení u kurzoru"],"Drag":["Sleep","Tažení"],"Pan (in any tool). Drag a point to move it":["Skuif die aansig (in enige hulpmiddel). Sleep ’n punt om dit te skuif","Posun zobrazení (v libovolném nástroji). Tažením bodu ho posunete"],"Lock angle to 15° steps":["Sluit die hoek in stappe van 15°","Zamknout úhel na kroky po 15°"],"Finish a polyline":["Voltooi ’n polilyn","Dokončit lomenou čáru"],"Cancel the current shape":["Kanselleer die huidige vorm","Zrušit rozkreslený tvar"],"Undo (Ctrl+Y redo)":["Ontdoen (Ctrl+Y herdoen)","Vrátit (Ctrl+Y znovu)"],"Edit points. Delete removes selected points":["Wysig punte. Delete vee gekose punte uit","Upravit body. Delete smaže vybrané body"],"Fit photo to view":["Pas foto in die aansig","Přizpůsobit fotografii zobrazení"],"Toggle grid":["Rooster aan/af","Zapnout/vypnout mřížku"],"Drop a photo here":["Laat val ’n foto hier","Přetáhněte sem fotografii"],"Or paste one with Ctrl+V, or choose a file.":["Of plak een met Ctrl+V, of kies ’n lêer.","Nebo ji vložte pomocí Ctrl+V či vyberte soubor."],"For accurate results, shoot straight down from as far away as you can and zoom in, so lens distortion stays low.":["Vir akkurate resultate, neem die foto reguit van bo af, so ver weg as moontlik, en zoem in sodat lensvervorming laag bly.","Pro přesné výsledky foťte kolmo shora z co největší vzdálenosti a přibližte zoomem, aby bylo zkreslení objektivu co nejmenší."],"Put the known object (a ruler, bank card or coin) flat beside the part, at the same height as the face you want to draw.":["Sit die bekende voorwerp (’n liniaal, bankkaart of muntstuk) plat langs die onderdeel, op dieselfde hoogte as die vlak wat jy wil teken.","Položte známý předmět (pravítko, platební kartu nebo minci) naplocho vedle dílu, do stejné výšky jako plocha, kterou chcete kreslit."],"not set":["nie gestel nie","nenastaveno"],"3D import is coming soon":["3D-invoer kom binnekort","3D import bude brzy k dispozici"],"The plan is to open STL, OBJ and 3MF files, measure them in true units, and slice them into section profiles you can bring into a Fusion 360 sketch.":["Die plan is om STL-, OBJ- en 3MF-lêers oop te maak, hulle in ware eenhede te meet, en hulle in deursnitprofiele te sny wat jy in ’n Fusion 360-skets kan gebruik.","V plánu je otevírání souborů STL, OBJ a 3MF, jejich měření ve skutečných jednotkách a řezání na profily průřezů, které můžete přenést do náčrtu ve Fusion 360."],"For now, the 2D photo workflow is ready to use.":["Vir eers is die 2D-fotowerkvloei gereed vir gebruik.","Zatím je připraven pracovní postup 2D z fotografie."],"Go to 2D from photo":["Gaan na 2D uit foto","Přejít na 2D z fotografie"],"Language":["Taal","Jazyk"],"Import type":["Invoertipe","Typ importu"],"Steps":["Stappe","Kroky"],"Reference rectangle":["Verwysingsreghoek","Referenční obdélník"],"Rectangle width in mm":["Reghoekwydte in mm","Šířka obdélníku v mm"],"Rectangle height in mm":["Reghoekhoogte in mm","Výška obdélníku v mm"],"Click two points along an edge that should be horizontal or vertical":["Klik op twee punte langs ’n rand wat horisontaal of vertikaal moet wees","Klikněte na dva body na hraně, která má být vodorovná nebo svislá"],"Rotate 90° left":["Draai 90° links","Otočit o 90° doleva"],"Rotate 90 degrees left":["Draai 90 grade links","Otočit o 90 stupňů doleva"],"Rotate 90° right":["Draai 90° regs","Otočit o 90° doprava"],"Rotate 90 degrees right":["Draai 90 grade regs","Otočit o 90 stupňů doprava"],"Real length":["Werklike lengte","Skutečná délka"],"Real length of the reference":["Werklike lengte van die verwysing","Skutečná délka reference"],"Reference unit":["Verwysingseenheid","Jednotka reference"],"Known object sizes":["Groottes van bekende voorwerpe","Velikosti známých předmětů"],"Drawing tools":["Tekenhulpmiddels","Kreslicí nástroje"],"Decrease scale":["Verklein skaal","Zmenšit měřítko"],"Scale percent":["Skaal in persent","Měřítko v procentech"],"Increase scale":["Vergroot skaal","Zvětšit měřítko"],"Shrink outlines":["Krimp buitelyne","Zmenšit obrysy"],"Outline offset in mm":["Buitelynverskuiwing in mm","Odsazení obrysů v mm"],"Grow outlines":["Vergroot buitelyne","Zvětšit obrysy"],"Shrink holes":["Krimp gate","Zmenšit otvory"],"Hole offset in mm":["Gatverskuiwing in mm","Odsazení otvorů v mm"],"Grow holes":["Vergroot gate","Zvětšit otvory"],"Measurements and traced shapes":["Metings en nagetrekte vorms","Rozměry a obtažené tvary"],"Display unit":["Vertooneenheid","Zobrazovaná jednotka"],"Grid spacing in mm":["Roosterspasiëring in mm","Rozteč mřížky v mm"],"Tools":["Hulpmiddels","Nástroje"],"Pan (V)":["Skuif aansig (V)","Posun (V)"],"Pan":["Skuif aansig","Posun"],"Reference line (K)":["Verwysingslyn (K)","Referenční čára (K)"],"Reference line":["Verwysingslyn","Referenční čára"],"Measure (M)":["Meet (M)","Měřit (M)"],"Line (L)":["Lyn (L)","Čára (L)"],"Polyline (P)":["Polilyn (P)","Lomená čára (P)"],"Rectangle (R)":["Reghoek (R)","Obdélník (R)"],"Circle (C)":["Sirkel (C)","Kružnice (C)"],"Auto trace (A)":["Outomatiese natrekking (A)","Automatické obtažení (A)"],"Auto trace":["Outomatiese natrekking","Automatické obtažení"],"Edit points (E)":["Wysig punte (E)","Upravit body (E)"],"Set origin (O)":["Stel oorsprong (O)","Nastavit počátek (O)"],"Undo (Ctrl+Z)":["Ontdoen (Ctrl+Z)","Vrátit (Ctrl+Z)"],"Grid (G)":["Rooster (G)","Mřížka (G)"],"Zoom out (-)":["Zoem uit (-)","Oddálit (-)"],"Zoom out":["Zoem uit","Oddálit"],"Zoom in (+)":["Zoem in (+)","Přiblížit (+)"],"Zoom in":["Zoem in","Přiblížit"],"Fit to view (F)":["Pas in aansig (F)","Přizpůsobit zobrazení (F)"],"Fit to view":["Pas in aansig","Přizpůsobit zobrazení"],"Drag to move around. Scroll to zoom.":["Sleep om rond te beweeg. Rol om te zoem.","Tažením se posunete, kolečkem přiblížíte."],"Click one end of the object you know the size of.":["Klik op die een punt van die voorwerp waarvan jy die grootte ken.","Klikněte na jeden konec předmětu, jehož velikost znáte."],"Click the other end.":["Klik op die ander punt.","Klikněte na druhý konec."],"Click the start of the distance to measure.":["Klik op die begin van die afstand wat jy wil meet.","Klikněte na začátek měřené vzdálenosti."],"Click the end.":["Klik op die einde.","Klikněte na konec."],"Click the start of the line.":["Klik op die begin van die lyn.","Klikněte na začátek čáry."],"Click the end of the line.":["Klik op die einde van die lyn.","Klikněte na konec čáry."],"Click one corner of the rectangle.":["Klik op een hoek van die reghoek.","Klikněte na jeden roh obdélníku."],"Click the opposite corner.":["Klik op die teenoorgestelde hoek.","Klikněte na protější roh."],"Click the centre of the circle.":["Klik op die middelpunt van die sirkel.","Klikněte na střed kružnice."],"Click any point on its edge.":["Klik op enige punt op die rand.","Klikněte na libovolný bod na jejím obvodu."],"Click the first point.":["Klik op die eerste punt.","Klikněte na první bod."],"Keep clicking. Click the first point to close, or press Enter to finish.":["Hou aan klik. Klik op die eerste punt om die vorm toe te maak, of druk Enter om klaar te maak.","Pokračujte v klikání. Kliknutím na první bod tvar uzavřete, klávesou Enter ho dokončíte."],"Click the point that should be 0,0 in Fusion.":["Klik op die punt wat 0,0 in Fusion moet wees.","Klikněte na bod, který má být ve Fusion 0,0."],"Click the first corner of the rectangle.":["Klik op die eerste hoek van die reghoek.","Klikněte na první roh obdélníku."],"Click the next corner, going around the rectangle.":["Klik op die volgende hoek, om die reghoek heen.","Klikněte na další roh, postupně kolem obdélníku."],"Click the third corner.":["Klik op die derde hoek.","Klikněte na třetí roh."],"Click the last corner.":["Klik op die laaste hoek.","Klikněte na poslední roh."],"Click one end of an edge that should be level or upright.":["Klik op die een punt van ’n rand wat gelyk of regop moet wees.","Klikněte na jeden konec hrany, která má být vodorovná nebo svislá."],"Click one corner of a box around the part. Leave some background showing on every side.":["Klik op een hoek van ’n blokkie om die onderdeel. Laat aan elke kant ’n bietjie agtergrond sigbaar.","Klikněte na jeden roh rámečku kolem dílu. Na každé straně nechte kousek pozadí."],"Click a shape, then drag its points. Drag across empty space to select several. Double-click a line to add a point.":["Klik op ’n vorm en sleep dan sy punte. Sleep oor leë ruimte om verskeie te kies. Dubbelklik op ’n lyn om ’n punt by te voeg.","Klikněte na tvar a táhněte jeho body. Tažením přes prázdné místo vyberete více bodů. Dvojklikem na čáru přidáte bod."],"Hold Shift to lock the angle.":["Hou Shift in om die hoek te sluit.","Podržením Shift zamknete úhel."],"Adjust the sliders in step 4, then choose “Add to drawing”. Or click to draw a new box.":["Stel die skuiwers in stap 4 en kies dan “Voeg by tekening”. Of klik om ’n nuwe blokkie te trek.","Upravte posuvníky v kroku 4 a zvolte „Přidat do výkresu“. Nebo klikněte a nakreslete nový rámeček."],"Drag corners to fine-tune, then choose “Apply correction”.":["Sleep die hoeke om fyn aan te pas, en kies dan “Pas korreksie toe”.","Přetažením rohů je dolaďte a pak zvolte „Použít opravu“."],"Reference set. Drag its ends to fine-tune, or click to draw a new one.":["Verwysing gestel. Sleep die punte om fyn aan te pas, of klik om ’n nuwe een te trek.","Reference je nastavena. Přetažením konců ji dolaďte, nebo klikněte a nakreslete novou."],"Now type the real length in step 3.":["Tik nou die werklike lengte in stap 3 in.","Nyní zadejte skutečnou délku v kroku 3."],"Photo":["Foto","Foto"],"Angle":["Hoek","Úhel"],"Trace":["Natrek","Obrys"],"Refine":["Verfyn","Doladit"],"Fit":["Pas","Tisk"],"Export":["Uitvoer","Export"],"Skip ›":["Slaan oor ›","Přeskočit ›"],"Skip to export ›":["Gaan na uitvoer ›","Přejít k exportu ›"],"Load a photo to continue.":["Laai ’n foto om voort te gaan.","Pro pokračování nahrajte fotografii."],"Enter the real length of the reference line to continue.":["Tik die werklike lengte van die verwysingslyn in om voort te gaan.","Pro pokračování zadejte skutečnou délku referenční čáry."],"Draw a reference line on the photo to continue.":["Trek ’n verwysingslyn op die foto om voort te gaan.","Pro pokračování nakreslete na fotografii referenční čáru."],"Step {n}: {name}":["Stap {n}: {name}","Krok {n}: {name}"],"Load a photo first":["Laai eers ’n foto","Nejprve nahrajte fotografii"],"Set the scale first":["Stel eers die skaal","Nejprve nastavte měřítko"],"Nothing to undo.":["Niks om te ontdoen nie.","Není co vrátit."],"That file isn’t an image. Use a JPG, PNG or WebP photo.":["Daardie lêer is nie ’n prent nie. Gebruik ’n JPG-, PNG- of WebP-foto.","Tento soubor není obrázek. Použijte fotografii JPG, PNG nebo WebP."],"This browser can’t open that image. HEIC photos need converting to JPG first.":["Hierdie blaaier kan nie daardie prent oopmaak nie. HEIC-foto’s moet eers na JPG omgeskakel word.","Tento prohlížeč obrázek neotevře. Fotografie HEIC je nejprve potřeba převést na JPG."],"Photo loaded. It was reduced to {w} × {h} px to stay responsive.":["Foto gelaai. Dit is na {w} × {h} px verklein sodat die program vinnig bly.","Fotografie načtena. Byla zmenšena na {w} × {h} px, aby aplikace zůstala svižná."],"Origin set. DXF coordinates are now measured from this point.":["Oorsprong gestel. DXF-koördinate word nou vanaf hierdie punt gemeet.","Počátek nastaven. Souřadnice DXF se nyní měří od tohoto bodu."],"Reference {v}":["Verwysing {v}","Reference {v}"],"Reference: enter its length":["Verwysing: tik die lengte in","Reference: zadejte délku"],"Radius {r}, Ø {d}":["Radius {r}, Ø {d}","Poloměr {r}, Ø {d}"],"Length {l} at {a}°":["Lengte {l} teen {a}°","Délka {l} pod úhlem {a}°"],"{n} pts, {len}":["{n} punte, {len}","bodů: {n}, {len}"],"Delete {item}":["Vee {item} uit","Smazat: {item}"],"Print: {v}":["Druk: {v}","Tisk: {v}"],"Loaded {name} ({w} × {h} px).":["{name} gelaai ({w} × {h} px).","Načteno: {name} ({w} × {h} px)."],"All 4 corners marked. Drag them to fine-tune if needed.":["Al 4 hoeke is gemerk. Sleep hulle om fyn aan te pas indien nodig.","Všechny 4 rohy jsou označeny. V případě potřeby je přetažením dolaďte."],"{n} of 4 corners marked.":["{n} van 4 hoeke gemerk.","Označeno {n} ze 4 rohů."],"{v} px per mm":["{v} px per mm","{v} px na mm"],"Scale set: {s}. Photo covers {w} × {h}.":["Skaal gestel: {s}. Die foto dek {w} × {h}.","Měřítko nastaveno: {s}. Fotografie pokrývá {w} × {h}."],"The reference is only {px} px long. Clicking 1 px off gives about {e}% error, so use a longer reference if you can.":["Die verwysing is net {px} px lank. As jy 1 px mis klik, gee dit sowat {e}% fout, so gebruik ’n langer verwysing as jy kan.","Reference je dlouhá jen {px} px. Chyba kliknutí o 1 px znamená asi {e}% odchylku, proto použijte delší referenci, pokud můžete."],"Reference drawn. Enter its real length above.":["Verwysing getrek. Tik die werklike lengte hierbo in.","Reference nakreslena. Výše zadejte její skutečnou délku."],"Exports are true to scale: 1 unit = 1 mm.":["Uitvoere is skaalgetrou: 1 eenheid = 1 mm.","Exporty jsou ve skutečném měřítku: 1 jednotka = 1 mm."],"Set the scale in step 3 to unlock exports.":["Stel die skaal in stap 3 om uitvoere te ontsluit.","Pro odemčení exportů nastavte měřítko v kroku 3."],"Set the scale first, so the grid can be drawn in real units.":["Stel eers die skaal sodat die rooster in ware eenhede geteken kan word.","Nejprve nastavte měřítko, aby se mřížka mohla vykreslit ve skutečných jednotkách."],"That edge is already level.":["Daardie rand is reeds gelyk.","Tato hrana už je vyrovnaná."],"Rotated by {a}°.":["Gedraai met {a}°.","Otočeno o {a}°."],"Enter the rectangle’s real width and height first.":["Tik eers die reghoek se werklike wydte en hoogte in.","Nejprve zadejte skutečnou šířku a výšku obdélníku."],"Those corners don’t form a usable rectangle. Check that no three are in a line.":["Daardie hoeke vorm nie ’n bruikbare reghoek nie. Maak seker dat geen drie in ’n lyn lê nie.","Tyto rohy netvoří použitelný obdélník. Zkontrolujte, že žádné tři neleží na jedné přímce."],"Correcting perspective…":["Korrigeer perspektief…","Opravuji perspektivu…"],"Perspective corrected and scale set, so step 3 is done. Check it any time with Measure (M).":["Perspektief gekorrigeer en skaal gestel, dus is stap 3 klaar. Toets dit enige tyd met Meet (M).","Perspektiva opravena a měřítko nastaveno, krok 3 je tedy hotový. Kdykoli ho můžete ověřit nástrojem Měřit (M)."],"No outline found. Raise the sensitivity, or redraw the box with background showing on every side.":["Geen buitelyn gevind nie. Verhoog die sensitiwiteit, of trek die blokkie weer met agtergrond sigbaar aan elke kant.","Nebyl nalezen žádný obrys. Zvyšte citlivost nebo nakreslete rámeček znovu tak, aby na každé straně bylo vidět pozadí."],"Found {list}.":["{list} gevind.","Nalezeno: {list}."]," and ":[" en "," a "],", 1 recognised as a circle":[", waarvan 1 as ’n sirkel herken is",", z toho 1 rozpoznán jako kružnice"],", {n} recognised as circles":[", waarvan {n} as sirkels herken is",", z toho rozpoznáno jako kružnice: {n}"],"Draw a bigger box around the part.":["Trek ’n groter blokkie om die onderdeel.","Nakreslete kolem dílu větší rámeček."],"Finding edges…":["Soek rande…","Hledám hrany…"],"Outline found. Fine-tune with the sliders, then choose “Add to drawing”.":["Buitelyn gevind. Stel fyn met die skuiwers en kies dan “Voeg by tekening”.","Obrys nalezen. Dolaďte ho posuvníky a zvolte „Přidat do výkresu“."],"No clear outline in that box. Try raising the sensitivity.":["Geen duidelike buitelyn in daardie blokkie nie. Probeer die sensitiwiteit verhoog.","V rámečku není zřetelný obrys. Zkuste zvýšit citlivost."],"Added {shapes}. Trace more, or choose Next to tidy and smooth the outline.":["{shapes} bygevoeg. Trek meer na, of kies Volgende om die buitelyn reg en glad te maak.","Přidáno: {shapes}. Obtáhněte další, nebo zvolte Další a obrys upravte a vyhlaďte."],"Point added. Drag it into place.":["Punt bygevoeg. Sleep dit op sy plek.","Bod přidán. Přetáhněte ho na místo."],"Only outline and polyline points can be deleted. Use “Delete shape” instead.":["Net punte van buitelyne en polilyne kan uitgevee word. Gebruik eerder “Vee vorm uit”.","Smazat lze jen body obrysů a lomených čar. Místo toho použijte „Smazat tvar“."],"That would leave too few points. Use “Delete shape” instead.":["Dan bly te min punte oor. Gebruik eerder “Vee vorm uit”.","Zůstalo by příliš málo bodů. Místo toho použijte „Smazat tvar“."],"Off":["Af","Vyp."],"No shape selected. Click one on the photo or in the list below.":["Geen vorm gekies nie. Klik op een op die foto of in die lys hieronder.","Není vybrán žádný tvar. Klikněte na některý na fotografii nebo v seznamu níže."],"Nothing to edit yet. Trace or draw a shape first.":["Nog niks om te wysig nie. Trek of teken eers ’n vorm.","Zatím není co upravovat. Nejprve obtáhněte nebo nakreslete tvar."],"{shape} with {points}, {n} selected.":["{shape} met {points}, {n} gekies.","{shape}: {points}, vybráno {n}."],"{shape} with {points}. Drag across points to select several.":["{shape} met {points}. Sleep oor punte om verskeie te kies.","{shape}: {points}. Tažením přes body jich vyberete více."],"Applies to the selected shape.":["Geld vir die gekose vorm.","Platí pro vybraný tvar."],"Applies to all outlines ({n}). Select one with Edit points to smooth just that shape.":["Geld vir alle buitelyne ({n}). Kies een met Wysig punte om net daardie vorm glad te maak.","Platí pro všechny obrysy ({n}). Chcete-li vyhladit jen jeden tvar, vyberte ho nástrojem Upravit body."],"Trace a shape to see its print size.":["Trek ’n vorm na om sy drukgrootte te sien.","Obtáhněte tvar a uvidíte jeho tiskovou velikost."],"Print size {w} × {h}.":["Drukgrootte {w} × {h}.","Tisková velikost {w} × {h}."],"Print size {w} × {h}, traced {w0} × {h0}.":["Drukgrootte {w} × {h}, nagetrek {w0} × {h0}.","Tisková velikost {w} × {h}, obtaženo {w0} × {h0}."],"Trace or draw a shape first.":["Trek of teken eers ’n vorm.","Nejprve obtáhněte nebo nakreslete tvar."],"The photo is too large to export as PNG in this browser.":["Die foto is te groot om in hierdie blaaier as PNG uit te voer.","Fotografie je pro export do PNG v tomto prohlížeči příliš velká."],"The scale bar is {l} mm long.":["Die skaalstaaf is {l} mm lank.","Měřítková úsečka je dlouhá {l} mm."],"That file isn’t a Trace to Scale project.":["Daardie lêer is nie ’n Trace to Scale-projek nie.","Tento soubor není projekt Trace to Scale."],"Project opened.":["Projek oopgemaak.","Projekt otevřen."],"The photo inside that project couldn’t be read.":["Die foto in daardie projek kon nie gelees word nie.","Fotografii v projektu nelze načíst."],"Saved {f}.":["{f} gestoor.","Uloženo: {f}."],"Unzip it to get {f}.":["Pak dit uit om {f} te kry.","Po rozbalení získáte {f}."],"Download cancelled.":["Aflaai gekanselleer.","Stahování zrušeno."],"A download prompt is already open. Try again in a moment.":["’n Aflaaivenster is reeds oop. Probeer weer oor ’n oomblik.","Okno stahování je už otevřené. Zkuste to za chvíli znovu."],"Downloads aren’t available in this view.":["Aflaaie is nie in hierdie aansig beskikbaar nie.","V tomto zobrazení není stahování k dispozici."],"Drawing cleared. Press Ctrl+Z to bring it back.":["Tekening skoongemaak. Druk Ctrl+Z om dit terug te kry.","Výkres vymazán. Obnovíte ho pomocí Ctrl+Z."],"Trace some lines, rectangles or circles first. The DXF only contains traced geometry.":["Trek eers ’n paar lyne, reghoeke of sirkels. Die DXF bevat net nagetrekte geometrie.","Nejprve obtáhněte nějaké čáry, obdélníky nebo kružnice. DXF obsahuje jen obtaženou geometrii."],"Step 1 of 7":["Stap 1 van 7","Krok 1 ze 7"],"Step 2 of 7":["Stap 2 van 7","Krok 2 ze 7"],"Step 3 of 7":["Stap 3 van 7","Krok 3 ze 7"],"Step 4 of 7":["Stap 4 van 7","Krok 4 ze 7"],"Step 5 of 7":["Stap 5 van 7","Krok 5 ze 7"],"Step 6 of 7":["Stap 6 van 7","Krok 6 ze 7"],"Step 7 of 7":["Stap 7 van 7","Krok 7 ze 7"]};
+const PLURALS = {"en":{"outline":["outline","outlines"],"hole":["hole","holes"],"shape":["shape","shapes"],"point":["point","points"]},"af":{"outline":["buitelyn","buitelyne"],"hole":["gat","gate"],"shape":["vorm","vorms"],"point":["punt","punte"]},"cs":{"outline":["obrys","obrysy","obrysů"],"hole":["otvor","otvory","otvorů"],"shape":["tvar","tvary","tvarů"],"point":["bod","body","bodů"]}};
+let LANG = 'en';
+function tx(key, vars){
+  let s = key;
+  if (LANG !== 'en'){ const e = L10N[key]; if (e) s = e[LANG === 'af' ? 0 : 1] || key; }
+  if (vars) for (const k in vars) s = s.split('{' + k + '}').join(vars[k]);
+  return s;
+}
+function plu(n, w){
+  const f = PLURALS[LANG][w];
+  const i = LANG === 'cs' ? (n === 1 ? 0 : n >= 2 && n <= 4 ? 1 : 2) : (n === 1 ? 0 : 1);
+  return n + ' ' + f[i];
+}
+const tNodes = new WeakMap(), tAttrs = new WeakMap();
+function translateDOM(){
+  const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+    acceptNode: n => n.parentElement && /^(SCRIPT|STYLE)$/.test(n.parentElement.tagName) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT
+  });
+  let n;
+  while ((n = walk.nextNode())){
+    const raw = n.nodeValue; if (!raw.trim()) continue;
+    let rec = tNodes.get(n);
+    if (!rec || raw !== rec.applied) rec = { orig:raw };
+    const key = rec.orig.trim();
+    const out = L10N[key] ? rec.orig.replace(key, tx(key)) : rec.orig;
+    if (out !== raw) n.nodeValue = out;
+    rec.applied = out; tNodes.set(n, rec);
+  }
+  document.querySelectorAll('[title],[aria-label],[placeholder],optgroup[label]').forEach(el => {
+    let m = tAttrs.get(el); if (!m){ m = {}; tAttrs.set(el, m); }
+    ['title','aria-label','placeholder','label'].forEach(a => {
+      if (!el.hasAttribute(a) || (a === 'label' && el.tagName !== 'OPTGROUP')) return;
+      const raw = el.getAttribute(a);
+      let rec = m[a]; if (!rec || raw !== rec.applied) rec = { orig:raw };
+      const out = L10N[rec.orig] ? tx(rec.orig) : rec.orig;
+      if (out !== raw) el.setAttribute(a, out);
+      rec.applied = out; m[a] = rec;
+    });
+  });
+}
+function setLang(l){
+  LANG = ['en','af','cs'].includes(l) ? l : 'en';
+  document.documentElement.lang = LANG;
+  $('#lang').value = LANG;
+  try { localStorage.setItem('trace-to-scale-lang', LANG); } catch {}
+  $('#wizSteps').textContent = '';
+  translateDOM(); updateUI();
+}
+function initLang(){
+  let l = null;
+  try { l = localStorage.getItem('trace-to-scale-lang'); } catch {}
+  if (!l){ const nav = (navigator.language || 'en').toLowerCase(); l = nav.startsWith('af') ? 'af' : nav.startsWith('cs') ? 'cs' : 'en'; }
+  setLang(l);
+}
+
+/* ---------- helpers ---------- */
+const dist = (a,b) => Math.hypot(a.x-b.x, a.y-b.y);
+const sp = p => ({ x:p.x*S.view.s + S.view.x, y:p.y*S.view.s + S.view.y });
+const toImg = m => ({ x:(m.x-S.view.x)/S.view.s, y:(m.y-S.view.y)/S.view.s });
+const originPt = () => S.origin || { x:0, y:S.src ? S.src.height : 0 };
+function mk(w,h){ const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+function fmtMM(mm){
+  if (S.unit === 'cm') return (mm/10).toFixed(2) + ' cm';
+  if (S.unit === 'in') return (mm/25.4).toFixed(3) + ' in';
+  return mm.toFixed(2) + ' mm';
+}
+const fmtLen = px => S.mmpp ? fmtMM(px*S.mmpp) : Math.round(px) + ' px';
+let toastTimer;
+function toast(msg, ms=3200){
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), ms);
+}
+const safeName = () => (S.name || 'photo').replace(/[^\w\-]+/g,'_').slice(0,60) || 'photo';
+
+/* ---------- history ---------- */
+const snapshot = () => JSON.stringify({ shapes:S.shapes, measures:S.measures, calLine:S.calLine, persp:S.persp, origin:S.origin });
+function commit(){ S.hist.push(snapshot()); if (S.hist.length > 300) S.hist.shift(); S.future = []; }
+function restore(str){ Object.assign(S, JSON.parse(str)); S.selPts = new Set(); if (S.sel >= S.shapes.length) S.sel = -1; }
+function undo(){
+  if (S.pending.length){ S.pending.pop(); updateUI(); return; }
+  if (!S.hist.length){ toast(tx('Nothing to undo.')); return; }
+  S.future.push(snapshot()); restore(S.hist.pop()); updateUI();
+}
+function redo(){ if (!S.future.length) return; S.hist.push(snapshot()); restore(S.future.pop()); updateUI(); }
+
+/* ---------- view ---------- */
+function resize(){
+  const r = wrap.getBoundingClientRect();
+  W = Math.max(1, r.width); H = Math.max(1, r.height); dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+  const L = 168; lp.width = L*dpr; lp.height = L*dpr;
+  draw();
+}
+function fit(){
+  if (!S.src) return;
+  const s = Math.min(W/S.src.width, H/S.src.height) * 0.92;
+  S.view.s = s; S.view.x = (W - S.src.width*s)/2; S.view.y = (H - S.src.height*s)/2;
+  updateUI();
+}
+function zoomAt(m, f){
+  const s = Math.min(64, Math.max(0.01, S.view.s*f));
+  const ip = toImg(m);
+  S.view.s = s; S.view.x = m.x - ip.x*s; S.view.y = m.y - ip.y*s;
+  $('#zoomLbl').textContent = Math.round(s*100) + '%';
+  draw();
+}
+new ResizeObserver(resize).observe(wrap);
+
+/* ---------- image loading ---------- */
+function loadFile(file){
+  if (!file) return;
+  if (file.name && /\.json$/i.test(file.name)) { loadProject(file); return; }
+  if (!file.type.startsWith('image/')) { toast(tx('That file isn’t an image. Use a JPG, PNG or WebP photo.')); return; }
+  const url = URL.createObjectURL(file);
+  const im = new Image();
+  im.onload = () => { setImage(im, (file.name || 'pasted').replace(/\.[^.]+$/,'')); URL.revokeObjectURL(url); };
+  im.onerror = () => { toast(tx('This browser can’t open that image. HEIC photos need converting to JPG first.'), 5000); URL.revokeObjectURL(url); };
+  im.src = url;
+}
+function setImage(im, name){
+  let w = im.naturalWidth || im.width, h = im.naturalHeight || im.height;
+  const maxPx = 36e6; let note = '';
+  if (w*h > maxPx){ const f = Math.sqrt(maxPx/(w*h)); w = Math.round(w*f); h = Math.round(h*f); note = 'y'; }
+  const c = mk(w,h); c.getContext('2d').drawImage(im, 0, 0, w, h);
+  Object.assign(S, { src:c, name, mmpp:null, calLine:null, origin:null, shapes:[], measures:[], persp:[], pending:[], hist:[], future:[], corrected:false, hover:null, hl:null, auto:null, sel:-1, selPts:new Set() });
+  $('#calLen').value = '';
+  fit(); goStep(2);
+  if (note) toast(tx('Photo loaded. It was reduced to {w} × {h} px to stay responsive.', { w, h }), 5000);
+}
+
+/* ---------- tools ---------- */
+const STEPS = [
+  { id:'s1', lbl:'Photo' }, { id:'s2', lbl:'Angle' }, { id:'s3', lbl:'Scale' }, { id:'s4', lbl:'Trace' },
+  { id:'s5', lbl:'Refine' }, { id:'s6', lbl:'Fit' }, { id:'s7', lbl:'Export' }
+];
+const TOOL_STEP = { persp:2, level:2, cal:3, auto:4, measure:4, line:4, poly:4, rect:4, circle:4, origin:4, edit:5 };
+const reachable = n => n === 1 || (!!S.src && (n <= 3 || !!S.mmpp));
+const stepDone = n => [!!S.src, S.corrected, !!S.mmpp, S.shapes.length > 0, S.shapes.some(s => s.smooth > 0), printActive(), false][n-1];
+const canNext = n => n === 1 ? !!S.src : n === 3 ? !!S.mmpp : true;
+const nextTarget = n => (n === 4 && !S.shapes.length) ? 7 : n + 1;
+function nextLabel(n){
+  if (n === 2 && !S.corrected) return tx('Skip ›');
+  if (n === 4 && !S.shapes.length) return tx('Skip to export ›');
+  if (n === 5 && !S.shapes.length) return tx('Skip ›');
+  if (n === 6 && !printActive()) return tx('Skip ›');
+  return tx('Next ›');
+}
+function whyText(n){
+  if (n === 1 && !S.src) return tx('Load a photo to continue.');
+  if (n === 3 && !S.mmpp) return tx(S.calLine ? 'Enter the real length of the reference line to continue.' : 'Draw a reference line on the photo to continue.');
+  return '';
+}
+function goStep(n){
+  computeScale();
+  if (!reachable(n)) return;
+  S.step = n;
+  const tool = n === 3 ? (S.mmpp ? 'pan' : 'cal') : n === 4 ? 'auto' : n === 5 ? 'edit' : n === 2 && S.tool === 'persp' ? 'persp' : 'pan';
+  setTool(tool, true);
+  $('#side').scrollTop = 0;
+}
+function renderWizard(){
+  const ol = $('#wizSteps');
+  if (!ol.children.length){
+    STEPS.forEach((st, i) => {
+      const li = document.createElement('li'), b = document.createElement('button');
+      b.type = 'button';
+      const d = document.createElement('span'); d.className = 'dot'; d.textContent = i + 1;
+      const l = document.createElement('span'); l.className = 'lbl'; l.textContent = tx(st.lbl);
+      b.append(d, l); b.addEventListener('click', () => goStep(i + 1));
+      li.appendChild(b); ol.appendChild(li);
+    });
+  }
+  [...ol.children].forEach((li, i) => {
+    const n = i + 1, ok = reachable(n), b = li.firstChild;
+    li.classList.toggle('current', n === S.step);
+    li.classList.toggle('done', n !== S.step && !!stepDone(n));
+    li.classList.toggle('locked', !ok);
+    b.disabled = !ok;
+    if (n === S.step) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current');
+    b.title = ok ? tx('Step {n}: {name}', { n, name:tx(STEPS[i].lbl) }) : tx(n <= 3 ? 'Load a photo first' : 'Set the scale first');
+  });
+  STEPS.forEach((st, i) => $('#' + st.id).classList.toggle('current', i + 1 === S.step));
+  const sec = $('#' + STEPS[S.step-1].id), nx = sec.querySelector('[data-next]'), why = sec.querySelector('.why');
+  if (nx){ nx.disabled = !(canNext(S.step) && reachable(nextTarget(S.step))); nx.textContent = nextLabel(S.step); }
+  if (why){ const w = whyText(S.step); why.textContent = w; why.hidden = !w; }
+  $('#shared').hidden = !(S.step >= 4 && S.step <= 6);
+}
+function setTool(t, fromStep){
+  if (!fromStep){ const w = TOOL_STEP[t]; if (w && w !== S.step && reachable(w)) S.step = w; }
+  S.tool = t; S.pending = [];
+  if (t !== 'auto') S.auto = null;
+  if (t !== 'edit'){ S.sel = -1; S.selPts = new Set(); }
+  updateUI();
+}
+function hintText(){
+  if (!S.src) return '';
+  const t = S.tool, T = TOOLS[t], n = S.pending.length, sh = ' ' + tx('Hold Shift to lock the angle.');
+  if (t === 'pan' || t === 'edit') return tx(T.hint);
+  if (t === 'auto' && S.auto && !n) return tx('Adjust the sliders in step 4, then choose “Add to drawing”. Or click to draw a new box.');
+  if (t === 'persp') return S.persp.length < 4 ? tx(T.hint[S.persp.length]) : tx('Drag corners to fine-tune, then choose “Apply correction”.');
+  if (t === 'cal' && S.calLine && !n) return S.mmpp ? tx('Reference set. Drag its ends to fine-tune, or click to draw a new one.') : tx('Now type the real length in step 3.');
+  if (t === 'poly') return n ? tx(T.hint[1]) + sh : tx(T.hint[0]);
+  const h = tx(T.hint[Math.min(n, T.hint.length-1)]);
+  return n ? h + sh : h;
+}
+
+function allPoints(){
+  const pts = [];
+  S.shapes.forEach(s => pts.push(...s.pts));
+  S.measures.forEach(m => pts.push(m.a, m.b));
+  if (S.calLine) pts.push(...S.calLine);
+  if (S.origin) pts.push(S.origin);
+  return pts;
+}
+function hitHandle(m){
+  let best = 9, hit = null;
+  const cands = allPoints().concat(S.persp);
+  for (const q of cands){ const s = sp(q); const d = Math.hypot(s.x-m.x, s.y-m.y); if (d < best){ best = d; hit = q; } }
+  return hit;
+}
+function cursorPoint(m, exclude){
+  let p = toImg(m), snapObj = null, best = 10;
+  const cands = allPoints().filter(q => q !== exclude);
+  if (S.tool === 'poly' && S.pending.length >= 2) cands.push(S.pending[0]);
+  for (const q of cands){ const s = sp(q); const d = Math.hypot(s.x-m.x, s.y-m.y); if (d < best){ best = d; snapObj = q; } }
+  if (snapObj) p = { x:snapObj.x, y:snapObj.y };
+  else if (shift && !exclude && S.pending.length && S.tool !== 'persp'){
+    const base = S.tool === 'circle' ? S.pending[0] : S.pending[S.pending.length-1];
+    const dx = p.x-base.x, dy = p.y-base.y, L = Math.hypot(dx,dy);
+    const a = Math.round(Math.atan2(dy,dx)/(Math.PI/12))*(Math.PI/12);
+    p = { x:base.x + L*Math.cos(a), y:base.y + L*Math.sin(a) };
+  }
+  return { p, snapObj };
+}
+
+function place(p){
+  const t = S.tool;
+  if (t === 'pan') return;
+  if (t === 'persp'){
+    commit(); if (S.persp.length >= 4) S.persp = [];
+    S.persp.push(p); updateUI(); return;
+  }
+  if (t === 'origin'){ commit(); S.origin = p; updateUI(); toast(tx('Origin set. DXF coordinates are now measured from this point.')); return; }
+  if (t === 'poly'){
+    if (S.pending.length >= 2 && S.snapObj === S.pending[0]) { finishPoly(true); return; }
+    S.pending.push(p); updateUI(); return;
+  }
+  S.pending.push(p);
+  if (S.pending.length >= TOOLS[t].n){
+    const [a,b] = S.pending; S.pending = [];
+    if (dist(a,b) < 0.5){ updateUI(); return; }
+    if (t === 'cal'){ commit(); S.calLine = [a,b]; updateUI(); const inp = $('#calLen'); if (!inp.value) inp.focus(); return; }
+    if (t === 'measure'){ commit(); S.measures.push({a,b}); }
+    else if (t === 'line' || t === 'rect' || t === 'circle'){ commit(); S.shapes.push({ type:t, pts:[a,b] }); }
+    else if (t === 'auto'){ runAuto(a,b); updateUI(); return; }
+    else if (t === 'level'){ levelImage(a,b); return; }
+  }
+  updateUI();
+}
+function finishPoly(closed){
+  const pts = S.pending.slice(); S.pending = [];
+  if (pts.length >= 2){ commit(); S.shapes.push({ type:'poly', pts, closed:!!closed }); }
+  updateUI();
+}
+
+/* ---------- pointer input ---------- */
+function mpos(e){ const r = cv.getBoundingClientRect(); return { x:e.clientX - r.left, y:e.clientY - r.top }; }
+cv.addEventListener('contextmenu', e => e.preventDefault());
+cv.addEventListener('pointerdown', e => {
+  if (!S.src) return;
+  cv.setPointerCapture(e.pointerId);
+  const m = mpos(e); ptrs.set(e.pointerId, m);
+  if (ptrs.size === 2){
+    const [a,b] = [...ptrs.values()];
+    const mid = { x:(a.x+b.x)/2, y:(a.y+b.y)/2 };
+    drag = { kind:'pinch', d0:dist(a,b), s0:S.view.s, ip:toImg(mid) }; return;
+  }
+  if (e.button === 1 || e.button === 2 || space || S.tool === 'pan'){
+    drag = { kind:'pan', sx:m.x, sy:m.y, vx:S.view.x, vy:S.view.y }; cv.classList.add('grabbing'); return;
+  }
+  if (e.button !== 0) return;
+  if (S.tool === 'edit'){
+    const v = hitVertex(m);
+    if (v){
+      if (S.sel !== v.i){ S.sel = v.i; S.selPts = new Set(); }
+      if (e.shiftKey || e.ctrlKey || e.metaKey){ if (S.selPts.has(v.k)) S.selPts.delete(v.k); else S.selPts.add(v.k); }
+      else if (!S.selPts.has(v.k)) S.selPts = new Set([v.k]);
+      const s = S.shapes[v.i];
+      drag = { kind:'edpts', i:v.i, sx:m.x, sy:m.y, start:toImg(m), orig:[...S.selPts].map(k => ({ k, x:s.pts[k].x, y:s.pts[k].y })), moved:false };
+      updateUI(); return;
+    }
+    const h = hitShape(m);
+    if (h >= 0){
+      if (S.sel !== h){ S.sel = h; S.selPts = new Set(); }
+      const s = S.shapes[h];
+      drag = { kind:'edshape', i:h, sx:m.x, sy:m.y, start:toImg(m), orig:copyPts(s.pts), origBase:s.base ? copyPts(s.base) : null, moved:false };
+      updateUI(); return;
+    }
+    drag = { kind:'marquee', sx:m.x, sy:m.y, ex:m.x, ey:m.y, add:e.shiftKey || e.ctrlKey || e.metaKey };
+    return;
+  }
+  if (!S.pending.length){
+    const h = hitHandle(m);
+    if (h){ commit(); drag = { kind:'pt', pt:h, sx:m.x, sy:m.y, moved:false }; return; }
+  }
+  drag = { kind:'click', sx:m.x, sy:m.y, vx:S.view.x, vy:S.view.y };
+});
+cv.addEventListener('pointermove', e => {
+  const m = mpos(e);
+  if (ptrs.has(e.pointerId)) ptrs.set(e.pointerId, m);
+  if (drag && drag.kind === 'pinch' && ptrs.size === 2){
+    const [a,b] = [...ptrs.values()];
+    const mid = { x:(a.x+b.x)/2, y:(a.y+b.y)/2 };
+    const s = Math.min(64, Math.max(0.01, drag.s0 * dist(a,b)/drag.d0));
+    S.view.s = s; S.view.x = mid.x - drag.ip.x*s; S.view.y = mid.y - drag.ip.y*s;
+    $('#zoomLbl').textContent = Math.round(s*100) + '%'; draw(); return;
+  }
+  if (drag && drag.kind === 'click' && Math.hypot(m.x-drag.sx, m.y-drag.sy) > 5){
+    drag.kind = 'pan'; cv.classList.add('grabbing');
+  }
+  if (drag && drag.kind === 'pan'){
+    S.view.x = drag.vx + m.x - drag.sx; S.view.y = drag.vy + m.y - drag.sy;
+  }
+  if (drag && (drag.kind === 'edpts' || drag.kind === 'edshape')){
+    if (!drag.moved && Math.hypot(m.x-drag.sx, m.y-drag.sy) > 3){ drag.moved = true; commit(); if (drag.kind === 'edpts') bake(drag.i); }
+    if (drag.moved){
+      const s = S.shapes[drag.i], ip = toImg(m), dx = ip.x - drag.start.x, dy = ip.y - drag.start.y;
+      if (drag.kind === 'edpts') drag.orig.forEach(o => { s.pts[o.k].x = o.x + dx; s.pts[o.k].y = o.y + dy; });
+      else {
+        drag.orig.forEach((o, k) => { s.pts[k].x = o.x + dx; s.pts[k].y = o.y + dy; });
+        if (s.base && drag.origBase) drag.origBase.forEach((o, k) => { s.base[k].x = o.x + dx; s.base[k].y = o.y + dy; });
+      }
+      S.pg = null;
+    }
+    S.curScreen = m; S.cur = toImg(m); S.snapObj = null; updateStatus(); draw(); return;
+  }
+  if (drag && drag.kind === 'marquee'){ drag.ex = m.x; drag.ey = m.y; S.curScreen = m; S.cur = toImg(m); draw(); return; }
+  S.curScreen = m;
+  if (drag && drag.kind === 'pt'){
+    if (Math.hypot(m.x-drag.sx, m.y-drag.sy) > 2) drag.moved = true;
+    if (drag.moved){ const r = cursorPoint(m, drag.pt); drag.pt.x = r.p.x; drag.pt.y = r.p.y; S.cur = r.p; S.snapObj = r.snapObj; S.pg = null; }
+  } else {
+    const r = cursorPoint(m); S.cur = r.p; S.snapObj = r.snapObj;
+    S.hover = (!drag && !S.pending.length && S.tool !== 'pan') ? hitHandle(m) : null;
+  }
+  cv.classList.toggle('move', !!S.hover || (drag && drag.kind === 'pt'));
+  updateStatus(); draw();
+});
+function endPointer(e){
+  ptrs.delete(e.pointerId);
+  if (!drag) return;
+  const m = mpos(e);
+  if (drag.kind === 'pinch'){ if (ptrs.size < 2) drag = null; return; }
+  if (drag.kind === 'edpts' || drag.kind === 'edshape'){ drag = null; updateUI(); return; }
+  if (drag.kind === 'marquee'){
+    const x0 = Math.min(drag.sx, drag.ex), x1 = Math.max(drag.sx, drag.ex), y0 = Math.min(drag.sy, drag.ey), y1 = Math.max(drag.sy, drag.ey);
+    if (x1-x0 < 4 && y1-y0 < 4){ if (!drag.add){ S.sel = -1; S.selPts = new Set(); } }
+    else {
+      const inside = p => { const s = sp(p); return s.x >= x0 && s.x <= x1 && s.y >= y0 && s.y <= y1; };
+      let target = -1;
+      if (S.sel >= 0 && S.shapes[S.sel] && S.shapes[S.sel].pts.some(inside)) target = S.sel;
+      else { let bc = 0; S.shapes.forEach((s, i) => { const c = s.pts.filter(inside).length; if (c > bc){ bc = c; target = i; } }); }
+      if (target >= 0){
+        if (target !== S.sel || !drag.add) S.selPts = new Set();
+        S.sel = target; S.shapes[target].pts.forEach((p, k) => { if (inside(p)) S.selPts.add(k); });
+      } else if (!drag.add){ S.sel = -1; S.selPts = new Set(); }
+    }
+    drag = null; updateUI(); return;
+  }
+  if (drag.kind === 'click'){
+    const r = cursorPoint(m); S.snapObj = r.snapObj; place({ x:r.p.x, y:r.p.y });
+  } else if (drag.kind === 'pt'){
+    if (!drag.moved){ S.hist.pop(); const r = cursorPoint(m); S.snapObj = r.snapObj; place({ x:r.p.x, y:r.p.y }); }
+    else { const oi = ownerOf(drag.pt); if (oi >= 0) bake(oi); updateUI(); }
+  }
+  drag = null; cv.classList.remove('grabbing'); draw();
+}
+cv.addEventListener('pointerup', endPointer);
+cv.addEventListener('pointercancel', endPointer);
+cv.addEventListener('pointerleave', () => { if (!drag){ S.curScreen = null; draw(); } });
+cv.addEventListener('dblclick', e => {
+  if (S.tool === 'edit'){ editDblClick(mpos(e)); return; }
+  if (S.tool === 'poly' && S.pending.length){
+    const n = S.pending.length;
+    if (n >= 2 && dist(S.pending[n-1], S.pending[n-2]) < 1e-6) S.pending.pop();
+    finishPoly(false);
+  }
+});
+cv.addEventListener('wheel', e => {
+  if (!S.src) return; e.preventDefault();
+  const f = Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0018));
+  zoomAt(mpos(e), f);
+}, { passive:false });
+
+/* ---------- keyboard ---------- */
+const KEYMAP = { v:'pan', k:'cal', m:'measure', l:'line', p:'poly', r:'rect', c:'circle', o:'origin', a:'auto', e:'edit' };
+window.addEventListener('keydown', e => {
+  if (e.key === 'Shift'){ shift = true; }
+  const tag = (e.target.tagName || '').toLowerCase();
+  if (tag === 'input' || tag === 'select' || tag === 'textarea') return;
+  if ($('#view2d').hidden) return;
+  const k = e.key.toLowerCase();
+  if ((e.ctrlKey || e.metaKey) && k === 'z'){ e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+  if ((e.ctrlKey || e.metaKey) && k === 'y'){ e.preventDefault(); redo(); return; }
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.key === ' '){ space = true; e.preventDefault(); cv.classList.add('pan'); return; }
+  if (!S.src) return;
+  if (S.tool === 'edit'){
+    if (e.key === 'Escape' && S.sel >= 0){ S.sel = -1; S.selPts = new Set(); updateUI(); return; }
+    if (e.key === 'Delete' || e.key === 'Backspace'){ e.preventDefault(); if (S.selPts.size) deleteSelPts(); else if (S.sel >= 0) deleteSelShape(); return; }
+  }
+  if (e.key === 'Escape'){ if (S.pending.length){ S.pending = []; updateUI(); } else if (S.auto){ S.auto = null; updateUI(); } else setTool('pan'); return; }
+  if (e.key === 'Enter' && S.tool === 'poly'){ finishPoly(false); return; }
+  if (e.key === 'Enter' && S.tool === 'auto'){ addAuto(); return; }
+  if (e.key === 'Backspace' && S.pending.length){ S.pending.pop(); updateUI(); e.preventDefault(); return; }
+  if (KEYMAP[k]){ setTool(KEYMAP[k]); return; }
+  if (k === 'f'){ fit(); return; }
+  if (k === 'g'){ toggleGrid(); return; }
+  if (k === '+' || k === '='){ zoomAt({x:W/2,y:H/2}, 1.25); return; }
+  if (k === '-'){ zoomAt({x:W/2,y:H/2}, 0.8); return; }
+});
+window.addEventListener('keyup', e => {
+  if (e.key === 'Shift') shift = false;
+  if (e.key === ' '){ space = false; cv.classList.toggle('pan', S.tool === 'pan'); }
+});
+window.addEventListener('blur', () => { shift = false; space = false; });
+
+/* ---------- drawing ---------- */
+function rr(x,y,w,h,r){ ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x,y,w,h,r); else ctx.rect(x,y,w,h); }
+function stroke(pathFn, color, w=2, dash){
+  ctx.save(); ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  ctx.beginPath(); pathFn(); ctx.setLineDash(dash || []);
+  ctx.strokeStyle = 'rgba(0,0,0,.6)'; ctx.lineWidth = w + 3; ctx.stroke();
+  ctx.strokeStyle = color; ctx.lineWidth = w; ctx.stroke(); ctx.restore();
+}
+function moveTo(p){ const s = sp(p); ctx.moveTo(s.x, s.y); }
+function lineTo(p){ const s = sp(p); ctx.lineTo(s.x, s.y); }
+function dot(p, color, r=3.5){
+  const s = sp(p); ctx.beginPath(); ctx.arc(s.x, s.y, r, 0, Math.PI*2);
+  ctx.fillStyle = color; ctx.fill(); ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(0,0,0,.75)'; ctx.stroke();
+}
+function label(text, x, y, color='#fff'){
+  ctx.save(); ctx.font = '600 12.5px Barlow, system-ui, sans-serif';
+  const w = ctx.measureText(text).width + 14;
+  ctx.fillStyle = 'rgba(14,20,21,.88)'; rr(x-w/2, y-10.5, w, 21, 10.5); ctx.fill();
+  ctx.fillStyle = color; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, x, y+0.5);
+  ctx.restore();
+}
+function segLabel(a, b, text, color, min=36){
+  const A = sp(a), B = sp(b); const L = Math.hypot(B.x-A.x, B.y-A.y);
+  if (L < min) return;
+  let nx = -(B.y-A.y)/L, ny = (B.x-A.x)/L; if (ny > 0){ nx = -nx; ny = -ny; }
+  label(text, (A.x+B.x)/2 + nx*17, (A.y+B.y)/2 + ny*17, color);
+}
+const rectCorners = (a,b) => [a, {x:b.x, y:a.y}, b, {x:a.x, y:b.y}];
+
+function drawGrid(){
+  const step = S.gridMM / S.mmpp; if (!(step > 0)) return;
+  if (step*S.view.s < 5) return;
+  const o = originPt(), iw = S.src.width, ih = S.src.height;
+  const tl = toImg({x:0,y:0}), br = toImg({x:W,y:H});
+  const x0 = Math.max(0, tl.x), x1 = Math.min(iw, br.x), y0 = Math.max(0, tl.y), y1 = Math.min(ih, br.y);
+  if (x1 <= x0 || y1 <= y0) return;
+  const i0 = Math.ceil((x0-o.x)/step), i1 = Math.floor((x1-o.x)/step);
+  const j0 = Math.ceil((o.y-y1)/step), j1 = Math.floor((o.y-y0)/step);
+  if ((i1-i0) + (j1-j0) > 1500) return;
+  for (const major of [false, true]){
+    ctx.beginPath();
+    for (let i=i0;i<=i1;i++){ if ((i%10===0) !== major) continue; const x = o.x + i*step; moveTo({x, y:y0}); lineTo({x, y:y1}); }
+    for (let j=j0;j<=j1;j++){ if ((j%10===0) !== major) continue; const y = o.y - j*step; moveTo({x:x0, y}); lineTo({x:x1, y}); }
+    ctx.strokeStyle = major ? 'rgba(255,255,255,.6)' : 'rgba(255,255,255,.28)';
+    ctx.lineWidth = major ? 1.2 : 1; ctx.stroke();
+  }
+}
+function drawOrigin(){
+  const o = sp(originPt()), L = 34;
+  ctx.save(); ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+  const arrow = (dx, dy, col) => {
+    ctx.beginPath(); ctx.moveTo(o.x, o.y); ctx.lineTo(o.x+dx, o.y+dy);
+    ctx.strokeStyle = 'rgba(0,0,0,.6)'; ctx.lineWidth = 5; ctx.stroke();
+    ctx.strokeStyle = col; ctx.lineWidth = 2.5; ctx.stroke();
+  };
+  arrow(L, 0, C.ox); arrow(0, -L, C.oy);
+  ctx.font = '600 11px Barlow, sans-serif'; ctx.fillStyle = C.ox; ctx.fillText('X', o.x+L+4, o.y+4);
+  ctx.fillStyle = C.oy; ctx.fillText('Y', o.x-4, o.y-L-5);
+  ctx.restore();
+  dot(originPt(), '#fff', 3.5);
+}
+function isHl(kind, i){ return S.hl && S.hl.kind === kind && S.hl.i === i; }
+
+function drawShape(s, i){
+  const isSel = S.tool === 'edit' && S.sel === i;
+  const hl = isHl('s', i) || isSel, col = hl ? '#FFFFFF' : C.trace, w = hl ? 3 : 2;
+  const [a,b] = s.pts;
+  if (s.type === 'line'){
+    stroke(() => { moveTo(a); lineTo(b); }, col, w);
+    segLabel(a, b, fmtLen(dist(a,b)), col);
+  } else if (s.type === 'poly'){
+    stroke(() => { moveTo(s.pts[0]); s.pts.slice(1).forEach(lineTo); if (s.closed) ctx.closePath(); }, col, w);
+    const segs = s.pts.length - 1 + (s.closed ? 1 : 0);
+    if (s.pts.length <= 30) for (let k=0;k<segs;k++){ const p = s.pts[k], q = s.pts[(k+1)%s.pts.length]; segLabel(p, q, fmtLen(dist(p,q)), col, 70); }
+  } else if (s.type === 'rect'){
+    const c = rectCorners(a,b);
+    stroke(() => { moveTo(c[0]); lineTo(c[1]); lineTo(c[2]); lineTo(c[3]); ctx.closePath(); }, col, w);
+    const top = c[0].y < c[3].y ? [c[0], c[1]] : [c[3], c[2]];
+    segLabel(top[0], top[1], fmtLen(Math.abs(b.x-a.x)), col);
+    const left = c[0].x < c[1].x ? [c[0], c[3]] : [c[1], c[2]];
+    const L0 = sp(left[0]), L1 = sp(left[1]);
+    if (Math.abs(L1.y-L0.y) > 36) label(fmtLen(Math.abs(b.y-a.y)), Math.min(L0.x, L1.x) - 4 - ctx.measureText(fmtLen(Math.abs(b.y-a.y))).width/2 - 14, (L0.y+L1.y)/2, col);
+  } else if (s.type === 'circle'){
+    const c = sp(a), r = dist(a,b)*S.view.s;
+    stroke(() => ctx.arc(c.x, c.y, r, 0, Math.PI*2), col, w);
+    stroke(() => { ctx.moveTo(c.x-5, c.y); ctx.lineTo(c.x+5, c.y); ctx.moveTo(c.x, c.y-5); ctx.lineTo(c.x, c.y+5); }, col, 1.5);
+    if (r > 18) label('Ø ' + fmtLen(2*dist(a,b)), c.x, c.y - Math.min(r*0.45, 30), col);
+  }
+  if (isSel) s.pts.forEach((p, k) => { const on = S.selPts.has(k); sq(p, on ? C.cal : (p === S.hover ? '#fff' : C.trace), on || p === S.hover ? 5 : 3.5); });
+  else if (S.tool !== 'pan' || hl) s.pts.forEach(p => dot(p, p === S.hover ? '#fff' : col, p === S.hover ? 5 : (s.pts.length > 150 ? 2 : 3)));
+}
+function drawMeasure(m, i){
+  const hl = isHl('m', i), col = hl ? '#FFFFFF' : C.meas;
+  const A = sp(m.a), B = sp(m.b), L = Math.hypot(B.x-A.x, B.y-A.y) || 1;
+  const nx = -(B.y-A.y)/L*6, ny = (B.x-A.x)/L*6;
+  stroke(() => { ctx.moveTo(A.x,A.y); ctx.lineTo(B.x,B.y);
+    ctx.moveTo(A.x+nx,A.y+ny); ctx.lineTo(A.x-nx,A.y-ny); ctx.moveTo(B.x+nx,B.y+ny); ctx.lineTo(B.x-nx,B.y-ny); }, col, hl ? 3 : 2);
+  segLabel(m.a, m.b, fmtLen(dist(m.a,m.b)), col, 20);
+  [m.a, m.b].forEach(p => { if (p === S.hover) dot(p, '#fff', 5); });
+}
+function drawPending(){
+  const t = S.tool, P = S.pending, c = S.cur;
+  if (!P.length || !c) return;
+  const a = P[0];
+  if (t === 'cal' || t === 'measure' || t === 'line' || t === 'level'){
+    const col = t === 'cal' ? C.cal : t === 'measure' ? C.meas : t === 'level' ? '#fff' : C.trace;
+    stroke(() => { moveTo(a); lineTo(c); }, col, 2, [6,5]);
+    segLabel(a, c, fmtLen(dist(a,c)), col, 20);
+  } else if (t === 'rect' || t === 'auto'){
+    const col = t === 'auto' ? '#FFFFFF' : C.trace;
+    const k = rectCorners(a, c);
+    stroke(() => { moveTo(k[0]); lineTo(k[1]); lineTo(k[2]); lineTo(k[3]); ctx.closePath(); }, col, t === 'auto' ? 1.5 : 2, [6,5]);
+    const s1 = sp(a), s2 = sp(c);
+    if (t === 'rect') label(fmtLen(Math.abs(c.x-a.x)) + ' × ' + fmtLen(Math.abs(c.y-a.y)), (s1.x+s2.x)/2, (s1.y+s2.y)/2, col);
+  } else if (t === 'circle'){
+    const s = sp(a), r = dist(a,c)*S.view.s;
+    stroke(() => ctx.arc(s.x, s.y, r, 0, Math.PI*2), C.trace, 2, [6,5]);
+    label('Ø ' + fmtLen(2*dist(a,c)), s.x, s.y, C.trace);
+  } else if (t === 'poly'){
+    stroke(() => { moveTo(P[0]); P.slice(1).forEach(lineTo); lineTo(c); }, C.trace, 2);
+    segLabel(P[P.length-1], c, fmtLen(dist(P[P.length-1], c)), C.trace, 20);
+  }
+  P.forEach(p => dot(p, '#fff', 3));
+}
+function drawPersp(){
+  const q = S.persp; if (!q.length) return;
+  stroke(() => { moveTo(q[0]); q.slice(1).forEach(lineTo); if (q.length === 4) ctx.closePath(); else if (S.tool === 'persp' && S.cur) lineTo(S.cur); }, C.persp, 2, [7,5]);
+  q.forEach((p, i) => { dot(p, p === S.hover ? '#fff' : C.persp, p === S.hover ? 6 : 5); const s = sp(p); label(String(i+1), s.x+14, s.y-14, C.persp); });
+}
+function drawCal(){
+  if (!S.calLine) return;
+  const [a,b] = S.calLine;
+  stroke(() => { moveTo(a); lineTo(b); }, C.cal, 3);
+  const txt = S.mmpp ? tx('Reference {v}', { v:fmtMM(dist(a,b)*S.mmpp) }) : tx('Reference: enter its length');
+  segLabel(a, b, txt, C.cal, 10);
+  [a,b].forEach(p => dot(p, p === S.hover ? '#fff' : C.cal, p === S.hover ? 6 : 4.5));
+}
+
+function draw(){
+  ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
+  if (!S.src){ lp.style.display = 'none'; return; }
+  const v = S.view;
+  ctx.save(); ctx.translate(v.x, v.y); ctx.scale(v.s, v.s);
+  ctx.imageSmoothingEnabled = v.s < 3; ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(S.src, 0, 0); ctx.restore();
+  if (S.grid && S.mmpp) drawGrid();
+  drawOrigin();
+  S.shapes.forEach(drawShape);
+  drawPrint();
+  S.measures.forEach(drawMeasure);
+  drawAuto(); drawCal(); drawPersp(); drawPending();
+  if (drag && drag.kind === 'marquee'){
+    ctx.save(); ctx.fillStyle = 'rgba(255,194,26,.12)'; ctx.strokeStyle = '#FFC21A'; ctx.lineWidth = 1.2; ctx.setLineDash([4,3]);
+    ctx.fillRect(drag.sx, drag.sy, drag.ex-drag.sx, drag.ey-drag.sy); ctx.strokeRect(drag.sx, drag.sy, drag.ex-drag.sx, drag.ey-drag.sy); ctx.restore();
+  }
+  if (S.snapObj && S.curScreen && S.tool !== 'pan'){
+    const s = sp(S.snapObj); ctx.beginPath(); ctx.arc(s.x, s.y, 9, 0, Math.PI*2);
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+  }
+  drawLoupe();
+}
+function drawLoupe(){
+  const placing = S.tool !== 'pan' && !space;
+  const busy = drag && (drag.kind === 'pan' || drag.kind === 'pinch');
+  const show = S.src && S.curScreen && S.cur && placing && !busy;
+  lp.style.display = show ? 'block' : 'none';
+  if (!show) return;
+  const L = 168, m = S.curScreen;
+  lp.classList.toggle('left', m.x > W - 220 && m.y < 220);
+  const z = Math.max(S.view.s*4, 1.5);
+  const p = S.cur;
+  lctx.setTransform(dpr,0,0,dpr,0,0);
+  lctx.fillStyle = '#1f3631'; lctx.fillRect(0,0,L,L);
+  lctx.save(); lctx.beginPath(); lctx.arc(L/2, L/2, L/2, 0, Math.PI*2); lctx.clip();
+  lctx.translate(L/2, L/2); lctx.scale(z, z); lctx.translate(-p.x, -p.y);
+  lctx.imageSmoothingEnabled = z < 2; lctx.drawImage(S.src, 0, 0);
+  // context lines in loupe
+  const lw = 1.5/z;
+  const seg = (a, b, col) => { lctx.beginPath(); lctx.moveTo(a.x,a.y); lctx.lineTo(b.x,b.y); lctx.strokeStyle = col; lctx.lineWidth = lw; lctx.stroke(); };
+  if (S.calLine) seg(S.calLine[0], S.calLine[1], C.cal);
+  if (S.pending.length) seg(S.pending[S.pending.length-1], p, '#fff');
+  if (S.persp.length) S.persp.forEach((q,i) => { if (i) seg(S.persp[i-1], q, C.persp); });
+  lctx.restore();
+  lctx.strokeStyle = S.snapObj ? '#FFC21A' : '#ff3b6b'; lctx.lineWidth = 1;
+  lctx.beginPath(); lctx.moveTo(L/2, 0); lctx.lineTo(L/2, L/2-6); lctx.moveTo(L/2, L/2+6); lctx.lineTo(L/2, L);
+  lctx.moveTo(0, L/2); lctx.lineTo(L/2-6, L/2); lctx.moveTo(L/2+6, L/2); lctx.lineTo(L, L/2); lctx.stroke();
+}
+
+/* ---------- status & UI ---------- */
+function updateStatus(){
+  const c = S.cur;
+  if (S.src && c && S.curScreen){
+    const o = originPt();
+    if (S.mmpp){ $('#stX').textContent = fmtMM((c.x-o.x)*S.mmpp); $('#stY').textContent = fmtMM((o.y-c.y)*S.mmpp); }
+    else { $('#stX').textContent = Math.round(c.x) + ' px'; $('#stY').textContent = Math.round(c.y) + ' px'; }
+  } else { $('#stX').textContent = '–'; $('#stY').textContent = '–'; }
+  let live = '';
+  if (S.pending.length && c){
+    const a = S.pending[S.tool === 'circle' ? 0 : S.pending.length-1];
+    const d = dist(a, c);
+    const ang = (-Math.atan2(c.y-a.y, c.x-a.x)*180/Math.PI).toFixed(1);
+    live = S.tool === 'circle' ? tx('Radius {r}, Ø {d}', { r:fmtLen(d), d:fmtLen(2*d) })
+         : S.tool === 'rect' ? fmtLen(Math.abs(c.x-a.x)) + ' × ' + fmtLen(Math.abs(c.y-a.y))
+         : tx('Length {l} at {a}°', { l:fmtLen(d), a:ang });
+  }
+  $('#stLiveWrap').hidden = !live; $('#stLive').textContent = live;
+}
+function shapeDesc(s){
+  const [a,b] = s.pts;
+  if (s.type === 'line') return ['Line', fmtLen(dist(a,b))];
+  if (s.type === 'rect') return ['Rectangle', fmtLen(Math.abs(b.x-a.x)) + ' × ' + fmtLen(Math.abs(b.y-a.y))];
+  if (s.type === 'circle') return ['Circle', 'Ø ' + fmtLen(2*dist(a,b))];
+  let L = 0; for (let k=1;k<s.pts.length;k++) L += dist(s.pts[k-1], s.pts[k]);
+  if (s.closed) L += dist(s.pts[s.pts.length-1], s.pts[0]);
+  return [s.closed ? 'Outline' : 'Polyline', tx('{n} pts, {len}', { n:s.pts.length, len:fmtLen(L) })];
+}
+function renderItems(){
+  const ul = $('#items'); ul.textContent = '';
+  const rows = [];
+  S.measures.forEach((m,i) => rows.push({ kind:'m', i, col:C.meas, lbl:'Measure', val:fmtLen(dist(m.a,m.b)) }));
+  const pg = S.mmpp && printActive() ? printGeom() : null;
+  S.shapes.forEach((s,i) => { const [l,v] = shapeDesc(s); rows.push({ kind:'s', i, col:C.trace, lbl:l, val:v, pv: pg && pg[i] ? geomDesc(pg[i]) : null }); });
+  rows.forEach(r => {
+    const li = document.createElement('li');
+    const sw = document.createElement('span'); sw.className = 'sw'; sw.style.background = r.col;
+    const l = document.createElement('span'); l.className = 'lbl'; l.textContent = tx(r.lbl);
+    const v = document.createElement('span'); v.className = 'val'; v.textContent = r.val;
+    if (r.pv){ const pv = document.createElement('small'); pv.className = 'pv'; pv.textContent = tx('Print: {v}', { v:r.pv }); v.append(document.createElement('br'), pv); }
+    const del = document.createElement('button'); del.textContent = '×'; del.setAttribute('aria-label', tx('Delete {item}', { item:tx(r.lbl).toLowerCase() }));
+    del.addEventListener('click', () => { commit(); (r.kind === 'm' ? S.measures : S.shapes).splice(r.i, 1); S.hl = null; S.sel = -1; S.selPts = new Set(); updateUI(); });
+    li.addEventListener('mouseenter', () => { S.hl = { kind:r.kind, i:r.i }; draw(); });
+    li.addEventListener('mouseleave', () => { S.hl = null; draw(); });
+    if (r.kind === 's' && S.tool === 'edit' && S.sel === r.i) li.classList.add('sel');
+    li.addEventListener('click', ev => { if (ev.target === del || r.kind !== 's') return; if (S.tool !== 'edit') setTool('edit'); S.sel = r.i; S.selPts = new Set(); updateUI(); });
+    li.append(sw, l, v, del); ul.appendChild(li);
+  });
+  $('#itemsEmpty').hidden = rows.length > 0;
+}
+function computeScale(){
+  const v = parseFloat($('#calLen').value), u = $('#calUnit').value;
+  const mm = v * (u === 'cm' ? 10 : u === 'in' ? 25.4 : 1);
+  if (S.calLine && v > 0){ const d = dist(S.calLine[0], S.calLine[1]); S.mmpp = d > 0 ? mm/d : null; }
+  else S.mmpp = null;
+}
+function updateUI(){
+  computeScale(); S.pg = null;
+  const has = !!S.src;
+  $('#empty').hidden = has;
+  if (has) $('#imgInfo').textContent = tx('Loaded {name} ({w} × {h} px).', { name:S.name, w:S.src.width, h:S.src.height });
+
+  $('#applyPersp').disabled = S.persp.length !== 4;
+  $('#perspNote').textContent = S.persp.length === 4 ? tx('All 4 corners marked. Drag them to fine-tune if needed.') : tx('{n} of 4 corners marked.', { n:S.persp.length });
+  $('#markCorners').classList.toggle('active', S.tool === 'persp');
+  $('#levelBtn').classList.toggle('active', S.tool === 'level');
+  $('#calBtn').classList.toggle('active', S.tool === 'cal');
+  updateAutoUI(); updateEditUI();
+
+  const out = $('#scaleOut'), warn = $('#scaleWarn');
+  if (S.mmpp){
+    const pxmm = 1/S.mmpp;
+    out.innerHTML = '';
+    const b = document.createElement('b'); b.textContent = tx('{v} px per mm', { v:pxmm.toFixed(3) });
+    const parts = tx('Scale set: {s}. Photo covers {w} × {h}.', { w:fmtMM(S.src.width*S.mmpp), h:fmtMM(S.src.height*S.mmpp) }).split('{s}');
+    out.append(parts[0], b, parts[1] || '');
+    const refPx = dist(S.calLine[0], S.calLine[1]);
+    warn.hidden = refPx >= 250;
+    if (refPx < 250) warn.textContent = tx('The reference is only {px} px long. Clicking 1 px off gives about {e}% error, so use a longer reference if you can.', { px:Math.round(refPx), e:(100/refPx).toFixed(1) });
+  } else {
+    out.textContent = tx(S.calLine ? 'Reference drawn. Enter its real length above.' : 'No scale yet.');
+    warn.hidden = true;
+  }
+
+  $$('[data-tool]').forEach(b => {
+    const on = b.dataset.tool === S.tool;
+    if (b.classList.contains('tb')) b.setAttribute('aria-pressed', on); else b.classList.toggle('active', on);
+    b.disabled = !has;
+  });
+  ['#tbUndo','#tbGrid','#zOut','#zIn','#zFit'].forEach(id => $(id).disabled = !has);
+  $('#tbGrid').setAttribute('aria-pressed', S.grid);
+  $('#gridOn').checked = S.grid;
+  cv.classList.toggle('pan', S.tool === 'pan' || space);
+
+  renderItems();
+  const scaled = !!S.mmpp;
+  ['#expDXF','#expPNG','#expSVG'].forEach(id => $(id).disabled = !scaled);
+  $('#expCSV').disabled = !S.measures.length && !S.shapes.length;
+  $('#sizeNote').textContent = tx(scaled ? 'Exports are true to scale: 1 unit = 1 mm.' : 'Set the scale in step 3 to unlock exports.');
+
+  renderWizard();
+  $('#hint').textContent = hintText();
+  $('#stScale').textContent = S.mmpp ? (1/S.mmpp).toFixed(3) + ' px/mm' : tx('not set');
+  $('#zoomLbl').textContent = Math.round(S.view.s*100) + '%';
+  updateStatus(); draw();
+}
+function toggleGrid(){
+  if (!S.mmpp && !S.grid){ toast(tx('Set the scale first, so the grid can be drawn in real units.')); return; }
+  S.grid = !S.grid; updateUI();
+}
+
+/* ---------- image corrections ---------- */
+function remapAll(fn){
+  const m = p => { const r = fn(p); p.x = r.x; p.y = r.y; };
+  S.shapes.forEach(s => { s.pts.forEach(m); if (s.base) s.base.forEach(m); });
+  S.measures.forEach(x => { m(x.a); m(x.b); });
+  if (S.calLine) S.calLine.forEach(m);
+  if (S.origin) m(S.origin);
+  S.persp.forEach(m);
+  S.pending = []; S.hist = []; S.future = []; S.auto = null; S.sel = -1; S.selPts = new Set();
+}
+function rotate90(dir){
+  if (!S.src) return;
+  const s = S.src, iw = s.width, ih = s.height, c = mk(ih, iw), x = c.getContext('2d');
+  if (dir > 0){ x.translate(ih, 0); x.rotate(Math.PI/2); } else { x.translate(0, iw); x.rotate(-Math.PI/2); }
+  x.drawImage(s, 0, 0);
+  remapAll(dir > 0 ? p => ({ x:ih-p.y, y:p.x }) : p => ({ x:p.y, y:iw-p.x }));
+  S.src = c; fit();
+}
+function rotateBy(th){
+  const s = S.src, iw = s.width, ih = s.height, cs = Math.cos(th), sn = Math.sin(th);
+  const nw = Math.ceil(Math.abs(iw*cs) + Math.abs(ih*sn)), nh = Math.ceil(Math.abs(iw*sn) + Math.abs(ih*cs));
+  const c = mk(nw, nh), x = c.getContext('2d');
+  x.imageSmoothingQuality = 'high';
+  x.translate(nw/2, nh/2); x.rotate(th); x.drawImage(s, -iw/2, -ih/2);
+  remapAll(p => { const dx = p.x-iw/2, dy = p.y-ih/2; return { x:nw/2 + cs*dx - sn*dy, y:nh/2 + sn*dx + cs*dy }; });
+  S.src = c;
+}
+function levelImage(a, b){
+  const ang = Math.atan2(b.y-a.y, b.x-a.x);
+  const target = Math.round(ang/(Math.PI/2))*(Math.PI/2);
+  const th = target - ang;
+  if (Math.abs(th) < 1e-4){ toast(tx('That edge is already level.')); setTool('pan'); return; }
+  rotateBy(th); S.corrected = true;
+  setTool('pan'); fit();
+  toast(tx('Rotated by {a}°.', { a:(th*180/Math.PI).toFixed(2) }));
+}
+
+function solveH(src, dst){
+  const A = [], b = [];
+  for (let i=0;i<4;i++){
+    const { x, y } = src[i], u = dst[i].x, v = dst[i].y;
+    A.push([x, y, 1, 0, 0, 0, -u*x, -u*y]); b.push(u);
+    A.push([0, 0, 0, x, y, 1, -v*x, -v*y]); b.push(v);
+  }
+  for (let c=0;c<8;c++){
+    let piv = c;
+    for (let r=c+1;r<8;r++) if (Math.abs(A[r][c]) > Math.abs(A[piv][c])) piv = r;
+    if (Math.abs(A[piv][c]) < 1e-12) return null;
+    [A[c], A[piv]] = [A[piv], A[c]]; [b[c], b[piv]] = [b[piv], b[c]];
+    for (let r=0;r<8;r++){
+      if (r === c) continue;
+      const f = A[r][c]/A[c][c]; if (!f) continue;
+      for (let k=c;k<8;k++) A[r][k] -= f*A[c][k];
+      b[r] -= f*b[c];
+    }
+  }
+  const h = b.map((v,i) => v/A[i][i]); h.push(1); return h;
+}
+function applyH(h, p){
+  const w = h[6]*p.x + h[7]*p.y + h[8];
+  return { x:(h[0]*p.x + h[1]*p.y + h[2])/w, y:(h[3]*p.x + h[4]*p.y + h[5])/w, w };
+}
+function orderQuad(pts){
+  const cx = pts.reduce((s,p) => s+p.x, 0)/4, cy = pts.reduce((s,p) => s+p.y, 0)/4;
+  const q = pts.slice().sort((a,b) => Math.atan2(a.y-cy, a.x-cx) - Math.atan2(b.y-cy, b.x-cx));
+  let k = 0; q.forEach((p,i) => { if (p.x+p.y < q[k].x+q[k].y) k = i; });
+  return q.slice(k).concat(q.slice(0,k));
+}
+function applyPerspective(){
+  let Wmm = parseFloat($('#rw').value), Hmm = parseFloat($('#rh').value);
+  if (!(Wmm > 0 && Hmm > 0)){ toast(tx('Enter the rectangle’s real width and height first.')); return; }
+  if (S.persp.length !== 4) return;
+  const q = orderQuad(S.persp);
+  const top = (dist(q[0],q[1]) + dist(q[3],q[2]))/2, side = (dist(q[0],q[3]) + dist(q[1],q[2]))/2;
+  if ((top < side) !== (Wmm < Hmm)) [Wmm, Hmm] = [Hmm, Wmm];
+  const k = Math.max(top/Wmm, side/Hmm);
+  const RW = Wmm*k, RH = Hmm*k;
+  const dst = [{x:0,y:0},{x:RW,y:0},{x:RW,y:RH},{x:0,y:RH}];
+  const Hf = solveH(q, dst), Hi = solveH(dst, q);
+  if (!Hf || !Hi){ toast(tx('Those corners don’t form a usable rectangle. Check that no three are in a line.')); return; }
+  toast(tx('Correcting perspective…'), 20000);
+  setTimeout(() => {
+    const iw = S.src.width, ih = S.src.height;
+    const lim = { x0:-20*RW, y0:-20*RH, x1:21*RW, y1:21*RH };
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity, bad = false;
+    [{x:0,y:0},{x:iw,y:0},{x:iw,y:ih},{x:0,y:ih}].forEach(c => {
+      const t = applyH(Hf, c);
+      if (!(t.w > 0) || !isFinite(t.x) || !isFinite(t.y)){ bad = true; return; }
+      x0 = Math.min(x0, t.x); y0 = Math.min(y0, t.y); x1 = Math.max(x1, t.x); y1 = Math.max(y1, t.y);
+    });
+    if (bad){ x0 = lim.x0; y0 = lim.y0; x1 = lim.x1; y1 = lim.y1; }
+    x0 = Math.max(x0, lim.x0); y0 = Math.max(y0, lim.y0); x1 = Math.min(x1, lim.x1); y1 = Math.min(y1, lim.y1);
+    const bw = x1-x0, bh = y1-y0;
+    const f = Math.min(1, Math.sqrt(16e6/(bw*bh)), 8000/bw, 8000/bh);
+    const ow = Math.max(1, Math.round(bw*f)), oh = Math.max(1, Math.round(bh*f));
+    const sd = S.src.getContext('2d').getImageData(0, 0, iw, ih).data;
+    const out = new ImageData(ow, oh), od = out.data;
+    const [a,b,c,d,e,g,h6,h7] = Hi;
+    for (let j=0;j<oh;j++){
+      const Y = y0 + (j+0.5)/f;
+      for (let i=0;i<ow;i++){
+        const X = x0 + (i+0.5)/f;
+        const w = h6*X + h7*Y + 1;
+        if (w <= 0) continue;
+        const sx = (a*X + b*Y + c)/w - 0.5, sy = (d*X + e*Y + g)/w - 0.5;
+        if (sx < 0 || sy < 0 || sx >= iw-1 || sy >= ih-1) continue;
+        const xi = sx|0, yi = sy|0, fx = sx-xi, fy = sy-yi;
+        const p00 = (yi*iw + xi)*4, p10 = p00+4, p01 = p00 + iw*4, p11 = p01+4;
+        const o = (j*ow + i)*4;
+        for (let ch=0; ch<4; ch++){
+          const top_ = sd[p00+ch] + (sd[p10+ch]-sd[p00+ch])*fx;
+          const bot = sd[p01+ch] + (sd[p11+ch]-sd[p01+ch])*fx;
+          od[o+ch] = top_ + (bot-top_)*fy;
+        }
+      }
+    }
+    const nc = mk(ow, oh); nc.getContext('2d').putImageData(out, 0, 0);
+    const mp = p => { const t = applyH(Hf, p); return { x:(t.x-x0)*f, y:(t.y-y0)*f }; };
+    S.persp = [];
+    remapAll(mp);
+    S.calLine = [ { x:(0-x0)*f, y:(0-y0)*f }, { x:(RW-x0)*f, y:(0-y0)*f } ];
+    $('#calLen').value = +Wmm.toFixed(3); $('#calUnit').value = 'mm';
+    S.src = nc; S.corrected = true;
+    goStep(4); fit();
+    toast(tx('Perspective corrected and scale set, so step 3 is done. Check it any time with Measure (M).'), 5000);
+  }, 40);
+}
+
+/* ---------- auto trace ---------- */
+const AUTO_MAX_PX = 1.6e6;
+const smoothVal = () => +$('#atSmooth').value / 100;
+const autoTolImgPx = () => S.mmpp ? (0.02*Math.pow(10, smoothVal()*2))/S.mmpp : 0.3*Math.pow(10, smoothVal()*2);
+function updateAutoUI(){
+  $('#autoPanel').hidden = S.tool !== 'auto';
+  const s = smoothVal();
+  $('#atSmoothOut').textContent = S.mmpp ? fmtMM(0.02*Math.pow(10, s*2)) : (0.3*Math.pow(10, s*2)).toFixed(1) + ' px';
+  $('#atSensOut').textContent = $('#atSens').value + '%';
+  const A = S.auto, frac = Math.pow(10, -5 + (+$('#atMin').value/100)*3);
+  if (A && S.mmpp){ const side = Math.sqrt(A.roi.w*A.roi.h*frac)*S.mmpp; $('#atMinOut').textContent = '< ' + fmtMM(side); }
+  else $('#atMinOut').textContent = (frac*100).toFixed(frac < 1e-3 ? 3 : 2) + '%';
+  const info = $('#atInfo');
+  $('#atAdd').disabled = !(A && A.loops.length);
+  $('#atCancel').disabled = !A;
+  if (!A){ info.textContent = tx('No box drawn yet.'); return; }
+  if (!A.loops.length){ info.textContent = tx('No outline found. Raise the sensitivity, or redraw the box with background showing on every side.'); return; }
+  const outer = A.loops.filter(l => !l.hole).length, holes = A.loops.length - outer, circ = A.loops.filter(l => l.circle).length;
+  const pl = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
+  const list = plu(outer, 'outline') + (holes ? tx(' and ') + plu(holes, 'hole') : '') + (circ ? (circ === 1 ? tx(', 1 recognised as a circle') : tx(', {n} recognised as circles', { n:circ })) : '');
+  info.textContent = tx('Found {list}.', { list });
+}
+function boxBlur(a, w, h, r){
+  const tmp = new Float32Array(a.length), d = 2*r + 1;
+  for (let y=0;y<h;y++){
+    const o = y*w; let s = 0;
+    for (let k=-r;k<=r;k++) s += a[o + Math.min(w-1, Math.max(0, k))];
+    for (let x=0;x<w;x++){ tmp[o+x] = s/d; s += a[o + Math.min(w-1, x+r+1)] - a[o + Math.max(0, x-r)]; }
+  }
+  for (let x=0;x<w;x++){
+    let s = 0;
+    for (let k=-r;k<=r;k++) s += tmp[Math.min(h-1, Math.max(0, k))*w + x];
+    for (let y=0;y<h;y++){ a[y*w+x] = s/d; s += tmp[Math.min(h-1, y+r+1)*w + x] - tmp[Math.max(0, y-r)*w + x]; }
+  }
+}
+function otsu(D, max, al){
+  const bins = 256, hist = new Float64Array(bins); let n = 0;
+  for (let i=0;i<D.length;i++){ if (!al[i]) continue; hist[Math.min(bins-1, (D[i]/max*(bins-1))|0)]++; n++; }
+  let sum = 0; for (let i=0;i<bins;i++) sum += i*hist[i];
+  let sB = 0, wB = 0, best = 0, th = 0;
+  for (let i=0;i<bins;i++){
+    wB += hist[i]; if (!wB) continue;
+    const wF = n - wB; if (!wF) break;
+    sB += i*hist[i];
+    const mB = sB/wB, mF = (sum - sB)/wF, v = wB*wF*(mB-mF)*(mB-mF);
+    if (v > best){ best = v; th = i; }
+  }
+  return (th + 0.5)/(bins-1)*max;
+}
+/* difference from the background colour, so dark, light and coloured parts all work */
+function buildField(){
+  const A = S.auto, { w, h, px } = A, n = w*h, shadows = $('#atShadow').checked;
+  const Yc = new Float32Array(n), Cb = new Float32Array(n), Cr = new Float32Array(n), al = new Uint8Array(n);
+  for (let i=0;i<n;i++){
+    const r = px[i*4], g = px[i*4+1], b = px[i*4+2];
+    Yc[i] = 0.299*r + 0.587*g + 0.114*b; Cb[i] = -0.1687*r - 0.3313*g + 0.5*b; Cr[i] = 0.5*r - 0.4187*g - 0.0813*b;
+    al[i] = px[i*4+3] >= 128 ? 1 : 0;
+  }
+  const rad = Math.max(1, Math.round(Math.min(w, h)/500));
+  [Yc, Cb, Cr].forEach(ch => { boxBlur(ch, w, h, rad); boxBlur(ch, w, h, rad); });
+  const bY = [], bB = [], bR = [];
+  const push = i => { if (al[i]){ bY.push(Yc[i]); bB.push(Cb[i]); bR.push(Cr[i]); } };
+  for (let x=0;x<w;x++){ push(x); push((h-1)*w + x); }
+  for (let y=1;y<h-1;y++){ push(y*w); push(y*w + w-1); }
+  if (bY.length < 8){ for (let i=0;i<n;i+=7) push(i); }
+  const med = a => { if (!a.length) return 0; a.sort((p, q) => p - q); return a[a.length >> 1]; };
+  const mY = med(bY), mB = med(bB), mR = med(bR), wy = shadows ? 0.12 : 1;
+  const D = new Float32Array(n); let max = 0;
+  for (let i=0;i<n;i++){
+    if (!al[i]) continue;
+    const dy = Yc[i]-mY, db = Cb[i]-mB, dr = Cr[i]-mR;
+    const v = Math.sqrt(wy*dy*dy + db*db + dr*dr); D[i] = v; if (v > max) max = v;
+  }
+  A.D = D; A.max = max; A.otsu = max > 0 ? otsu(D, max, al) : 0;
+}
+/* marching squares: sub-pixel iso-contours, closed by a zero border */
+function marchingSquares(D, w, h, t){
+  const Wp = w+2, Hp = h+2, WH = Wp*Hp;
+  const P = new Float32Array(WH);
+  for (let y=0;y<h;y++) P.set(D.subarray(y*w, (y+1)*w), (y+1)*Wp + 1);
+  const nb = new Int32Array(WH*4).fill(-1);
+  const link = (a, b) => {
+    if (nb[2*a] < 0) nb[2*a] = b; else nb[2*a+1] = b;
+    if (nb[2*b] < 0) nb[2*b] = a; else nb[2*b+1] = a;
+  };
+  for (let cy=0;cy<Hp-1;cy++){
+    for (let cx=0;cx<Wp-1;cx++){
+      const i = cy*Wp + cx, tl = P[i], tr = P[i+1], bl = P[i+Wp], br = P[i+Wp+1];
+      const code = (tl>t?8:0) | (tr>t?4:0) | (br>t?2:0) | (bl>t?1:0);
+      if (code === 0 || code === 15) continue;
+      const T = i, B = i+Wp, L = WH+i, R = WH+i+1;
+      switch (code){
+        case 1: case 14: link(L,B); break;
+        case 2: case 13: link(B,R); break;
+        case 3: case 12: link(L,R); break;
+        case 4: case 11: link(T,R); break;
+        case 6: case 9: link(T,B); break;
+        case 7: case 8: link(L,T); break;
+        case 5: if ((tl+tr+bl+br)/4 > t){ link(L,T); link(B,R); } else { link(L,B); link(T,R); } break;
+        case 10: if ((tl+tr+bl+br)/4 > t){ link(T,R); link(L,B); } else { link(L,T); link(B,R); } break;
+      }
+    }
+  }
+  const pos = id => {
+    if (id < WH){ const cy = (id/Wp)|0, cx = id - cy*Wp, v0 = P[id], v1 = P[id+1]; return { x:cx + (t-v0)/(v1-v0) - 1, y:cy - 1 }; }
+    const k = id - WH, cy = (k/Wp)|0, cx = k - cy*Wp, v0 = P[k], v1 = P[k+Wp];
+    return { x:cx - 1, y:cy + (t-v0)/(v1-v0) - 1 };
+  };
+  const vis = new Uint8Array(WH*2), loops = [];
+  for (let s=0;s<WH*2;s++){
+    if (vis[s] || nb[2*s] < 0) continue;
+    const pts = []; let prev = -1, cur = s;
+    while (cur >= 0 && !vis[cur]){
+      vis[cur] = 1; pts.push(pos(cur));
+      const n0 = nb[2*cur], n1 = nb[2*cur+1], nx = n0 !== prev ? n0 : n1;
+      prev = cur; cur = nx;
+    }
+    if (pts.length >= 4) loops.push(pts);
+  }
+  return loops;
+}
+function polyArea(p){ let a = 0; for (let i=0, j=p.length-1; i<p.length; j=i++) a += (p[j].x + p[i].x)*(p[j].y - p[i].y); return a/2; }
+function pointInPoly(p, poly){
+  let inside = false;
+  for (let i=0, j=poly.length-1; i<poly.length; j=i++){
+    const a = poly[i], b = poly[j];
+    if ((a.y > p.y) !== (b.y > p.y) && p.x < (b.x-a.x)*(p.y-a.y)/(b.y-a.y) + a.x) inside = !inside;
+  }
+  return inside;
+}
+function dpSimplify(pts, tol){
+  const n = pts.length; if (n < 3) return pts.slice();
+  const keep = new Uint8Array(n); keep[0] = keep[n-1] = 1;
+  const st = [[0, n-1]];
+  while (st.length){
+    const [a, b] = st.pop(), A = pts[a], B = pts[b];
+    const dx = B.x-A.x, dy = B.y-A.y, L = Math.hypot(dx, dy) || 1e-9;
+    let md = 0, mi = -1;
+    for (let i=a+1;i<b;i++){ const d = Math.abs(dy*(pts[i].x-A.x) - dx*(pts[i].y-A.y))/L; if (d > md){ md = d; mi = i; } }
+    if (md > tol && mi > 0){ keep[mi] = 1; st.push([a, mi], [mi, b]); }
+  }
+  return pts.filter((_, i) => keep[i]);
+}
+function simplifyClosed(pts, tol){
+  let fi = 0, fd = 0;
+  pts.forEach((p, i) => { const d = dist(p, pts[0]); if (d > fd){ fd = d; fi = i; } });
+  const a = dpSimplify(pts.slice(0, fi+1), tol), b = dpSimplify(pts.slice(fi).concat([pts[0]]), tol);
+  const out = a.concat(b.slice(1, -1));
+  return out.length >= 3 ? out : pts.slice(0, 3);
+}
+function fitCircle(pts, area){
+  const n = pts.length; if (n < 16) return null;
+  let mx = 0, my = 0; for (const p of pts){ mx += p.x; my += p.y; } mx /= n; my /= n;
+  let Suu=0, Svv=0, Suv=0, Suuu=0, Svvv=0, Suvv=0, Svuu=0;
+  for (const p of pts){ const u = p.x-mx, v = p.y-my; Suu+=u*u; Svv+=v*v; Suv+=u*v; Suuu+=u*u*u; Svvv+=v*v*v; Suvv+=u*v*v; Svuu+=v*u*u; }
+  const det = Suu*Svv - Suv*Suv; if (Math.abs(det) < 1e-9) return null;
+  const b1 = 0.5*(Suuu+Suvv), b2 = 0.5*(Svvv+Svuu);
+  const uc = (b1*Svv - b2*Suv)/det, vc = (Suu*b2 - Suv*b1)/det;
+  const r = Math.sqrt(uc*uc + vc*vc + (Suu+Svv)/n);
+  if (!(r >= 3)) return null;
+  let e = 0; for (const p of pts){ const d = Math.hypot(p.x-mx-uc, p.y-my-vc) - r; e += d*d; } e = Math.sqrt(e/n);
+  const ratio = area/(Math.PI*r*r);
+  if (e > Math.max(0.45, r*0.015) || ratio < 0.97 || ratio > 1.03) return null;
+  return { x:mx+uc, y:my+vc, r };
+}
+function traceAuto(){
+  const A = S.auto; if (!A) return;
+  A.loops = [];
+  if (!(A.max > 0)) return;
+  const sens = +$('#atSens').value, minS = +$('#atMin').value/100;
+  const holes = $('#atHoles').checked, circles = $('#atCircles').checked;
+  const t = Math.min(A.max*0.98, Math.max(A.max*0.01, A.otsu*Math.pow(2, (50-sens)/30)));
+  const minArea = Math.max(6, A.w*A.h*Math.pow(10, -5 + minS*3));
+  let loops = [];
+  for (const pts of marchingSquares(A.D, A.w, A.h, t)){
+    const ar = Math.abs(polyArea(pts)); if (ar < minArea) continue;
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const q of pts){ if (q.x < x0) x0 = q.x; if (q.x > x1) x1 = q.x; if (q.y < y0) y0 = q.y; if (q.y > y1) y1 = q.y; }
+    loops.push({ pts, area:ar, bb:[x0, y0, x1, y1] });
+  }
+  loops.sort((a, b) => b.area - a.area);
+  loops = loops.slice(0, 200);
+  loops.forEach((l, i) => {
+    let depth = 0; const q = l.pts[0];
+    for (let j=0;j<i;j++){ const b = loops[j].bb; if (q.x < b[0] || q.x > b[2] || q.y < b[1] || q.y > b[3]) continue; if (pointInPoly(q, loops[j].pts)) depth++; }
+    l.hole = depth % 2 === 1;
+  });
+  if (!holes) loops = loops.filter(l => !l.hole);
+  const tol = Math.max(0.6, autoTolImgPx()/A.sx);
+  const toI = q => ({ x:A.roi.x + (q.x+0.5)*A.sx, y:A.roi.y + (q.y+0.5)*A.sy });
+  A.loops = loops.map(l => {
+    if (circles){ const c = fitCircle(l.pts, l.area); if (c) return { hole:l.hole, circle:{ c:toI(c), r:c.r*A.sx } }; }
+    return { hole:l.hole, pts:simplifyClosed(l.pts, tol).map(toI) };
+  });
+}
+function runAuto(a, b){
+  if (!S.src) return;
+  const iw = S.src.width, ih = S.src.height;
+  const x0 = Math.max(0, Math.floor(Math.min(a.x, b.x))), y0 = Math.max(0, Math.floor(Math.min(a.y, b.y)));
+  const x1 = Math.min(iw, Math.ceil(Math.max(a.x, b.x))), y1 = Math.min(ih, Math.ceil(Math.max(a.y, b.y)));
+  const rw = x1-x0, rh = y1-y0;
+  if (rw < 10 || rh < 10){ toast(tx('Draw a bigger box around the part.')); return; }
+  toast(tx('Finding edges…'), 15000);
+  setTimeout(() => {
+    const sc = Math.min(1, Math.sqrt(AUTO_MAX_PX/(rw*rh)));
+    const w = Math.max(4, Math.round(rw*sc)), h = Math.max(4, Math.round(rh*sc));
+    const c = mk(w, h), x = c.getContext('2d', { willReadFrequently:true });
+    x.imageSmoothingQuality = 'high'; x.drawImage(S.src, x0, y0, rw, rh, 0, 0, w, h);
+    S.auto = { roi:{ x:x0, y:y0, w:rw, h:rh }, w, h, sx:rw/w, sy:rh/h, px:x.getImageData(0, 0, w, h).data, D:null, max:0, otsu:0, loops:[] };
+    buildField(); traceAuto(); updateUI();
+    toast(tx(S.auto.loops.length ? 'Outline found. Fine-tune with the sliders, then choose “Add to drawing”.' : 'No clear outline in that box. Try raising the sensitivity.'), 4000);
+  }, 30);
+}
+let atTimer;
+function retrace(rebuild){
+  updateAutoUI();
+  if (!S.auto) return;
+  clearTimeout(atTimer);
+  atTimer = setTimeout(() => { if (!S.auto) return; if (rebuild) buildField(); traceAuto(); updateUI(); }, 90);
+}
+function addAuto(){
+  const A = S.auto; if (!A || !A.loops.length) return;
+  commit();
+  A.loops.forEach(l => {
+    if (l.circle){ const c = l.circle.c; S.shapes.push({ type:'circle', pts:[{ x:c.x, y:c.y }, { x:c.x + l.circle.r, y:c.y }] }); }
+    else S.shapes.push({ type:'poly', pts:l.pts.map(p => ({ x:p.x, y:p.y })), closed:true });
+  });
+  const n = A.loops.length; S.auto = null; updateUI();
+  toast(tx('Added {shapes}. Trace more, or choose Next to tidy and smooth the outline.', { shapes:plu(n, 'shape') }), 5000);
+}
+function drawAuto(){
+  const A = S.auto; if (!A) return;
+  const r = A.roi, a = sp({ x:r.x, y:r.y }), b = sp({ x:r.x+r.w, y:r.y+r.h });
+  ctx.save(); ctx.setLineDash([5,4]); ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 1.2;
+  ctx.strokeRect(a.x, a.y, b.x-a.x, b.y-a.y); ctx.restore();
+  const total = A.loops.reduce((s, l) => s + (l.pts ? l.pts.length : 0), 0);
+  A.loops.forEach(l => {
+    const col = l.hole ? '#FFD166' : '#FF8A3D';
+    if (l.circle){
+      const c = sp(l.circle.c), rr_ = l.circle.r*S.view.s;
+      stroke(() => ctx.arc(c.x, c.y, rr_, 0, Math.PI*2), col, 2.2);
+      if (rr_ > 16) label('Ø ' + fmtLen(2*l.circle.r), c.x, c.y, col);
+    } else {
+      stroke(() => { moveTo(l.pts[0]); l.pts.slice(1).forEach(lineTo); ctx.closePath(); }, col, 2.2);
+      if (total < 600) l.pts.forEach(p => dot(p, col, 2.2));
+    }
+  });
+}
+
+/* ---------- editing ---------- */
+const copyPts = a => a.map(p => ({ x:p.x, y:p.y }));
+const ownerOf = pt => S.shapes.findIndex(s => s.pts.includes(pt));
+function bake(i){ const s = S.shapes[i]; if (s && s.base){ s.base = null; s.smooth = 0; } }
+function sq(p, fill, r){
+  const s = sp(p); ctx.fillStyle = fill; ctx.strokeStyle = 'rgba(0,0,0,.8)'; ctx.lineWidth = 1.5;
+  ctx.fillRect(s.x-r, s.y-r, 2*r, 2*r); ctx.strokeRect(s.x-r, s.y-r, 2*r, 2*r);
+}
+function segDistScreen(m, a, b){
+  const A = sp(a), B = sp(b), dx = B.x-A.x, dy = B.y-A.y, L2 = dx*dx + dy*dy;
+  let t = L2 ? ((m.x-A.x)*dx + (m.y-A.y)*dy)/L2 : 0; t = Math.max(0, Math.min(1, t));
+  return { d:Math.hypot(A.x + dx*t - m.x, A.y + dy*t - m.y), t };
+}
+function shapeSegs(s){
+  if (s.type === 'line') return [[0,1]];
+  if (s.type === 'poly'){ const r = []; for (let k=1;k<s.pts.length;k++) r.push([k-1,k]); if (s.closed) r.push([s.pts.length-1, 0]); return r; }
+  return [];
+}
+function hitShape(m){
+  let best = 7, hit = -1;
+  S.shapes.forEach((s, i) => {
+    if (s.type === 'circle'){ const c = sp(s.pts[0]); const d = Math.abs(Math.hypot(m.x-c.x, m.y-c.y) - dist(s.pts[0], s.pts[1])*S.view.s); if (d < best){ best = d; hit = i; } return; }
+    if (s.type === 'rect'){ const c = rectCorners(s.pts[0], s.pts[1]); for (let k=0;k<4;k++){ const d = segDistScreen(m, c[k], c[(k+1)%4]).d; if (d < best){ best = d; hit = i; } } return; }
+    for (const [a, b] of shapeSegs(s)){ const d = segDistScreen(m, s.pts[a], s.pts[b]).d; if (d < best){ best = d; hit = i; } }
+  });
+  return hit;
+}
+function hitVertex(m){
+  let best = 9, res = null;
+  const test = i => S.shapes[i].pts.forEach((p, k) => { const s = sp(p), d = Math.hypot(s.x-m.x, s.y-m.y); if (d < best){ best = d; res = { i, k }; } });
+  if (S.sel >= 0 && S.shapes[S.sel]) test(S.sel);
+  if (res) return res;
+  S.shapes.forEach((_, i) => { if (i !== S.sel) test(i); });
+  return res;
+}
+function editDblClick(m){
+  let best = 8, hit = null;
+  S.shapes.forEach((s, i) => {
+    if (s.type !== 'poly') return;
+    for (const [a, b] of shapeSegs(s)){ const r = segDistScreen(m, s.pts[a], s.pts[b]); if (r.d < best && r.t > 0.02 && r.t < 0.98){ best = r.d; hit = { i, a, b, t:r.t }; } }
+  });
+  if (!hit) return;
+  commit(); bake(hit.i);
+  const s = S.shapes[hit.i], A = s.pts[hit.a], B = s.pts[hit.b];
+  const at = hit.b === 0 ? s.pts.length : hit.b;
+  s.pts.splice(at, 0, { x:A.x + (B.x-A.x)*hit.t, y:A.y + (B.y-A.y)*hit.t });
+  S.sel = hit.i; S.selPts = new Set([at]); updateUI();
+  toast(tx('Point added. Drag it into place.'));
+}
+function deleteSelPts(){
+  const s = S.shapes[S.sel]; if (!s || !S.selPts.size) return;
+  if (s.type !== 'poly'){ toast(tx('Only outline and polyline points can be deleted. Use “Delete shape” instead.')); return; }
+  const keep = s.pts.filter((_, k) => !S.selPts.has(k));
+  if (keep.length < (s.closed ? 3 : 2)){ toast(tx('That would leave too few points. Use “Delete shape” instead.')); return; }
+  commit(); bake(S.sel); s.pts = keep; S.selPts = new Set(); updateUI();
+}
+function straightenSel(){
+  const s = S.shapes[S.sel]; if (!s || s.type !== 'poly' || !S.selPts.size) return;
+  commit(); bake(S.sel);
+  const n = s.pts.length, idx = [...S.selPts];
+  for (let it=0; it<40; it++){
+    for (const k of idx){
+      const pi = k === 0 ? (s.closed ? n-1 : -1) : k-1, ni = k === n-1 ? (s.closed ? 0 : -1) : k+1;
+      if (pi < 0 || ni < 0) continue;
+      const p = s.pts[pi], q = s.pts[ni], c = s.pts[k];
+      c.x += 0.5*((p.x+q.x)/2 - c.x); c.y += 0.5*((p.y+q.y)/2 - c.y);
+    }
+  }
+  updateUI();
+}
+function deleteSelShape(){ if (S.sel < 0) return; commit(); S.shapes.splice(S.sel, 1); S.sel = -1; S.selPts = new Set(); updateUI(); }
+
+/* ---------- smoothing ---------- */
+function perimeter(pts, closed){ let L = 0; for (let i=1;i<pts.length;i++) L += dist(pts[i-1], pts[i]); if (closed && pts.length > 1) L += dist(pts[pts.length-1], pts[0]); return L; }
+function resample(pts, step, closed){
+  const src = closed ? pts.concat([pts[0]]) : pts;
+  const out = [{ x:src[0].x, y:src[0].y }]; let carry = 0;
+  for (let i=1;i<src.length;i++){
+    const a = src[i-1], b = src[i], L = dist(a, b); if (!L) continue;
+    let t = step - carry;
+    while (t <= L){ out.push({ x:a.x + (b.x-a.x)*t/L, y:a.y + (b.y-a.y)*t/L }); t += step; }
+    carry = L - (t - step);
+  }
+  if (closed){ if (out.length > 1 && dist(out[out.length-1], out[0]) < step*0.5) out.pop(); }
+  else { const last = src[src.length-1]; if (dist(out[out.length-1], last) > step*0.25) out.push({ x:last.x, y:last.y }); else out[out.length-1] = { x:last.x, y:last.y }; }
+  return out;
+}
+/* Taubin smoothing: softens bumps without shrinking the shape */
+function smoothPts(pts, closed, rPx){
+  if (!(rPx > 0) || pts.length < 3) return copyPts(pts);
+  const step = Math.max(perimeter(pts, closed)/5000, rPx/6, 0.25);
+  const a = resample(pts, step, closed), n = a.length;
+  if (n < 4) return copyPts(pts);
+  const iters = Math.min(150, Math.max(1, Math.round(2*(rPx/step)**2)));
+  const ax = new Float64Array(n), ay = new Float64Array(n), bx = new Float64Array(n), by = new Float64Array(n);
+  a.forEach((p, i) => { ax[i] = p.x; ay[i] = p.y; });
+  const pass = f => {
+    for (let i=0;i<n;i++){
+      let pi = i-1, ni = i+1;
+      if (closed){ if (pi < 0) pi = n-1; if (ni >= n) ni = 0; }
+      else if (pi < 0 || ni >= n){ bx[i] = ax[i]; by[i] = ay[i]; continue; }
+      bx[i] = ax[i] + f*((ax[pi]+ax[ni])/2 - ax[i]); by[i] = ay[i] + f*((ay[pi]+ay[ni])/2 - ay[i]);
+    }
+    ax.set(bx); ay.set(by);
+  };
+  for (let k=0;k<iters;k++){ pass(0.5); pass(-0.53); }
+  const res = []; for (let i=0;i<n;i++) res.push({ x:ax[i], y:ay[i] });
+  const tol = Math.max(0.15, S.mmpp ? 0.01/S.mmpp : 0.25);
+  return closed ? simplifyClosed(res, tol) : dpSimplify(res, tol);
+}
+const smR = v => S.mmpp ? ((v/100)**2*6)/S.mmpp : (v/100)**2*60;
+const smLabel = v => v === 0 ? tx('Off') : S.mmpp ? fmtMM((v/100)**2*6) : ((v/100)**2*60).toFixed(1) + ' px';
+function smoothTargets(){
+  if (S.tool === 'edit' && S.sel >= 0 && S.shapes[S.sel]) return S.shapes[S.sel].type === 'poly' ? [S.sel] : [];
+  return S.shapes.map((s, i) => s.type === 'poly' ? i : -1).filter(i => i >= 0);
+}
+let smCommitted = false, smRAF = 0;
+function applySmooth(v){
+  const T = smoothTargets(); if (!T.length) return;
+  if (!smCommitted){ commit(); smCommitted = true; }
+  const r = smR(v);
+  T.forEach(i => {
+    const s = S.shapes[i];
+    if (!s.base) s.base = copyPts(s.pts);
+    if (v > 0){ s.smooth = v; s.pts = smoothPts(s.base, !!s.closed, r); }
+    else { s.pts = copyPts(s.base); s.base = null; s.smooth = 0; }
+  });
+  S.selPts = new Set(); updateUI();
+}
+
+/* ---------- print fit ---------- */
+function printSettings(){
+  const k = parseFloat($('#pScale').value);
+  return { k:(k > 0 ? k : 100)/100, go:parseFloat($('#pOuter').value) || 0, gh:parseFloat($('#pHole').value) || 0 };
+}
+const printActive = () => { const { k, go, gh } = printSettings(); return Math.abs(k-1) > 1e-9 || go !== 0 || gh !== 0; };
+const isClosed = s => s.type === 'rect' || s.type === 'circle' || (s.type === 'poly' && s.closed);
+function shapeContains(s, p){
+  if (s.type === 'circle') return dist(p, s.pts[0]) < dist(s.pts[0], s.pts[1]);
+  if (s.type === 'rect'){ const [a, b] = s.pts; return p.x > Math.min(a.x,b.x) && p.x < Math.max(a.x,b.x) && p.y > Math.min(a.y,b.y) && p.y < Math.max(a.y,b.y); }
+  return pointInPoly(p, s.pts);
+}
+function holeFlags(){
+  return S.shapes.map((s, i) => {
+    if (!isClosed(s)) return false;
+    const p = s.pts[0]; let d = 0;
+    S.shapes.forEach((o, j) => { if (j !== i && isClosed(o) && shapeContains(o, p)) d++; });
+    return d % 2 === 1;
+  });
+}
+function offsetRaw(pts, d){
+  const n = pts.length, out = [];
+  for (let i=0;i<n;i++){
+    const p = pts[(i-1+n)%n], c = pts[i], q = pts[(i+1)%n];
+    const e1x = c.x-p.x, e1y = c.y-p.y, e2x = q.x-c.x, e2y = q.y-c.y;
+    const l1 = Math.hypot(e1x, e1y) || 1, l2 = Math.hypot(e2x, e2y) || 1;
+    const n1x = e1y/l1, n1y = -e1x/l1, n2x = e2y/l2, n2y = -e2x/l2;
+    let mx = n1x+n2x, my = n1y+n2y; const ml = Math.hypot(mx, my);
+    if (ml < 1e-6){ mx = n1x; my = n1y; } else { mx /= ml; my /= ml; }
+    const cosA = Math.max(0.25, mx*n1x + my*n1y);
+    out.push({ x:c.x + mx*d/cosA, y:c.y + my*d/cosA });
+  }
+  return out;
+}
+function offsetClosed(pts, d){
+  if (!d || pts.length < 3) return pts;
+  const a0 = Math.abs(polyArea(pts));
+  let o = offsetRaw(pts, d);
+  if ((Math.abs(polyArea(o)) > a0) !== (d > 0)) o = offsetRaw(pts, -d);
+  return o;
+}
+function buildGeom(st){
+  if (!S.mmpp || !S.src) return [];
+  const { k, go, gh } = st, holes = holeFlags();
+  const M = p => { const q = toMM(p); return { x:q.x*k, y:q.y*k }; };
+  return S.shapes.map((s, i) => {
+    const g = holes[i] ? gh : go;
+    if (s.type === 'circle') return { type:'circle', c:M(s.pts[0]), r:Math.max(0.01, dist(s.pts[0], s.pts[1])*S.mmpp*k + g), hole:holes[i] };
+    if (s.type === 'line') return { type:'poly', pts:s.pts.map(M), closed:false };
+    const raw = s.type === 'rect' ? rectCorners(s.pts[0], s.pts[1]) : s.pts;
+    let pts = raw.map(M).filter((p, j, a) => j === 0 || dist(p, a[j-1]) > 1e-6);
+    const closed = s.type === 'rect' || !!s.closed;
+    if (closed && g) pts = offsetClosed(pts, g);
+    return { type:'poly', pts, closed, hole:holes[i] };
+  });
+}
+function printGeom(){ if (!S.pg) S.pg = buildGeom(printSettings()); return S.pg; }
+const mmToImg = q => { const o = originPt(); return { x:o.x + q.x/S.mmpp, y:o.y - q.y/S.mmpp }; };
+function geoBounds(geo){
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  const e = (x, y) => { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; };
+  geo.forEach(g => { if (g.type === 'circle'){ e(g.c.x-g.r, g.c.y-g.r); e(g.c.x+g.r, g.c.y+g.r); } else g.pts.forEach(p => e(p.x, p.y)); });
+  return isFinite(x0) ? { x0, y0, x1, y1, w:x1-x0, h:y1-y0 } : null;
+}
+function geomDims(g){
+  if (g.type === 'circle') return [['diameter', 2*g.r]];
+  let L = 0; for (let i=1;i<g.pts.length;i++) L += dist(g.pts[i-1], g.pts[i]);
+  if (g.closed && g.pts.length > 2) L += dist(g.pts[g.pts.length-1], g.pts[0]);
+  if (!g.closed) return [['length', L]];
+  const b = geoBounds([g]); return [['width', b.w], ['height', b.h], ['perimeter', L]];
+}
+function geomDesc(g){
+  const d = geomDims(g);
+  if (g.type === 'circle') return 'Ø ' + fmtMM(d[0][1]);
+  if (!g.closed) return fmtMM(d[0][1]);
+  return fmtMM(d[0][1]) + ' × ' + fmtMM(d[1][1]);
+}
+function drawPrint(){
+  if (!S.mmpp || !$('#pShow').checked || !printActive()) return;
+  printGeom().forEach(g => {
+    if (g.type === 'circle'){ const c = sp(mmToImg(g.c)); stroke(() => ctx.arc(c.x, c.y, g.r/S.mmpp*S.view.s, 0, Math.PI*2), '#FFFFFF', 1.5, [5,4]); }
+    else if (g.pts.length > 1) stroke(() => { moveTo(mmToImg(g.pts[0])); g.pts.slice(1).forEach(p => lineTo(mmToImg(p))); if (g.closed) ctx.closePath(); }, '#FFFFFF', 1.5, [5,4]);
+  });
+}
+function updateEditUI(){
+  $('#editPanel').hidden = S.tool !== 'edit';
+  const s = S.shapes[S.sel], info = $('#editInfo');
+  if (!s) info.textContent = tx(S.shapes.length ? 'No shape selected. Click one on the photo or in the list below.' : 'Nothing to edit yet. Trace or draw a shape first.');
+  else {
+    const n = s.pts.length;
+    const sv = { shape:tx(shapeDesc(s)[0]), points:plu(n, 'point'), n:S.selPts.size };
+    info.textContent = S.selPts.size ? tx('{shape} with {points}, {n} selected.', sv) : tx('{shape} with {points}. Drag across points to select several.', sv);
+  }
+  const poly = s && s.type === 'poly';
+  $('#edDelPts').disabled = !(poly && S.selPts.size);
+  $('#edStraighten').disabled = !(poly && S.selPts.size);
+  $('#edDelShape').disabled = !s;
+  const T = smoothTargets();
+  $('#smoothBox').hidden = !T.length;
+  if (T.length){
+    const sl = $('#smAmt');
+    if (document.activeElement !== sl){ const vals = T.map(i => S.shapes[i].smooth || 0); sl.value = vals.every(v => v === vals[0]) ? vals[0] : 0; }
+    $('#smOut').textContent = smLabel(+sl.value);
+    $('#smScope').textContent = (S.tool === 'edit' && S.sel >= 0) ? tx('Applies to the selected shape.') : tx('Applies to all outlines ({n}). Select one with Edit points to smooth just that shape.', { n:T.length });
+  }
+  const pi = $('#printInfo');
+  const b1 = S.mmpp && S.shapes.length ? geoBounds(printGeom()) : null;
+  if (!b1) pi.textContent = tx('Trace a shape to see its print size.');
+  else {
+    const b0 = geoBounds(buildGeom({ k:1, go:0, gh:0 }));
+    const pv = { w:fmtMM(b1.w), h:fmtMM(b1.h), w0:b0 ? fmtMM(b0.w) : '', h0:b0 ? fmtMM(b0.h) : '' };
+    pi.textContent = printActive() && b0 ? tx('Print size {w} × {h}, traced {w0} × {h0}.', pv) : tx('Print size {w} × {h}.', pv);
+  }
+}
+function buildSVG2(embed){
+  const geo = printGeom(), n = v => +v.toFixed(4), o = originPt();
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  const e = (x, y) => { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; };
+  geo.forEach(g => { if (g.type === 'circle'){ e(g.c.x-g.r, -g.c.y-g.r); e(g.c.x+g.r, -g.c.y+g.r); } else g.pts.forEach(p => e(p.x, -p.y)); });
+  const ix = -o.x*S.mmpp, iy = -o.y*S.mmpp, iw = S.src.width*S.mmpp, ih = S.src.height*S.mmpp;
+  if (embed){ e(ix, iy); e(ix+iw, iy+ih); }
+  if (!isFinite(x0)){ toast(tx('Trace or draw a shape first.')); return null; }
+  x0 -= 2; y0 -= 2; x1 += 2; y1 += 2;
+  const W = x1-x0, H = y1-y0;
+  let out = '<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="' + n(W) + 'mm" height="' + n(H) + 'mm" viewBox="' + n(x0) + ' ' + n(y0) + ' ' + n(W) + ' ' + n(H) + '">\n';
+  if (embed) out += '<image href="' + S.src.toDataURL('image/jpeg', 0.9) + '" x="' + n(ix) + '" y="' + n(iy) + '" width="' + n(iw) + '" height="' + n(ih) + '"/>\n';
+  out += '<g fill="none" stroke="#0A7FA0" stroke-width="0.3" stroke-linejoin="round" stroke-linecap="round">\n';
+  geo.forEach(g => {
+    if (g.type === 'circle') out += '<circle cx="' + n(g.c.x) + '" cy="' + n(-g.c.y) + '" r="' + n(g.r) + '"/>\n';
+    else out += '<' + (g.closed ? 'polygon' : 'polyline') + ' points="' + g.pts.map(p => n(p.x) + ',' + n(-p.y)).join(' ') + '"/>\n';
+  });
+  return out + '</g>\n</svg>\n';
+}
+function exportCSV2(){
+  const rows = [['Item','Value','Unit']];
+  const u = S.mmpp ? 'mm' : 'px', f = v => v.toFixed(S.mmpp ? 3 : 1);
+  S.measures.forEach((m, i) => rows.push(['Measure ' + (i+1), f(dist(m.a, m.b)*(S.mmpp || 1)), u]));
+  if (S.mmpp){
+    printGeom().forEach((g, i) => { const nm = shapeDesc(S.shapes[i])[0] + ' ' + (i+1); geomDims(g).forEach(([k, v]) => rows.push([nm + ' ' + k, v.toFixed(3), 'mm'])); });
+    if (printActive()){ const { k, go, gh } = printSettings(); rows.push(['Print scale', (k*100).toFixed(2), '%'], ['Outline offset', go.toFixed(3), 'mm'], ['Hole offset', gh.toFixed(3), 'mm']); }
+  } else S.shapes.forEach((s, i) => { const [l, v] = shapeDesc(s); rows.push([l + ' ' + (i+1), v, '']); });
+  saveFile(safeName() + '_measurements.csv', rows.map(r => r.map(v => /[",]/.test(v) ? '"' + String(v).replace(/"/g, '""') + '"' : v).join(',')).join('\r\n') + '\r\n');
+}
+
+/* ---------- exports ---------- */
+const toMM = p => { const o = originPt(); return { x:(p.x-o.x)*S.mmpp, y:(o.y-p.y)*S.mmpp }; };
+function buildDXF(withMeas){
+  const L = []; const add = (...a) => L.push(...a); const n = v => v.toFixed(4);
+  add('0','SECTION','2','HEADER','9','$ACADVER','1','AC1009','9','$INSUNITS','70','4','0','ENDSEC');
+  add('0','SECTION','2','ENTITIES');
+  let count = 0;
+  const line = (a, b, layer='TRACE') => { add('0','LINE','8',layer,'10',n(a.x),'20',n(a.y),'30','0','11',n(b.x),'21',n(b.y),'31','0'); count++; };
+  printGeom().forEach(g => {
+    if (g.type === 'circle'){ add('0','CIRCLE','8','TRACE','10',n(g.c.x),'20',n(g.c.y),'30','0','40',n(g.r)); count++; return; }
+    for (let i=1;i<g.pts.length;i++) line(g.pts[i-1], g.pts[i]);
+    if (g.closed && g.pts.length > 2) line(g.pts[g.pts.length-1], g.pts[0]);
+  });
+  if (withMeas) S.measures.forEach(m => line(toMM(m.a), toMM(m.b), 'MEASURE'));
+  add('0','ENDSEC','0','EOF');
+  return { text:L.join('\r\n') + '\r\n', count };
+}
+function buildSVG(embed){
+  const k = S.mmpp, iw = S.src.width*k, ih = S.src.height*k, n = v => +v.toFixed(4);
+  const P = p => n(p.x*k) + ',' + n(p.y*k);
+  let out = '<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="' + n(iw) + 'mm" height="' + n(ih) + 'mm" viewBox="0 0 ' + n(iw) + ' ' + n(ih) + '">\n';
+  if (embed) out += '<image href="' + S.src.toDataURL('image/jpeg', 0.9) + '" x="0" y="0" width="' + n(iw) + '" height="' + n(ih) + '"/>\n';
+  out += '<g fill="none" stroke="#0A7FA0" stroke-width="0.3" stroke-linejoin="round" stroke-linecap="round">\n';
+  S.shapes.forEach(s => {
+    const [a,b] = s.pts;
+    if (s.type === 'line') out += '<line x1="' + n(a.x*k) + '" y1="' + n(a.y*k) + '" x2="' + n(b.x*k) + '" y2="' + n(b.y*k) + '"/>\n';
+    else if (s.type === 'rect') out += '<rect x="' + n(Math.min(a.x,b.x)*k) + '" y="' + n(Math.min(a.y,b.y)*k) + '" width="' + n(Math.abs(b.x-a.x)*k) + '" height="' + n(Math.abs(b.y-a.y)*k) + '"/>\n';
+    else if (s.type === 'circle') out += '<circle cx="' + n(a.x*k) + '" cy="' + n(a.y*k) + '" r="' + n(dist(a,b)*k) + '"/>\n';
+    else if (s.type === 'poly') out += '<' + (s.closed ? 'polygon' : 'polyline') + ' points="' + s.pts.map(P).join(' ') + '"/>\n';
+  });
+  out += '</g>\n</svg>\n';
+  return out;
+}
+function niceLen(max){
+  const p = Math.pow(10, Math.floor(Math.log10(max)));
+  for (const m of [5,2,1]) if (m*p <= max) return m*p;
+  return p;
+}
+function exportPNG(){
+  const s = S.src, c = mk(s.width, s.height), x = c.getContext('2d');
+  x.drawImage(s, 0, 0);
+  const lw = Math.max(2, s.width/700);
+  if ($('#pngDraw').checked){
+    x.strokeStyle = C.trace; x.lineWidth = lw; x.lineJoin = 'round'; x.lineCap = 'round';
+    S.shapes.forEach(sh => {
+      const [a,b] = sh.pts; x.beginPath();
+      if (sh.type === 'line'){ x.moveTo(a.x,a.y); x.lineTo(b.x,b.y); }
+      else if (sh.type === 'rect'){ x.rect(Math.min(a.x,b.x), Math.min(a.y,b.y), Math.abs(b.x-a.x), Math.abs(b.y-a.y)); }
+      else if (sh.type === 'circle'){ x.arc(a.x, a.y, dist(a,b), 0, Math.PI*2); }
+      else { x.moveTo(sh.pts[0].x, sh.pts[0].y); sh.pts.slice(1).forEach(p => x.lineTo(p.x,p.y)); if (sh.closed) x.closePath(); }
+      x.stroke();
+    });
+  }
+  let barNote = '';
+  if ($('#pngBar').checked){
+    const Lmm = niceLen(s.width*S.mmpp*0.3), Lpx = Lmm/S.mmpp;
+    const pad = Math.round(Math.max(16, s.width*0.025)), bh = Math.max(8, Math.round(Lpx*0.05));
+    const fs = Math.max(14, Math.round(bh*1.6));
+    const bx = pad*2, by = s.height - pad*2 - bh;
+    x.fillStyle = 'rgba(255,255,255,.92)';
+    x.fillRect(bx - pad, by - fs - pad*1.2, Lpx + pad*2, bh + fs + pad*2.2);
+    for (let i=0;i<5;i++){ x.fillStyle = i%2 ? '#fff' : '#000'; x.fillRect(bx + i*Lpx/5, by, Lpx/5, bh); }
+    x.strokeStyle = '#000'; x.lineWidth = Math.max(1, bh*0.12); x.strokeRect(bx, by, Lpx, bh);
+    x.fillStyle = '#000'; x.font = '600 ' + fs + 'px Barlow, Arial, sans-serif'; x.textBaseline = 'bottom';
+    x.fillText(Lmm + ' mm', bx, by - pad*0.3);
+    barNote = ' ' + tx('The scale bar is {l} mm long.', { l:Lmm });
+  }
+  c.toBlob(blob => {
+    if (!blob){ toast(tx('The photo is too large to export as PNG in this browser.')); return; }
+    saveFile(safeName() + '_' + (1/S.mmpp).toFixed(3) + 'px-per-mm.png', blob, barNote);
+  }, 'image/png');
+}
+function exportCSV(){
+  const rows = [['Item','Value','Unit','X1 (mm)','Y1 (mm)','X2 (mm)','Y2 (mm)']];
+  const f = v => S.mmpp ? (v*S.mmpp).toFixed(3) : v.toFixed(1);
+  const unit = S.mmpp ? 'mm' : 'px';
+  const pt = p => S.mmpp ? [toMM(p).x.toFixed(3), toMM(p).y.toFixed(3)] : ['',''];
+  S.measures.forEach((m,i) => rows.push(['Measure ' + (i+1), f(dist(m.a,m.b)), unit, ...pt(m.a), ...pt(m.b)]));
+  S.shapes.forEach((s,i) => {
+    const [a,b] = s.pts;
+    if (s.type === 'line') rows.push(['Line ' + (i+1), f(dist(a,b)), unit, ...pt(a), ...pt(b)]);
+    else if (s.type === 'circle') rows.push(['Circle ' + (i+1) + ' diameter', f(2*dist(a,b)), unit, ...pt(a), '', '']);
+    else if (s.type === 'rect'){ rows.push(['Rectangle ' + (i+1) + ' width', f(Math.abs(b.x-a.x)), unit, ...pt(a), ...pt(b)]); rows.push(['Rectangle ' + (i+1) + ' height', f(Math.abs(b.y-a.y)), unit, '', '', '', '']); }
+    else { let L = 0; for (let k=1;k<s.pts.length;k++) L += dist(s.pts[k-1], s.pts[k]); if (s.closed) L += dist(s.pts[s.pts.length-1], s.pts[0]); rows.push([(s.closed ? 'Outline ' : 'Polyline ') + (i+1) + ' length', f(L), unit, '', '', '', '']); }
+  });
+  saveFile(safeName() + '_measurements.csv', rows.map(r => r.map(v => /[",]/.test(v) ? '"' + String(v).replace(/"/g,'""') + '"' : v).join(',')).join('\r\n') + '\r\n');
+}
+function saveProject(){
+  const data = { app:'trace-to-scale', version:1, name:S.name, image:S.src.toDataURL('image/png'),
+    state:{ shapes:S.shapes, measures:S.measures, calLine:S.calLine, origin:S.origin, persp:S.persp, corrected:S.corrected,
+      calLen:$('#calLen').value, calUnit:$('#calUnit').value, unit:S.unit, gridMM:S.gridMM,
+      pScale:$('#pScale').value, pOuter:$('#pOuter').value, pHole:$('#pHole').value } };
+  saveFile(safeName() + '.trace.json', JSON.stringify(data));
+}
+function loadProject(file){
+  const r = new FileReader();
+  r.onload = () => {
+    let d; try { d = JSON.parse(r.result); } catch { toast(tx('That file isn’t a Trace to Scale project.')); return; }
+    if (!d || d.app !== 'trace-to-scale' || !d.image){ toast(tx('That file isn’t a Trace to Scale project.')); return; }
+    const im = new Image();
+    im.onload = () => {
+      setImage(im, d.name || 'project');
+      const st = d.state || {};
+      Object.assign(S, { shapes:st.shapes || [], measures:st.measures || [], calLine:st.calLine || null, origin:st.origin || null, persp:st.persp || [], corrected:!!st.corrected, unit:st.unit || 'mm', gridMM:st.gridMM || 10 });
+      $('#calLen').value = st.calLen || ''; $('#calUnit').value = st.calUnit || 'mm';
+      $('#unit').value = S.unit; $('#gridMM').value = S.gridMM;
+      $('#pScale').value = st.pScale || 100; $('#pOuter').value = st.pOuter || 0; $('#pHole').value = st.pHole || 0;
+      goStep(S.shapes.length ? 5 : 4); if (S.step < 4) goStep(3); toast(tx('Project opened.'));
+    };
+    im.onerror = () => toast(tx('The photo inside that project couldn’t be read.'));
+    im.src = d.image;
+  };
+  r.readAsText(file);
+}
+
+/* zip (stored) so formats the viewer can’t save directly still arrive intact */
+const CRC = (() => { const t = new Uint32Array(256); for (let n=0;n<256;n++){ let c = n; for (let k=0;k<8;k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(u8){ let c = 0xFFFFFFFF; for (let i=0;i<u8.length;i++) c = CRC[(c ^ u8[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function makeZip(files){
+  const enc = new TextEncoder(), parts = [], central = []; let off = 0;
+  files.forEach(f => {
+    const name = enc.encode(f.name), data = f.data, crc = crc32(data);
+    const h = new DataView(new ArrayBuffer(30));
+    h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0, true); h.setUint16(8, 0, true);
+    h.setUint16(10, 0, true); h.setUint16(12, 33, true); h.setUint32(14, crc, true);
+    h.setUint32(18, data.length, true); h.setUint32(22, data.length, true); h.setUint16(26, name.length, true); h.setUint16(28, 0, true);
+    parts.push(new Uint8Array(h.buffer), name, data);
+    const cd = new DataView(new ArrayBuffer(46));
+    cd.setUint32(0, 0x02014b50, true); cd.setUint16(4, 20, true); cd.setUint16(6, 20, true); cd.setUint16(8, 0, true); cd.setUint16(10, 0, true);
+    cd.setUint16(12, 0, true); cd.setUint16(14, 33, true); cd.setUint32(16, crc, true); cd.setUint32(20, data.length, true); cd.setUint32(24, data.length, true);
+    cd.setUint16(28, name.length, true); cd.setUint16(30, 0, true); cd.setUint16(32, 0, true); cd.setUint16(34, 0, true); cd.setUint16(36, 0, true);
+    cd.setUint32(38, 0, true); cd.setUint32(42, off, true);
+    central.push(new Uint8Array(cd.buffer), name);
+    off += 30 + name.length + data.length;
+  });
+  const cdSize = central.reduce((s,a) => s + a.length, 0);
+  const end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true);
+  end.setUint32(12, cdSize, true); end.setUint32(16, off, true);
+  return new Blob([...parts, ...central, new Uint8Array(end.buffer)], { type:'application/zip' });
+}
+
+let dlCap;
+async function getDL(){
+  if (dlCap !== undefined) return dlCap;
+  try { dlCap = (window.claude && typeof window.claude.use === 'function') ? await window.claude.use('downloads') : null; }
+  catch { dlCap = null; }
+  return dlCap;
+}
+const ALLOWED = ['gif','png','jpg','jpeg','webp','txt','json','md','csv','svg','zip','html','pdf'];
+async function saveFile(filename, data, extra=''){
+  const dl = await getDL();
+  if (dl){
+    let fn = filename, d = data, note = extra;
+    const ext = fn.split('.').pop().toLowerCase();
+    if (!ALLOWED.includes(ext)){
+      const bytes = data instanceof Blob ? new Uint8Array(await data.arrayBuffer()) : new TextEncoder().encode(data);
+      d = makeZip([{ name:fn, data:bytes }]); fn = fn.replace(/\.[^.]+$/, '') + '.zip';
+      note = ' ' + tx('Unzip it to get {f}.', { f:filename }) + extra;
+    }
+    try { await dl.save({ filename:fn, data:d }); toast(tx('Saved {f}.', { f:fn }) + note, 5500); }
+    catch (err) {
+      const code = err && err.code;
+      if (code === 'declined') toast(tx('Download cancelled.'));
+      else if (code === 'rate_limited') toast(tx('A download prompt is already open. Try again in a moment.'));
+      else toast(tx('Downloads aren’t available in this view.'));
+    }
+    return;
+  }
+  const blob = data instanceof Blob ? data : new Blob([data], { type:'application/octet-stream' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 8000);
+  toast(tx('Saved {f}.', { f:filename }) + extra, 5000);
+}
+
+/* ---------- wiring ---------- */
+$('#openImg').onclick = $('#openImg2').onclick = () => $('#fileImg').click();
+$('#openProj').onclick = () => $('#fileProj').click();
+$('#fileImg').onchange = e => { loadFile(e.target.files[0]); e.target.value = ''; };
+$('#fileProj').onchange = e => { if (e.target.files[0]) loadProject(e.target.files[0]); e.target.value = ''; };
+window.addEventListener('paste', e => {
+  const items = [...(e.clipboardData ? e.clipboardData.items : [])];
+  const it = items.find(i => i.type.startsWith('image/'));
+  if (it){ e.preventDefault(); const f = it.getAsFile(); if (f) loadFile(f); }
+});
+['dragenter','dragover'].forEach(ev => wrap.addEventListener(ev, e => { e.preventDefault(); wrap.classList.add('dragover'); }));
+['dragleave','drop'].forEach(ev => wrap.addEventListener(ev, e => { e.preventDefault(); if (ev === 'dragleave' && wrap.contains(e.relatedTarget)) return; wrap.classList.remove('dragover'); }));
+wrap.addEventListener('drop', e => { const f = e.dataTransfer && e.dataTransfer.files[0]; if (f) loadFile(f); });
+document.addEventListener('dragover', e => e.preventDefault());
+document.addEventListener('drop', e => e.preventDefault());
+
+$$('[data-tool]').forEach(b => b.addEventListener('click', () => setTool(b.dataset.tool)));
+$('#calBtn').onclick = () => setTool('cal');
+$$('[data-next]').forEach(b => b.addEventListener('click', () => goStep(nextTarget(S.step))));
+$$('[data-back]').forEach(b => b.addEventListener('click', () => goStep(S.step === 7 && !S.shapes.length ? 4 : S.step - 1)));
+$('#newPhoto').onclick = () => $('#fileImg').click();
+$('#calLen').addEventListener('keydown', e => { if (e.key === 'Enter'){ computeScale(); if (S.mmpp) goStep(4); } });
+$('#markCorners').onclick = () => { if (S.persp.length === 4){ commit(); S.persp = []; } setTool('persp'); };
+$('#applyPersp').onclick = applyPerspective;
+$('#levelBtn').onclick = () => setTool('level');
+$('#rotL').onclick = () => rotate90(-1);
+$('#rotR').onclick = () => rotate90(1);
+$('#rectPreset').onchange = e => { const v = e.target.value; if (v !== 'custom'){ const [w,h] = v.split('x'); $('#rw').value = w; $('#rh').value = h; } else $('#rw').focus(); };
+['#rw','#rh'].forEach(id => $(id).addEventListener('input', () => { $('#rectPreset').value = 'custom'; }));
+$('#calLen').addEventListener('input', updateUI);
+$('#calUnit').addEventListener('change', updateUI);
+$('#calPreset').onchange = e => { if (e.target.value){ $('#calLen').value = e.target.value; $('#calUnit').value = 'mm'; e.target.value = ''; if (!S.calLine) setTool('cal'); updateUI(); } };
+$('#unit').onchange = e => { S.unit = e.target.value; updateUI(); };
+$('#gridOn').onchange = () => toggleGrid();
+$('#gridMM').addEventListener('input', e => { const v = parseFloat(e.target.value); if (v > 0){ S.gridMM = v; draw(); } });
+$('#undoBtn').onclick = $('#tbUndo').onclick = undo;
+$('#clearBtn').onclick = () => { if (!S.shapes.length && !S.measures.length) return; commit(); S.shapes = []; S.measures = []; updateUI(); toast(tx('Drawing cleared. Press Ctrl+Z to bring it back.')); };
+$('#tbGrid').onclick = toggleGrid;
+$('#zIn').onclick = () => zoomAt({x:W/2,y:H/2}, 1.25);
+$('#zOut').onclick = () => zoomAt({x:W/2,y:H/2}, 0.8);
+$('#zFit').onclick = fit;
+$('#expDXF').onclick = () => {
+  const { text, count } = buildDXF($('#dxfMeas').checked);
+  if (!count){ toast(tx('Trace some lines, rectangles or circles first. The DXF only contains traced geometry.')); return; }
+  saveFile(safeName() + '.dxf', text);
+};
+$('#expSVG').onclick = () => { const svg = buildSVG2($('#svgImg').checked); if (svg) saveFile(safeName() + '.svg', svg); };
+$('#expPNG').onclick = exportPNG;
+$('#expCSV').onclick = exportCSV2;
+$('#edDelPts').onclick = deleteSelPts;
+$('#edStraighten').onclick = straightenSel;
+$('#edDelShape').onclick = deleteSelShape;
+$('#smAmt').addEventListener('input', e => { const v = +e.target.value; $('#smOut').textContent = smLabel(v); cancelAnimationFrame(smRAF); smRAF = requestAnimationFrame(() => applySmooth(v)); });
+$('#smAmt').addEventListener('change', () => { smCommitted = false; });
+['#pScale','#pOuter','#pHole'].forEach(id => $(id).addEventListener('input', updateUI));
+$('#pShow').addEventListener('change', draw);
+$$('[data-step]').forEach(b => b.addEventListener('click', () => {
+  const [id, st] = b.dataset.step.split(':'), inp = $('#' + id), step = parseFloat(st);
+  const dec = (st.split('.')[1] || '').length;
+  let v = (parseFloat(inp.value) || (id === 'pScale' ? 100 : 0)) + step;
+  if (id === 'pScale') v = Math.max(1, v);
+  inp.value = v.toFixed(dec); updateUI();
+}));
+$('#saveProj').onclick = () => { if (S.src) saveProject(); };
+$('#atWhole').onclick = () => { if (S.src) runAuto({ x:0, y:0 }, { x:S.src.width, y:S.src.height }); };
+['#atSens','#atSmooth','#atMin'].forEach(id => $(id).addEventListener('input', () => retrace(false)));
+['#atHoles','#atCircles'].forEach(id => $(id).addEventListener('change', () => retrace(false)));
+$('#atShadow').addEventListener('change', () => retrace(true));
+$('#atAdd').onclick = addAuto;
+$('#atCancel').onclick = () => { S.auto = null; updateUI(); };
+
+function showTab(which){
+  const is2d = which === '2d';
+  $('#tab2d').setAttribute('aria-selected', is2d); $('#tab3d').setAttribute('aria-selected', !is2d);
+  $('#view2d').hidden = !is2d; $('#view3d').hidden = is2d;
+  if (is2d) requestAnimationFrame(resize);
+}
+$('#tab2d').onclick = () => showTab('2d');
+$('#tab3d').onclick = () => showTab('3d');
+$('#back2d').onclick = () => showTab('2d');
+
+getDL();
+$('#lang').addEventListener('change', e => setLang(e.target.value));
+initLang();
+resize(); updateUI();
+})();
+</script>
+</body>
+</html>
