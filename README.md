@@ -2,7 +2,7 @@
 
 **Version 1.2 (19 October 2026)**
 
-**[Open the tool](https://YOUR-USERNAME.github.io/trace-to-scale/)**
+**[Open the tool](https://kcow3.github.io/trace-to-scale/)** · [Repository](https://github.com/kcow3/trace-to-scale)
 
 Trace to Scale turns a photo of a real object into an accurate, to-scale sketch you can bring into Fusion 360. You photograph the part next to something of known size, calibrate the scale, trace the outline (by hand or automatically), adjust it for 3D-printing tolerances, and export a DXF in millimetres.
 
@@ -41,7 +41,7 @@ It is a single HTML file. There is nothing to install and no internet connection
 
 ## Getting started
 
-1. Open the [live tool](https://YOUR-USERNAME.github.io/trace-to-scale/) in Chrome, Edge or Firefox. To use it offline, download `index.html` and open it in your browser.
+1. Open the [live tool](https://kcow3.github.io/trace-to-scale/) in Chrome, Edge or Firefox. To use it offline, download `index.html` and open it in your browser.
 2. Drag a photo onto the dark green area, paste one with **Ctrl+V**, or click **Choose photo**.
 3. Pick your language at the top right if needed.
 4. Follow the wizard in the left panel. See [How the wizard works](#how-the-wizard-works).
