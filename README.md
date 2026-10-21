@@ -1,12 +1,16 @@
 # Trace to Scale
 
-**Version 1.5 (20 October 2026)**
+**Version 1.6 (20 October 2026)**
 
 **[Open the tool](https://kcow3.github.io/trace-to-scale/)** · [Repository](https://github.com/kcow3/trace-to-scale)
 
-Trace to Scale turns a photo of a real object into an accurate, to-scale sketch you can bring into Fusion 360. You photograph the part next to something of known size, calibrate the scale, trace the outline (by hand or automatically), adjust it for 3D-printing tolerances, and export a DXF in millimetres.
+Trace to Scale turns a photo of a real object into an accurate, to-scale sketch for your CAD app: Fusion 360, FreeCAD, Onshape, SolidWorks, KiCad, OpenSCAD and others. You photograph the part next to something of known size, calibrate the scale, trace the outline (by hand or automatically), adjust it for 3D-printing tolerances, and export it in millimetres.
 
 It is a single HTML file. There is nothing to install and no internet connection is needed, apart from loading the fonts.
+
+### What's new in 1.6
+
+- **Export for other CAD apps.** Step 7 now has an **Export for** menu: Fusion 360, FreeCAD, Onshape, SolidWorks/Inventor/Solid Edge, KiCad, OpenSCAD, and laser cutters or Inkscape. Each choice gives the right file and import steps. FreeCAD gets a macro that builds an editable sketch, and OpenSCAD gets a ready-to-render plate. See [Bringing your work into your CAD app](#bringing-your-work-into-your-cad-app).
 
 ### What's new in 1.5
 
@@ -44,7 +48,7 @@ It is a single HTML file. There is nothing to install and no internet connection
    - [Rotating shapes](#rotating-shapes)
    - [Getting a part symmetrical](#getting-a-part-symmetrical)
 8. [Print fit: scale and tolerances](#print-fit-scale-and-tolerances)
-9. [Bringing your work into Fusion 360](#bringing-your-work-into-fusion-360)
+9. [Bringing your work into your CAD app](#bringing-your-work-into-your-cad-app)
 10. [Mouse and keyboard reference](#mouse-and-keyboard-reference)
 11. [Saving and reopening projects](#saving-and-reopening-projects)
 12. [Language](#language)
@@ -91,7 +95,7 @@ The progress strip at the top of the left panel shows the seven steps:
 | 7 | **Export** | | Download your files |
 
 - **Next** is greyed out until the current step is complete. A short note explains what's missing.
-- Optional steps show **Skip** until you use them. If you haven't traced anything, step 4 offers **Skip to export**, which is handy when you only want a calibrated photo for a Fusion Canvas.
+- Optional steps show **Skip** until you use them. If you haven't traced anything, step 4 offers **Skip to export**, which is handy when you only want a calibrated photo to sketch over in your CAD app.
 - **Back** returns to the previous step. Nothing is lost when you go back.
 - Click any step in the strip to jump to it. Steps 2 and 3 unlock once a photo is loaded, and steps 4 to 7 once the scale is set.
 - The wizard moves forward on its own when it makes sense:
@@ -150,7 +154,7 @@ The panel shows the scale in pixels per mm and the real size the whole photo cov
 | Polyline | P | Click points one after another. Click the first point to close the shape, or press **Enter** or double-click to finish it open. |
 | Rectangle | R | Click two opposite corners. |
 | Circle | C | Click the centre, then any point on the edge. |
-| Set origin | O | Click the point that should be **0,0** in Fusion. By default the origin is the bottom-left corner of the photo. |
+| Set origin | O | Click the point that should be **0,0** in your CAD app. By default the origin is the bottom-left corner of the photo. |
 | Edit points | E | Select, move, add and delete points. See [Editing points](#editing-points). |
 
 While drawing:
@@ -173,7 +177,7 @@ Adjust the exported shapes for printer tolerances. See [Print fit](#print-fit-sc
 
 ### Step 7: Export
 
-Choose an export, or save the project. Details are in [Bringing your work into Fusion 360](#bringing-your-work-into-fusion-360). **Start with a new photo** loads another image.
+Choose an export, or save the project. Details are in [Bringing your work into your CAD app](#bringing-your-work-into-your-cad-app). **Start with a new photo** loads another image.
 
 ---
 
@@ -193,7 +197,7 @@ Auto trace finds the outline of a part, and any holes in it, for you.
 | **Simplify** | How far the outline may stray from the true edge before another point is added. Higher values give fewer, straighter segments. |
 | **Ignore specks** | Drops dust, scratches and texture smaller than the size shown. |
 | **Include holes and cut-outs** | Also traces openings inside the part. |
-| **Turn round shapes into circles** | Converts near-perfect circles into exact circles, which are much nicer to work with in Fusion. |
+| **Turn round shapes into circles** | Converts near-perfect circles into exact circles, which are much nicer to work with in CAD. |
 | **Reduce shadows** | Compares colour more than brightness, so grey shadows are less likely to be traced. |
 
 Auto trace compares each pixel's colour to the background rather than just looking for dark areas, so dark, light and coloured parts all work. It finds edges with sub-pixel precision.
@@ -235,7 +239,7 @@ The **Smoothing** slider is in **step 5 (Refine)** and appears once you have out
 
 ### Rotating shapes
 
-Parts don't always sit perfectly square to the ruler. The **Rotate** section in step 5 turns your traced shapes so they come into Fusion straight.
+Parts don't always sit perfectly square to the ruler. The **Rotate** section in step 5 turns your traced shapes so they come into your CAD app straight.
 
 | Method | How |
 |---|---|
@@ -302,25 +306,40 @@ A quick way to dial in your printer: print a thin test plate of the outline, che
 
 ---
 
-## Bringing your work into Fusion 360
+## Bringing your work into your CAD app
 
-### Option A: DXF sketch (recommended)
+### Choose your app
 
-1. In step 7, click **Download sketch (DXF)**.
-2. In Fusion 360: **Insert › Insert DXF**.
-3. Pick a sketch plane, and set the units to **mm**.
-4. The geometry arrives at true size, positioned relative to your origin. Extrude it, or use it as a guide for a cleaner sketch.
+Pick your app under **Export for** at the top of step 7. You get the right file and short import steps for it, and the tool remembers your choice. Every export is in millimetres, positioned relative to your origin, and includes your [Print fit](#print-fit-scale-and-tolerances) settings.
 
-Tick **Include measure lines on their own layer** to also bring in your measurements on a separate `MEASURE` layer. Traced geometry is on the `TRACE` layer.
+| App | File | How to bring it in |
+|---|---|---|
+| **Fusion 360** | DXF | **Insert › Insert DXF**, pick a plane, units mm. |
+| **FreeCAD** | Sketch macro (`.FCMacro`), or DXF | Open the macro with **File › Open**, then **Macro › Execute macro**. It builds an editable **Sketcher** sketch with joined, closed outlines that are ready to **Pad**. Or import the DXF with **File › Import**. |
+| **Onshape** | DXF | Import the DXF into your document. In a sketch, click **Insert DXF or DWG** and set the units to millimetre. |
+| **SolidWorks, Inventor, Solid Edge** | DXF | **File › Open** the DXF and import it as a 2D sketch in a new part, units millimetres. |
+| **KiCad** | DXF | PCB Editor: **File › Import › Graphics**, layer **Edge.Cuts**, units mm. Holes become cut-outs in the board. |
+| **OpenSCAD** | `.scad` | Open it, set `thickness` at the top (or choose it before downloading), press **F6** and export STL. Outlines become a solid plate and holes are cut through. Open lines are left out. |
+| **Laser cutter or Inkscape** | SVG | Open in Inkscape, LightBurn or your laser software. True size in mm, with 0.3 mm lines. |
 
-> The DXF downloads as a normal `.dxf` file, both on the live site and when you open `index.html` offline.
+Using a different app? Download the **DXF**. It's the most widely supported format and works in almost any CAD program; just make sure the import units are set to millimetres.
 
-### Option B: Scaled photo as a Canvas
+### About the DXF
 
-1. Click **Download scaled photo (PNG)**. Keep **Add a scale bar** ticked. Optionally tick **Include traced lines**.
-2. In Fusion 360: **Insert › Canvas**, and place it on a plane.
-3. Right-click the canvas in the browser tree › **Calibrate**, click the two ends of the scale bar, and type the length printed on it.
-4. Sketch over the photo in Fusion.
+- Traced geometry is on the `TRACE` layer. Tick **Include measure lines on their own layer** to also bring in your measurements on a separate `MEASURE` layer.
+- Outlines come in as connected line segments and holes as true circles where the tool recognised them.
+- Use it directly, or as an accurate guide for a cleaner sketch with proper constraints.
+
+### Sketching over the photo instead
+
+If you'd rather draw over the photo in your CAD app:
+
+1. Click **Download scaled photo (PNG)**. Keep **Add a scale bar** ticked, and optionally tick **Include traced lines**.
+2. Place the image in your CAD app and scale it using the scale bar, whose length is printed next to it:
+   - **Fusion 360:** **Insert › Canvas**, then right-click the canvas › **Calibrate**, click both ends of the scale bar and type its length.
+   - **FreeCAD:** in the **Image** workbench, create an image plane, then use **Scale image**: click both ends of the scale bar and enter its length.
+   - **Other apps:** most can place an image in a sketch (in SolidWorks it's called **Sketch Picture**). Resize it until the scale bar matches its printed length.
+3. Sketch over the photo.
 
 The file name includes the scale in pixels per mm, for reference.
 
@@ -365,7 +384,7 @@ The file name includes the scale in pixels per mm, for reference.
 Choose **English**, **Afrikaans** or **Čeština** (Czech) from the language menu at the top right. The change is instant and covers everything on screen: the wizard, buttons, hints, messages and labels drawn on the photo. Your work is not affected.
 
 - The tool remembers your choice for next time. On first use it follows your browser language.
-- Fusion 360 menu names in the export tips (such as **Insert › Insert DXF**) stay in English, because that is how they appear in the English version of Fusion.
+- CAD menu names in the export tips (such as **Insert › Insert DXF** or **Macro › Execute macro**) stay in English, because that is how they appear in the English versions of those apps.
 - Exported files (DXF, SVG, CSV, project files) are the same in every language. CSV column names stay in English so spreadsheets stay consistent.
 - Decimal numbers always use a full stop (for example 0.25 mm), in every language.
 
@@ -377,7 +396,7 @@ Choose **English**, **Afrikaans** or **Čeština** (Czech) from the language men
 |---|---|
 | `index.html` | The tool (latest version). GitHub Pages serves this as the home page. |
 | `README.md` | This guide. |
-| `versions/` | Earlier versions, kept for reference: `v1.0.html` (first release), `v1.1.html` (wizard), `v1.2.html` (languages), `v1.3.html` (rotate shapes), `v1.4.html` (rotate the photo with the drawing), `v1.5.html` (symmetry tools, same as `index.html`). |
+| `versions/` | Earlier versions, kept for reference: `v1.0.html` (first release), `v1.1.html` (wizard), `v1.2.html` (languages), `v1.3.html` (rotate shapes), `v1.4.html` (rotate the photo with the drawing), `v1.5.html` (symmetry tools), `v1.6.html` (export for other CAD apps, same as `index.html`). |
 
 ---
 
@@ -403,7 +422,7 @@ Choose **English**, **Afrikaans** or **Čeština** (Czech) from the language men
 
 Ideas for future versions:
 
-- **3D import:** open STL, OBJ and 3MF files, measure them, and slice them into section profiles for Fusion sketches.
+- **3D import:** open STL, OBJ and 3MF files, measure them, and slice them into section profiles for CAD sketches.
 - **Corner and line cleanup:** snap nearly-straight runs to exact lines and nearly-square corners to 90°.
 - **Arc fitting:** export curved sections as true arcs instead of short line segments.
 - **Splines:** draw smooth curves through clicked points, exported as editable splines.
@@ -413,4 +432,4 @@ Ideas for future versions:
 
 ---
 
-*Trace to Scale v1.5. A single-file HTML tool for creating to-scale Fusion 360 sketches from photos.*
+*Trace to Scale v1.6. A single-file HTML tool for creating to-scale CAD sketches from photos.*
