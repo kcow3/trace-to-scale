@@ -1,12 +1,16 @@
 # Trace to Scale
 
-**Version 1.6 (20 October 2026)**
+**Version 1.7 (24 October 2026)**
 
 **[Open the tool](https://kcow3.github.io/trace-to-scale/)** · [Repository](https://github.com/kcow3/trace-to-scale)
 
 Trace to Scale turns a photo of a real object into an accurate, to-scale sketch for your CAD app: Fusion 360, FreeCAD, Onshape, SolidWorks, KiCad, OpenSCAD and others. You photograph the part next to something of known size, calibrate the scale, trace the outline (by hand or automatically), adjust it for 3D-printing tolerances, and export it in millimetres.
 
 It is a single HTML file. There is nothing to install and no internet connection is needed, apart from loading the fonts.
+
+### What's new in 1.7
+
+- **3D scans (beta).** The 3D tab now opens LiDAR scans from your iPhone (PLY, OBJ, STL). Level, remove the table and stray points, crop and lasso, measure, and send a slice or top outline into the 2D tool for CAD export. See [3D scans](#3d-scans-beta).
 
 ### What's new in 1.6
 
@@ -50,10 +54,11 @@ It is a single HTML file. There is nothing to install and no internet connection
 8. [Print fit: scale and tolerances](#print-fit-scale-and-tolerances)
 9. [Bringing your work into your CAD app](#bringing-your-work-into-your-cad-app)
 10. [Mouse and keyboard reference](#mouse-and-keyboard-reference)
-11. [Saving and reopening projects](#saving-and-reopening-projects)
-12. [Language](#language)
-13. [Troubleshooting](#troubleshooting)
-14. [Roadmap](#roadmap)
+11. [3D scans (beta)](#3d-scans-beta)
+12. [Saving and reopening projects](#saving-and-reopening-projects)
+13. [Language](#language)
+14. [Troubleshooting](#troubleshooting)
+15. [Roadmap](#roadmap)
 
 ---
 
@@ -64,7 +69,7 @@ It is a single HTML file. There is nothing to install and no internet connection
 3. Pick your language at the top right if needed.
 4. Follow the wizard in the left panel. See [How the wizard works](#how-the-wizard-works).
 
-The **3D model** tab is a placeholder for a future version.
+The **3D model** tab opens LiDAR scans and other 3D files. See [3D scans](#3d-scans-beta).
 
 ---
 
@@ -372,6 +377,37 @@ The file name includes the scale in pixels per mm, for reference.
 
 ---
 
+## 3D scans (beta)
+
+The **3D model** tab opens scans from an iPhone or iPad with LiDAR, or from any 3D scanner, and helps you clean, measure and turn them into CAD drawings. It works as a five-step wizard, like the photo side.
+
+### Scanning with an iPhone
+
+1. Use an iPhone or iPad Pro with LiDAR and a scanning app such as **Scaniverse**, **Polycam** or **3d Scanner App**.
+2. Choose the small-object or detail mode. Put the part on a plain table with space around it.
+3. Move slowly all the way around, then scan from above as well.
+4. Export as **PLY** (point cloud) or as **OBJ** or **STL** (mesh), and send it to your computer with AirDrop or Files. You can also open the tool on the phone itself.
+
+> Phone LiDAR is accurate to a few millimetres, which is great for overall sizes and outlines but not for fine detail. For small or detailed parts, the photo workflow is usually more precise.
+
+### The steps
+
+| # | Step | What you can do |
+|---|---|---|
+| 1 | **Load** | Open PLY (point clouds and meshes, including Scaniverse and Gaussian-splat files), OBJ or STL. Units are detected automatically (LiDAR apps use metres) and everything is converted to mm. Change **File units** if the size looks wrong. |
+| 2 | **Clean** | **Level to the table** finds the table and makes it flat at height 0. **Remove the table** deletes everything below the thickness you set. **Remove stray points** clears floating specks. **Crop box** trims with six sliders. **Lasso delete** and **Lasso keep** work on whatever you draw around. Rotate by 90° or in small steps, centre the part, and undo any step. |
+| 3 | **Measure** | Click two points on the scan for a distance. The overall size is always shown. |
+| 4 | **To 2D** | Take a **slice at a height** (shown in yellow, with adjustable thickness) or the **outline seen from above**, and send it to the 2D tool. It arrives at true scale, with the origin matching the scan and the outline auto-traced, ready for Refine, Fit and Export to your CAD app. |
+| 5 | **Export** | **PLY** (cleaned point cloud or mesh, with colours), **STL** (meshes only) and **XYZ** points, all in mm. |
+
+Mouse: drag to turn, right-drag to pan, scroll to zoom. The toolbar has **Top**, **Front**, **Side** and **3D** views, **Fit view**, point size and a grid. Keys: **M** measure, **F** fit view, **Ctrl+Z** undo, **Esc** cancel.
+
+> **Point cloud or mesh?** A point cloud has no surface, so most CAD apps can't edit it directly. For a CAD drawing, use step 4. For a solid model, export a mesh from your scanning app, or mesh the PLY in MeshLab or CloudCompare, then load it here to clean and crop.
+
+The 3D viewer uses the three.js library, which loads from the internet the first time you open the 3D tab.
+
+---
+
 ## Saving and reopening projects
 
 - **Save project** (step 7) downloads a `.trace.json` file containing the photo and everything you've done: corrections, scale, shapes, smoothing, origin and print-fit settings.
@@ -396,7 +432,7 @@ Choose **English**, **Afrikaans** or **Čeština** (Czech) from the language men
 |---|---|
 | `index.html` | The tool (latest version). GitHub Pages serves this as the home page. |
 | `README.md` | This guide. |
-| `versions/` | Earlier versions, kept for reference: `v1.0.html` (first release), `v1.1.html` (wizard), `v1.2.html` (languages), `v1.3.html` (rotate shapes), `v1.4.html` (rotate the photo with the drawing), `v1.5.html` (symmetry tools), `v1.6.html` (export for other CAD apps, same as `index.html`). |
+| `versions/` | Earlier versions, kept for reference: `v1.0.html` (first release), `v1.1.html` (wizard), `v1.2.html` (languages), `v1.3.html` (rotate shapes), `v1.4.html` (rotate the photo with the drawing), `v1.5.html` (symmetry tools), `v1.6.html` (export for other CAD apps), `v1.7.html` (3D scans, same as `index.html`). |
 
 ---
 
@@ -422,7 +458,7 @@ Choose **English**, **Afrikaans** or **Čeština** (Czech) from the language men
 
 Ideas for future versions:
 
-- **3D import:** open STL, OBJ and 3MF files, measure them, and slice them into section profiles for CAD sketches.
+- **More 3D:** meshing point clouds in the browser, 3MF and GLB import, and multi-slice profiles.
 - **Corner and line cleanup:** snap nearly-straight runs to exact lines and nearly-square corners to 90°.
 - **Arc fitting:** export curved sections as true arcs instead of short line segments.
 - **Splines:** draw smooth curves through clicked points, exported as editable splines.
@@ -432,4 +468,4 @@ Ideas for future versions:
 
 ---
 
-*Trace to Scale v1.6. A single-file HTML tool for creating to-scale CAD sketches from photos.*
+*Trace to Scale v1.7. A single-file HTML tool for creating to-scale CAD sketches from photos.*

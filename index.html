@@ -126,6 +126,19 @@ label.inline{flex-wrap:wrap}
 .fitrow input{text-align:center}
 .fitrow .u{color:var(--muted);font-size:13px}
 .smoothbox{margin:8px 0 0}
+.m3wrap{background:#1b2523!important;background-image:none!important}
+.m3gl{position:absolute;inset:0;display:block;touch-action:none}
+#m3Lasso{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
+#m3Labels{position:absolute;inset:0;pointer-events:none;z-index:3}
+.m3lab{position:absolute;transform:translate(-50%,-50%);background:rgba(14,20,21,.9);color:#FF5E95;font-weight:600;font-size:13px;padding:3px 10px;border-radius:999px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.m3wrap .empty,.m3wrap .hint{z-index:4}
+.toolbar .m3tb{padding:7px 11px;font-size:13px;flex:none}
+.m3ps{font-size:13px;color:var(--muted);flex:none;margin:0 6px}
+.m3ps input[type=range]{width:110px}
+ol.m3tips{margin:10px 0 0;padding-left:20px;display:grid;gap:6px}
+#m3Steps{grid-template-columns:repeat(5,1fr)}
+#m3Stat{white-space:pre}
+#side3 input[type=radio]{accent-color:var(--accent);width:16px;height:16px}
 .rotbox{margin:10px 0 0}
 .symbox{margin:10px 0 0;padding:10px 0 0;border-top:1px dashed var(--line);display:grid;gap:8px}
 .symbox .result,.symbox .note{margin:0}
@@ -243,7 +256,7 @@ details.keys dd{margin:0}
   </div>
   <nav class="tabs" role="tablist" aria-label="Import type">
     <button role="tab" id="tab2d" aria-selected="true" aria-controls="view2d">2D from photo</button>
-    <button role="tab" id="tab3d" aria-selected="false" aria-controls="view3d">3D model <span class="soon">Coming soon</span></button>
+    <button role="tab" id="tab3d" aria-selected="false" aria-controls="view3d">3D model <span class="soon">Beta</span></button>
   </nav>
   <label class="langpick">
     <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="10" cy="10" r="8"/><path d="M2 10h16M10 2c2.5 2.7 2.5 13.3 0 16M10 2c-2.5 2.7-2.5 13.3 0 16"/></svg>
@@ -251,7 +264,7 @@ details.keys dd{margin:0}
   </label>
   <a class="ghlink" href="https://github.com/kcow3/trace-to-scale" target="_blank" rel="noopener" title="View on GitHub" aria-label="View on GitHub">
     <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-    <span class="ver">v1.6</span>
+    <span class="ver">v1.7</span>
   </a>
 </header>
 
@@ -563,14 +576,136 @@ details.keys dd{margin:0}
   </div>
 </main>
 
-<main id="view3d" class="soonview" role="tabpanel" aria-labelledby="tab3d" hidden>
-  <div class="card">
-    <h2>3D import is coming soon</h2>
-    <p>The plan is to open STL, OBJ and 3MF files, measure them in true units, and slice them into section profiles you can bring into a CAD sketch.</p>
-    <p>For now, the 2D photo workflow is ready to use.</p>
-    <button class="btn primary" id="back2d">Go to 2D from photo</button>
+<main id="view3d" class="work" role="tabpanel" aria-labelledby="tab3d" hidden>
+  <aside class="side" id="side3">
+    <nav class="wizard" aria-label="Steps"><ol id="m3Steps"></ol></nav>
+
+    <section class="step" id="m3s1">
+      <p class="kicker">Step 1 of 5</p>
+      <h2>Load a 3D scan</h2>
+      <p class="lead">Open a PLY, OBJ or STL file. Point clouds and meshes from LiDAR scanning apps both work.</p>
+      <div class="row"><button class="btn primary" id="m3Open">Choose 3D file</button></div>
+      <p class="note" id="m3Info">You can also drop a file onto the viewer.</p>
+      <div class="row"><label class="inline">File units
+        <select id="m3Units" aria-label="File units"><option value="m">metres</option><option value="cm">centimetres</option><option value="mm">millimetres</option><option value="in">inches (in)</option></select>
+      </label></div>
+      <details class="mini">
+        <summary>Scanning with an iPhone</summary>
+        <ol class="m3tips">
+          <li>Use an iPhone or iPad Pro with LiDAR and a scanning app such as Scaniverse, Polycam or 3d Scanner App.</li>
+          <li>Choose the small-object or detail mode. Put the part on a plain table with space around it.</li>
+          <li>Move slowly all the way around, then scan from above as well.</li>
+          <li>Export as PLY (point cloud) or as OBJ or STL (mesh), and send it to your computer with AirDrop or Files. You can also open this page on the phone itself.</li>
+        </ol>
+      </details>
+      <p class="why" hidden></p>
+      <div class="step-nav"><button class="btn primary" data-next3>Next ›</button></div>
+    </section>
+
+    <section class="step" id="m3s2">
+      <p class="kicker">Step 2 of 5</p>
+      <h2>Clean up</h2>
+      <p class="lead">Level the scan, then remove the table, stray points and anything else that isn’t the part.</p>
+      <p class="sublabel">Orientation</p>
+      <button class="btn full primary" id="m3Level">Level to the table</button>
+      <div class="rotrow"><button class="btn" data-r3="x90">X 90°</button><button class="btn" data-r3="y90">Y 90°</button><button class="btn" data-r3="z90">Z 90°</button><button class="btn" id="m3Center">Centre</button></div>
+      <div class="rotrow"><button class="btn" data-r3="z-5">⟲ 5°</button><button class="btn" data-r3="z-1">⟲ 1°</button><button class="btn" data-r3="z1">1° ⟳</button><button class="btn" data-r3="z5">5° ⟳</button></div>
+      <p class="sublabel">Table</p>
+      <label class="slider"><span>Thickness</span><input type="range" id="m3FloorT" min="0" max="100" value="30"><output id="m3FloorOut"></output></label>
+      <button class="btn full" id="m3Floor">Remove the table</button>
+      <p class="sublabel">Stray points</p>
+      <label class="slider"><span>Strength</span><input type="range" id="m3OutS" min="0" max="100" value="40"><output id="m3OutOut"></output></label>
+      <button class="btn full" id="m3Outliers">Remove stray points</button>
+      <p class="sublabel">Crop</p>
+      <label class="inline"><input type="checkbox" id="m3Crop"> Crop box</label>
+      <div id="m3CropBox" hidden>
+        <label class="slider"><span>X min</span><input type="range" class="m3c" data-c="0" min="0" max="1000" value="0"><output></output></label>
+        <label class="slider"><span>X max</span><input type="range" class="m3c" data-c="1" min="0" max="1000" value="1000"><output></output></label>
+        <label class="slider"><span>Y min</span><input type="range" class="m3c" data-c="2" min="0" max="1000" value="0"><output></output></label>
+        <label class="slider"><span>Y max</span><input type="range" class="m3c" data-c="3" min="0" max="1000" value="1000"><output></output></label>
+        <label class="slider"><span>Z min</span><input type="range" class="m3c" data-c="4" min="0" max="1000" value="0"><output></output></label>
+        <label class="slider"><span>Z max</span><input type="range" class="m3c" data-c="5" min="0" max="1000" value="1000"><output></output></label>
+        <button class="btn full primary" id="m3CropApply">Apply crop</button>
+      </div>
+      <p class="sublabel">Lasso</p>
+      <div class="row"><button class="btn grow" id="m3LassoDel">Lasso delete</button><button class="btn grow" id="m3LassoKeep">Lasso keep</button></div>
+      <p class="note">Draw around points on the view. Turn the view first so the part you want to remove is clear of the rest.</p>
+      <div class="row"><button class="btn" id="m3Undo">Undo</button></div>
+      <div class="step-nav"><button class="btn ghost" data-back3>‹ Back</button><button class="btn primary" data-next3>Next ›</button></div>
+    </section>
+
+    <section class="step" id="m3s3">
+      <p class="kicker">Step 3 of 5</p>
+      <h2>Measure</h2>
+      <p class="lead">Click two points on the scan to measure between them. The size box shows the overall dimensions.</p>
+      <div class="result" id="m3Size"></div>
+      <button class="btn full" id="m3MeasureBtn">Measure</button>
+      <ul class="items" id="m3Meas"></ul>
+      <p class="note" id="m3MeasEmpty">No measurements yet.</p>
+      <div class="row"><button class="btn" id="m3MeasClear">Clear measurements</button></div>
+      <div class="step-nav"><button class="btn ghost" data-back3>‹ Back</button><button class="btn primary" data-next3>Next ›</button></div>
+    </section>
+
+    <section class="step" id="m3s4">
+      <p class="kicker">Step 4 of 5</p>
+      <h2>Section to 2D</h2>
+      <p class="lead">Turn a slice, or the outline seen from above, into a 2D drawing. Then refine and export it like a photo trace.</p>
+      <label class="inline"><input type="radio" name="m3Sec" value="slice" checked> Slice at a height</label>
+      <label class="inline"><input type="radio" name="m3Sec" value="top"> Outline seen from above</label>
+      <div id="m3SliceCtl">
+        <label class="slider"><span>Height</span><input type="range" id="m3SecH" min="0" max="1000" value="300"><output id="m3SecHOut"></output></label>
+        <label class="slider"><span>Thickness</span><input type="range" id="m3SecT" min="1" max="100" value="20"><output id="m3SecTOut"></output></label>
+      </div>
+      <div class="result" id="m3SecInfo"></div>
+      <button class="btn full primary" id="m3Send">Send to 2D tracing</button>
+      <p class="note">The drawing opens in the 2D tool at true scale, with the origin matching the scan, ready for Refine, Fit and Export.</p>
+      <div class="step-nav"><button class="btn ghost" data-back3>‹ Back</button><button class="btn primary" data-next3>Next ›</button></div>
+    </section>
+
+    <section class="step" id="m3s5">
+      <p class="kicker">Step 5 of 5</p>
+      <h2>Export</h2>
+      <p class="lead">Save the cleaned scan in millimetres.</p>
+      <div class="exports">
+        <div class="exp"><button class="btn primary" id="m3ExpPly">Download PLY</button><p class="note">Point cloud or mesh with colours. Opens in FreeCAD, MeshLab, CloudCompare and Blender.</p></div>
+        <div class="exp"><button class="btn" id="m3ExpStl">Download STL</button><p class="note">Mesh for Fusion 360, FreeCAD, SolidWorks, Onshape and slicers. Only for meshes, not point clouds.</p></div>
+        <div class="exp"><button class="btn" id="m3ExpXyz">Download XYZ points</button><p class="note">Plain text, one x y z point per line, in mm.</p></div>
+      </div>
+      <p class="note">A point cloud has no surface, so most CAD apps can’t edit it directly. For a CAD drawing, use step 4. For a solid model, export a mesh from your scanning app, or mesh the PLY in MeshLab or CloudCompare.</p>
+      <div class="step-nav"><button class="btn ghost" data-back3>‹ Back</button></div>
+    </section>
+  </aside>
+
+  <div class="stage">
+    <div class="toolbar" role="toolbar" aria-label="3D view">
+      <button class="btn m3tb" data-v3="top">Top</button>
+      <button class="btn m3tb" data-v3="front">Front</button>
+      <button class="btn m3tb" data-v3="side">Side</button>
+      <button class="btn m3tb" data-v3="iso">3D</button>
+      <button class="btn m3tb" data-v3="fit">Fit view</button>
+      <span class="sep"></span>
+      <label class="inline m3ps">Point size <input type="range" id="m3Pt" min="10" max="100" value="35" aria-label="Point size"></label>
+      <span class="spacer"></span>
+      <label class="inline m3ps"><input type="checkbox" id="m3Grid" checked> Grid</label>
+    </div>
+    <div class="canvas-wrap m3wrap" id="m3Wrap">
+      <canvas id="m3Lasso" aria-hidden="true"></canvas>
+      <div id="m3Labels" aria-hidden="true"></div>
+      <div class="empty" id="m3Empty">
+        <div class="card">
+          <svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true" fill="none" stroke="#FFC21A" stroke-width="2.5" stroke-linejoin="round"><path d="M32 8 54 20v24L32 56 10 44V20z"/><path d="M10 20l22 12 22-12M32 32v24"/></svg>
+          <h3>Drop a 3D scan here</h3>
+          <p>PLY, OBJ or STL, from your iPhone’s LiDAR or any 3D scanner.</p>
+          <button class="btn primary" id="m3Open2">Choose 3D file</button>
+        </div>
+      </div>
+      <div class="hint" id="m3Hint" aria-live="polite"></div>
+    </div>
+    <div class="status"><span id="m3Stat">No scan loaded</span></div>
   </div>
 </main>
+<input type="file" id="m3File" accept=".ply,.obj,.stl" hidden>
+
 
 <div id="toast" role="status" aria-live="polite"></div>
 <input type="file" id="fileImg" accept="image/*" hidden>
@@ -613,7 +748,7 @@ const TOOLS = {
 };
 
 /* ---------- languages ---------- */
-const L10N = {"In Fusion 360: Insert › Insert DXF, pick a plane and set the units to mm. The geometry is placed relative to your origin.":["In Fusion 360: Insert › Insert DXF, kies ’n vlak en stel die eenhede op mm. Die geometrie word relatief tot jou oorsprong geplaas.","Ve Fusion 360: Insert › Insert DXF, zvolte rovinu a nastavte jednotky na mm. Geometrie se umístí vzhledem k vašemu počátku."],"Easiest: open the .FCMacro file with File › Open, then choose Macro › Execute macro. It builds an editable Sketcher sketch in mm, with closed outlines ready to pad. Or import the DXF with File › Import.":["Maklikste: maak die .FCMacro-lêer oop met File › Open en kies dan Macro › Execute macro. Dit bou ’n wysigbare Sketcher-skets in mm, met geslote buitelyne gereed vir Pad. Of voer die DXF in met File › Import.","Nejjednodušší: otevřete soubor .FCMacro přes File › Open a pak zvolte Macro › Execute macro. Vytvoří upravitelný náčrt Sketcher v mm s uzavřenými obrysy připravenými pro Pad. Nebo importujte DXF přes File › Import."],"Import the DXF into your Onshape document. In a sketch, click Insert DXF or DWG, choose the file and set the units to millimetre.":["Voer die DXF in jou Onshape-dokument in. Klik in ’n skets op Insert DXF or DWG, kies die lêer en stel die eenhede op millimeter.","Importujte DXF do dokumentu Onshape. V náčrtu klikněte na Insert DXF or DWG, vyberte soubor a nastavte jednotky na milimetry."],"Open the DXF with File › Open. In the import dialog, import it as a 2D sketch in a new part, with the units set to millimetres.":["Maak die DXF oop met File › Open. Voer dit in die invoervenster as ’n 2D-skets in ’n nuwe part in, met die eenhede op millimeter.","Otevřete DXF přes File › Open. V dialogu importu ho importujte jako 2D náčrt do nového dílu s jednotkami v milimetrech."],"In the PCB Editor: File › Import › Graphics. Choose the DXF, set the layer to Edge.Cuts and the units to mm. Holes become cut-outs in the board.":["In die PCB Editor: File › Import › Graphics. Kies die DXF, stel die laag op Edge.Cuts en die eenhede op mm. Gate word uitsnydings in die bord.","V editoru DPS: File › Import › Graphics. Vyberte DXF, nastavte vrstvu na Edge.Cuts a jednotky na mm. Otvory se stanou výřezy v desce."],"Open the .scad file in OpenSCAD and set the thickness at the top if needed. Outlines become a solid plate and holes are cut through. Press F6 to render, then export as STL.":["Maak die .scad-lêer in OpenSCAD oop en stel die dikte bo-aan indien nodig. Buitelyne word ’n soliede plaat en gate word deurgesny. Druk F6 om te render en voer dan as STL uit.","Otevřete soubor .scad v OpenSCAD a v případě potřeby nahoře upravte tloušťku. Z obrysů vznikne deska a otvory se vyříznou skrz. Stiskněte F6 pro výpočet a exportujte STL."],"Open the SVG in Inkscape, LightBurn or your laser software. It is drawn at true size in mm, with thin 0.3 mm lines ready for cutting.":["Maak die SVG oop in Inkscape, LightBurn of jou lasersagteware. Dit is op ware grootte in mm geteken, met dun 0.3 mm-lyne gereed om te sny.","Otevřete SVG v Inkscape, LightBurn nebo softwaru vaší laserové řezačky. Je nakreslené ve skutečné velikosti v mm, s tenkými čarami 0.3 mm připravenými k řezání."],"Export to your CAD app":["Voer uit na jou CAD-program","Export do vašeho CAD programu"],"Export for":["Voer uit vir","Exportovat pro"],"All downloads":["Alle aflaaie","Všechna stahování"],"KiCad (PCB outline)":["KiCad (PCB-buitelyn)","KiCad (obrys DPS)"],"Laser cutter or Inkscape":["Lasersnyer of Inkscape","Laserová řezačka nebo Inkscape"],"Download FreeCAD sketch (macro)":["Laai FreeCAD-skets af (makro)","Stáhnout náčrt pro FreeCAD (makro)"],"Download DXF":["Laai DXF af","Stáhnout DXF"],"Download OpenSCAD file":["Laai OpenSCAD-lêer af","Stáhnout soubor OpenSCAD"],"Download SVG":["Laai SVG af","Stáhnout SVG"],"Thickness":["Dikte","Tloušťka"],"Thickness in mm":["Dikte in mm","Tloušťka v mm"],"Open lines were left out, because OpenSCAD needs closed outlines.":["Oop lyne is weggelaat, want OpenSCAD het geslote buitelyne nodig.","Otevřené čáry byly vynechány, protože OpenSCAD potřebuje uzavřené obrysy."],"Alignment grid":["Belyningsrooster","Vyrovnávací mřížka"],"Mirror check":["Spieëltoets","Kontrola symetrie"],"Left ↔ right":["Links ↔ regs","Vlevo ↔ vpravo"],"Top ↔ bottom":["Bo ↔ onder","Nahoře ↔ dole"],"Straighten by symmetry":["Maak reguit volgens simmetrie","Narovnat podle symetrie"],"Symmetry difference: {v} on average. Lower is more symmetrical.":["Simmetrieverskil: gemiddeld {v}. Laer is meer simmetries.","Odchylka symetrie: průměrně {v}. Čím menší, tím symetričtější."],"The dashed pink copy is the outline mirrored across the yellow centre line. When the part is straight, they overlap.":["Die gestippelde pienk kopie is die buitelyn gespieël oor die geel middellyn. As die onderdeel reguit is, val hulle oor mekaar.","Čárkovaná růžová kopie je obrys zrcadlený podle žluté osy. Když je díl rovně, obě čáry se kryjí."],"Trace a closed outline first.":["Trek eers ’n geslote buitelyn na.","Nejprve obtáhněte uzavřený obrys."],"Already as straight as the outline allows.":["Reeds so reguit as wat die buitelyn toelaat.","Už je tak rovně, jak to obrys dovolí."],"Rotated by {a}°. Symmetry difference {b} → {c}.":["Gedraai met {a}°. Simmetrieverskil {b} → {c}.","Otočeno o {a}°. Odchylka symetrie {b} → {c}."],"Rotate the photo too":["Draai die foto ook","Otočit i fotografii"],"Line up the photo with the drawing":["Belyn die foto met die tekening","Srovnat fotografii s výkresem"],"Rotates the photo and everything on it together, so the drawing stays lined up and you can keep editing.":["Draai die foto en alles daarop saam, sodat die tekening in lyn bly en jy kan aanhou wysig.","Otáčí fotografii i vše na ní společně, takže výkres zůstane zarovnaný a můžete dál upravovat."],"The drawing was rotated on its own. Line up the photo to keep editing over it.":["Die tekening is alleen gedraai. Belyn die foto om bo-oor dit aan te hou wysig.","Výkres byl otočen samostatně. Srovnejte fotografii, abyste nad ní mohli dál upravovat."],"Photo lined up with the drawing.":["Foto is met die tekening belyn.","Fotografie srovnána s výkresem."],"Rotate":["Draai","Otočit"],"Level by two points":["Maak gelyk met twee punte","Vyrovnat podle dvou bodů"],"Rotates all shapes together around their centre. Select a shape with Edit points to rotate just that one.":["Draai alle vorms saam om hulle middelpunt. Kies ’n vorm met Wysig punte om net daardie een te draai.","Otáčí všechny tvary společně kolem jejich středu. Chcete-li otočit jen jeden tvar, vyberte ho nástrojem Upravit body."],"Rotates the selected shape around its centre.":["Draai die gekose vorm om sy middelpunt.","Otáčí vybraný tvar kolem jeho středu."],"You can also drag the round handle above the shapes. Hold Shift for 15° steps.":["Jy kan ook die ronde handvatsel bo die vorms sleep. Hou Shift in vir stappe van 15°.","Můžete také táhnout kulatý úchyt nad tvary. Se Shiftem se otáčí po 15°."],"Rotate left 1°":["Draai 1° links","Otočit o 1° doleva"],"Rotate left 0.1°":["Draai 0.1° links","Otočit o 0.1° doleva"],"Rotate right 0.1°":["Draai 0.1° regs","Otočit o 0.1° doprava"],"Rotate right 1°":["Draai 1° regs","Otočit o 1° doprava"],"Click one end of a straight edge on the part.":["Klik op die een punt van ’n reguit rand op die onderdeel.","Klikněte na jeden konec rovné hrany dílu."],"Click the other end. The shapes rotate to make it level or upright.":["Klik op die ander punt. Die vorms draai sodat dit gelyk of regop is.","Klikněte na druhý konec. Tvary se otočí tak, aby byla hrana vodorovná nebo svislá."],"View on GitHub":["Bekyk op GitHub","Zobrazit na GitHubu"],"Turn a photo into a to-scale CAD sketch":["Verander ’n foto in ’n skaalakkurate CAD-skets","Udělejte z fotografie přesný CAD náčrt v měřítku"],"2D from photo":["2D uit foto","2D z fotografie"],"3D model":["3D-model","3D model"],"Coming soon":["Kom binnekort","Již brzy"],"Load a photo":["Laai ’n foto","Nahrajte fotografii"],"Use a photo of the part with something of known size beside it, like a ruler, bank card or coin.":["Gebruik ’n foto van die onderdeel met iets van bekende grootte langsaan, soos ’n liniaal, bankkaart of muntstuk.","Použijte fotografii dílu, vedle kterého leží něco známé velikosti, například pravítko, platební karta nebo mince."],"Choose photo":["Kies foto","Vybrat fotografii"],"Open project":["Open projek","Otevřít projekt"],"You can also drop a photo onto the canvas, or paste one with Ctrl+V.":["Jy kan ook ’n foto op die werkarea laat val, of een met Ctrl+V plak.","Fotografii můžete také přetáhnout na plochu nebo vložit pomocí Ctrl+V."],"Next ›":["Volgende ›","Další ›"],"Straighten the photo":["Maak die foto reguit","Narovnejte fotografii"],"Optional":["Opsioneel","Volitelné"],"Shot at an angle? Mark the corners of a flat rectangle of known size lying beside the part. This removes the perspective":["Skuins afgeneem? Merk die hoeke van ’n plat reghoek van bekende grootte wat langs die onderdeel lê. Dit verwyder die perspektief","Fotili jste šikmo? Označte rohy plochého obdélníku známé velikosti, který leží vedle dílu. Tím odstraníte perspektivu"],"and":["en","a"],"sets the scale for you.":["stel sommer ook die skaal vir jou.","zároveň nastavíte měřítko."],"Bank card (85.60 × 53.98 mm)":["Bankkaart (85.60 × 53.98 mm)","Platební karta (85.60 × 53.98 mm)"],"A4 sheet (210 × 297 mm)":["A4-vel (210 × 297 mm)","List A4 (210 × 297 mm)"],"A5 sheet (148 × 210 mm)":["A5-vel (148 × 210 mm)","List A5 (148 × 210 mm)"],"Custom size":["Eie grootte","Vlastní velikost"],"Mark 4 corners":["Merk 4 hoeke","Označit 4 rohy"],"Apply correction":["Pas korreksie toe","Použít opravu"],"0 of 4 corners marked.":["0 van 4 hoeke gemerk.","Označeno 0 ze 4 rohů."],"Level an edge":["Maak ’n rand gelyk","Vyrovnat hranu"],"‹ Back":["‹ Terug","‹ Zpět"],"Set the scale":["Stel die skaal","Nastavte měřítko"],"Draw a line across something you know the size of, then enter its real length. The longer the reference, the more accurate the result.":["Trek ’n lyn oor iets waarvan jy die grootte ken, en tik dan die werklike lengte in. Hoe langer die verwysing, hoe akkurater die resultaat.","Nakreslete čáru přes něco, jehož velikost znáte, a zadejte jeho skutečnou délku. Čím delší reference, tím přesnější výsledek."],"Draw reference line":["Trek verwysingslyn","Nakreslit referenční čáru"],"Or pick a known object…":["Of kies ’n bekende voorwerp…","Nebo vyberte známý předmět…"],"Cards and paper":["Kaarte en papier","Karty a papír"],"Coins (diameter)":["Munte (deursnee)","Mince (průměr)"],"Other":["Ander","Ostatní"],"Bank card, long edge (85.60 mm)":["Bankkaart, lang kant (85.60 mm)","Platební karta, delší strana (85.60 mm)"],"Bank card, short edge (53.98 mm)":["Bankkaart, kort kant (53.98 mm)","Platební karta, kratší strana (53.98 mm)"],"A4 sheet, short edge (210 mm)":["A4-vel, kort kant (210 mm)","List A4, kratší strana (210 mm)"],"A4 sheet, long edge (297 mm)":["A4-vel, lang kant (297 mm)","List A4, delší strana (297 mm)"],"South African R5 (26.00 mm)":["Suid-Afrikaanse R5 (26.00 mm)","Jihoafrická mince R5 (26.00 mm)"],"South African R2 (23.00 mm)":["Suid-Afrikaanse R2 (23.00 mm)","Jihoafrická mince R2 (23.00 mm)"],"South African R1 (20.00 mm)":["Suid-Afrikaanse R1 (20.00 mm)","Jihoafrická mince R1 (20.00 mm)"],"US quarter (24.26 mm)":["VSA-kwartdollar (24.26 mm)","Americký quarter (24.26 mm)"],"€1 coin (23.25 mm)":["€1-muntstuk (23.25 mm)","Mince 1 € (23.25 mm)"],"AA battery, length (50.5 mm)":["AA-battery, lengte (50.5 mm)","Baterie AA, délka (50.5 mm)"],"Ruler, 100 mm span":["Liniaal, 100 mm-afstand","Pravítko, úsek 100 mm"],"No scale yet.":["Nog geen skaal nie.","Měřítko zatím není nastaveno."],"Trace the outline":["Trek die buitelyn na","Obtáhněte obrys"],"Let the tool find the outline for you, or draw it by hand.":["Laat die program die buitelyn vir jou vind, of teken dit met die hand.","Nechte nástroj najít obrys za vás, nebo ho nakreslete ručně."],"Auto trace outline":["Trek buitelyn outomaties na","Automaticky obtáhnout obrys"],"Draw a box around the part on the photo, or":["Trek ’n blokkie om die onderdeel op die foto, of","Nakreslete na fotografii rámeček kolem dílu, nebo"],"trace the whole photo":["trek die hele foto na","obtáhněte celou fotografii"],". A plain background that contrasts with the part works best.":[". ’n Effe agtergrond wat met die onderdeel kontrasteer, werk die beste.",". Nejlépe funguje jednolité pozadí, které s dílem kontrastuje."],"Sensitivity":["Sensitiwiteit","Citlivost"],"Simplify":["Vereenvoudig","Zjednodušit"],"Ignore specks":["Ignoreer spikkels","Ignorovat smítka"],"Include holes and cut-outs":["Sluit gate en uitsnydings in","Zahrnout otvory a výřezy"],"Turn round shapes into circles":["Maak ronde vorms sirkels","Převést kulaté tvary na kružnice"],"Reduce shadows":["Verminder skaduwees","Potlačit stíny"],"No box drawn yet.":["Nog geen blokkie getrek nie.","Zatím není nakreslen žádný rámeček."],"Add to drawing":["Voeg by tekening","Přidat do výkresu"],"Discard":["Gooi weg","Zahodit"],"Or draw by hand":["Of teken met die hand","Nebo kreslete ručně"],"Measure":["Meet","Měřit"],"Line":["Lyn","Čára"],"Polyline":["Polilyn","Lomená čára"],"Rectangle":["Reghoek","Obdélník"],"Circle":["Sirkel","Kružnice"],"Outline":["Buitelyn","Obrys"],"Set origin":["Stel oorsprong","Nastavit počátek"],"Refine the shape":["Verfyn die vorm","Dolaďte tvar"],"Fix glitches by moving or deleting points, and smooth out jagged edges.":["Herstel foutjies deur punte te skuif of uit te vee, en maak hoekige rande glad.","Opravte chyby posunutím nebo smazáním bodů a vyhlaďte zubaté okraje."],"Edit points":["Wysig punte","Upravit body"],"Click a shape to select it, then drag any point to move it. Drag across empty space to select several points. Double-click a line to add a point. Right-drag or hold Space to pan.":["Klik op ’n vorm om dit te kies, en sleep dan enige punt om dit te skuif. Sleep oor leë ruimte om verskeie punte te kies. Dubbelklik op ’n lyn om ’n punt by te voeg. Sleep met die regterknoppie, of hou Spasie in, om die aansig te skuif.","Kliknutím vyberte tvar a pak přetažením posuňte libovolný bod. Tažením přes prázdné místo vyberete více bodů. Dvojklikem na čáru přidáte bod. Zobrazení posunete tažením pravým tlačítkem nebo s podrženým mezerníkem."],"No shape selected.":["Geen vorm gekies nie.","Není vybrán žádný tvar."],"Smooth selected points":["Maak gekose punte glad","Vyhladit vybrané body"],"Delete points":["Vee punte uit","Smazat body"],"Delete shape":["Vee vorm uit","Smazat tvar"],"Smoothing":["Gladmaak","Vyhlazení"],"Fit for printing":["Pas aan vir 3D-druk","Úprava pro 3D tisk"],"Adjust the exported shape for your printer’s tolerances. The trace on the photo stays as it is.":["Pas die uitgevoerde vorm aan vir jou drukker se toleransies. Die natrekking op die foto bly soos dit is.","Upravte exportovaný tvar podle tolerancí vaší tiskárny. Obrys na fotografii zůstane beze změny."],"Scale":["Skaal","Měřítko"],"Outlines":["Buitelyne","Obrysy"],"Holes":["Gate","Otvory"],"Positive values make a shape bigger. For a case or pocket the part must fit into, grow outlines by your printer’s clearance, often 0.2 to 0.4 mm. Holes are shapes that sit inside another outline.":["Positiewe waardes maak ’n vorm groter. Vir ’n houer of holte waarin die onderdeel moet pas, vergroot die buitelyne met jou drukker se speling, gewoonlik 0.2 tot 0.4 mm. Gate is vorms wat binne ’n ander buitelyn lê.","Kladné hodnoty tvar zvětšují. U pouzdra nebo kapsy, do které musí díl zapadnout, zvětšete obrysy o vůli vaší tiskárny, obvykle 0.2 až 0.4 mm. Otvory jsou tvary, které leží uvnitř jiného obrysu."],"Show the print shape on the photo":["Wys die drukvorm op die foto","Zobrazit tiskový tvar na fotografii"],"Export to Fusion 360":["Voer uit na Fusion 360","Export do Fusion 360"],"Download sketch (DXF)":["Laai skets af (DXF)","Stáhnout náčrt (DXF)"],"Include measure lines on their own layer":["Sluit meetlyne op ’n eie laag in","Zahrnout měřicí čáry ve vlastní vrstvě"],"Works in almost any CAD app. Pick yours under Export for, above, to see its import steps.":["Werk in byna enige CAD-program. Kies joune onder Voer uit vir, hierbo, om die invoerstappe te sien.","Funguje téměř v každém CAD programu. Vyberte svůj nahoře v nabídce Exportovat pro a uvidíte postup importu."],"Download scaled photo (PNG)":["Laai geskaalde foto af (PNG)","Stáhnout fotografii v měřítku (PNG)"],"Add a scale bar":["Voeg ’n skaalstaaf by","Přidat měřítkovou úsečku"],"Include traced lines":["Sluit nagetrekte lyne in","Zahrnout obtažené čáry"],"Place it in your CAD app as a reference image and scale it so the scale bar matches its printed length.":["Plaas dit as verwysingsprent in jou CAD-program en skaal dit sodat die skaalstaaf sy gedrukte lengte pas.","Vložte ho do CAD programu jako referenční obrázek a změňte jeho velikost tak, aby měřítková úsečka odpovídala uvedené délce."],"Download vector drawing (SVG)":["Laai vektortekening af (SVG)","Stáhnout vektorový výkres (SVG)"],"Embed the photo":["Sluit die foto in","Vložit fotografii"],"Measurements (CSV)":["Metings (CSV)","Rozměry (CSV)"],"Save project":["Stoor projek","Uložit projekt"],"Start with a new photo":["Begin met ’n nuwe foto","Začít s novou fotografií"],"Your shapes":["Jou vorms","Vaše tvary"],"Nothing traced yet.":["Nog niks nagetrek nie.","Zatím nic není obtaženo."],"Undo":["Ontdoen","Vrátit"],"Clear drawing":["Maak tekening skoon","Vymazat výkres"],"View options":["Aansigopsies","Možnosti zobrazení"],"Show in":["Wys in","Zobrazit v"],"inches":["duim","palcích"],"Grid every":["Rooster elke","Mřížka po"],"Mouse and keyboard":["Muis en sleutelbord","Myš a klávesnice"],"Scroll":["Rol","Kolečko"],"Zoom at the cursor":["Zoem by die wyser","Přiblížení u kurzoru"],"Drag":["Sleep","Tažení"],"Pan (in any tool). Drag a point to move it":["Skuif die aansig (in enige hulpmiddel). Sleep ’n punt om dit te skuif","Posun zobrazení (v libovolném nástroji). Tažením bodu ho posunete"],"Lock angle to 15° steps":["Sluit die hoek in stappe van 15°","Zamknout úhel na kroky po 15°"],"Finish a polyline":["Voltooi ’n polilyn","Dokončit lomenou čáru"],"Cancel the current shape":["Kanselleer die huidige vorm","Zrušit rozkreslený tvar"],"Undo (Ctrl+Y redo)":["Ontdoen (Ctrl+Y herdoen)","Vrátit (Ctrl+Y znovu)"],"Edit points. Delete removes selected points":["Wysig punte. Delete vee gekose punte uit","Upravit body. Delete smaže vybrané body"],"Fit photo to view":["Pas foto in die aansig","Přizpůsobit fotografii zobrazení"],"Toggle grid":["Rooster aan/af","Zapnout/vypnout mřížku"],"Drop a photo here":["Laat val ’n foto hier","Přetáhněte sem fotografii"],"Or paste one with Ctrl+V, or choose a file.":["Of plak een met Ctrl+V, of kies ’n lêer.","Nebo ji vložte pomocí Ctrl+V či vyberte soubor."],"For accurate results, shoot straight down from as far away as you can and zoom in, so lens distortion stays low.":["Vir akkurate resultate, neem die foto reguit van bo af, so ver weg as moontlik, en zoem in sodat lensvervorming laag bly.","Pro přesné výsledky foťte kolmo shora z co největší vzdálenosti a přibližte zoomem, aby bylo zkreslení objektivu co nejmenší."],"Put the known object (a ruler, bank card or coin) flat beside the part, at the same height as the face you want to draw.":["Sit die bekende voorwerp (’n liniaal, bankkaart of muntstuk) plat langs die onderdeel, op dieselfde hoogte as die vlak wat jy wil teken.","Položte známý předmět (pravítko, platební kartu nebo minci) naplocho vedle dílu, do stejné výšky jako plocha, kterou chcete kreslit."],"not set":["nie gestel nie","nenastaveno"],"3D import is coming soon":["3D-invoer kom binnekort","3D import bude brzy k dispozici"],"The plan is to open STL, OBJ and 3MF files, measure them in true units, and slice them into section profiles you can bring into a CAD sketch.":["Die plan is om STL-, OBJ- en 3MF-lêers oop te maak, hulle in ware eenhede te meet, en hulle in deursnitprofiele te sny wat jy in ’n CAD-skets kan gebruik.","V plánu je otevírání souborů STL, OBJ a 3MF, jejich měření ve skutečných jednotkách a řezání na profily průřezů, které můžete přenést do náčrtu v CAD programu."],"For now, the 2D photo workflow is ready to use.":["Vir eers is die 2D-fotowerkvloei gereed vir gebruik.","Zatím je připraven pracovní postup 2D z fotografie."],"Go to 2D from photo":["Gaan na 2D uit foto","Přejít na 2D z fotografie"],"Language":["Taal","Jazyk"],"Import type":["Invoertipe","Typ importu"],"Steps":["Stappe","Kroky"],"Reference rectangle":["Verwysingsreghoek","Referenční obdélník"],"Rectangle width in mm":["Reghoekwydte in mm","Šířka obdélníku v mm"],"Rectangle height in mm":["Reghoekhoogte in mm","Výška obdélníku v mm"],"Click two points along an edge that should be horizontal or vertical":["Klik op twee punte langs ’n rand wat horisontaal of vertikaal moet wees","Klikněte na dva body na hraně, která má být vodorovná nebo svislá"],"Rotate 90° left":["Draai 90° links","Otočit o 90° doleva"],"Rotate 90 degrees left":["Draai 90 grade links","Otočit o 90 stupňů doleva"],"Rotate 90° right":["Draai 90° regs","Otočit o 90° doprava"],"Rotate 90 degrees right":["Draai 90 grade regs","Otočit o 90 stupňů doprava"],"Real length":["Werklike lengte","Skutečná délka"],"Real length of the reference":["Werklike lengte van die verwysing","Skutečná délka reference"],"Reference unit":["Verwysingseenheid","Jednotka reference"],"Known object sizes":["Groottes van bekende voorwerpe","Velikosti známých předmětů"],"Drawing tools":["Tekenhulpmiddels","Kreslicí nástroje"],"Decrease scale":["Verklein skaal","Zmenšit měřítko"],"Scale percent":["Skaal in persent","Měřítko v procentech"],"Increase scale":["Vergroot skaal","Zvětšit měřítko"],"Shrink outlines":["Krimp buitelyne","Zmenšit obrysy"],"Outline offset in mm":["Buitelynverskuiwing in mm","Odsazení obrysů v mm"],"Grow outlines":["Vergroot buitelyne","Zvětšit obrysy"],"Shrink holes":["Krimp gate","Zmenšit otvory"],"Hole offset in mm":["Gatverskuiwing in mm","Odsazení otvorů v mm"],"Grow holes":["Vergroot gate","Zvětšit otvory"],"Measurements and traced shapes":["Metings en nagetrekte vorms","Rozměry a obtažené tvary"],"Display unit":["Vertooneenheid","Zobrazovaná jednotka"],"Grid spacing in mm":["Roosterspasiëring in mm","Rozteč mřížky v mm"],"Tools":["Hulpmiddels","Nástroje"],"Pan (V)":["Skuif aansig (V)","Posun (V)"],"Pan":["Skuif aansig","Posun"],"Reference line (K)":["Verwysingslyn (K)","Referenční čára (K)"],"Reference line":["Verwysingslyn","Referenční čára"],"Measure (M)":["Meet (M)","Měřit (M)"],"Line (L)":["Lyn (L)","Čára (L)"],"Polyline (P)":["Polilyn (P)","Lomená čára (P)"],"Rectangle (R)":["Reghoek (R)","Obdélník (R)"],"Circle (C)":["Sirkel (C)","Kružnice (C)"],"Auto trace (A)":["Outomatiese natrekking (A)","Automatické obtažení (A)"],"Auto trace":["Outomatiese natrekking","Automatické obtažení"],"Edit points (E)":["Wysig punte (E)","Upravit body (E)"],"Set origin (O)":["Stel oorsprong (O)","Nastavit počátek (O)"],"Undo (Ctrl+Z)":["Ontdoen (Ctrl+Z)","Vrátit (Ctrl+Z)"],"Grid (G)":["Rooster (G)","Mřížka (G)"],"Zoom out (-)":["Zoem uit (-)","Oddálit (-)"],"Zoom out":["Zoem uit","Oddálit"],"Zoom in (+)":["Zoem in (+)","Přiblížit (+)"],"Zoom in":["Zoem in","Přiblížit"],"Fit to view (F)":["Pas in aansig (F)","Přizpůsobit zobrazení (F)"],"Fit to view":["Pas in aansig","Přizpůsobit zobrazení"],"Drag to move around. Scroll to zoom.":["Sleep om rond te beweeg. Rol om te zoem.","Tažením se posunete, kolečkem přiblížíte."],"Click one end of the object you know the size of.":["Klik op die een punt van die voorwerp waarvan jy die grootte ken.","Klikněte na jeden konec předmětu, jehož velikost znáte."],"Click the other end.":["Klik op die ander punt.","Klikněte na druhý konec."],"Click the start of the distance to measure.":["Klik op die begin van die afstand wat jy wil meet.","Klikněte na začátek měřené vzdálenosti."],"Click the end.":["Klik op die einde.","Klikněte na konec."],"Click the start of the line.":["Klik op die begin van die lyn.","Klikněte na začátek čáry."],"Click the end of the line.":["Klik op die einde van die lyn.","Klikněte na konec čáry."],"Click one corner of the rectangle.":["Klik op een hoek van die reghoek.","Klikněte na jeden roh obdélníku."],"Click the opposite corner.":["Klik op die teenoorgestelde hoek.","Klikněte na protější roh."],"Click the centre of the circle.":["Klik op die middelpunt van die sirkel.","Klikněte na střed kružnice."],"Click any point on its edge.":["Klik op enige punt op die rand.","Klikněte na libovolný bod na jejím obvodu."],"Click the first point.":["Klik op die eerste punt.","Klikněte na první bod."],"Keep clicking. Click the first point to close, or press Enter to finish.":["Hou aan klik. Klik op die eerste punt om die vorm toe te maak, of druk Enter om klaar te maak.","Pokračujte v klikání. Kliknutím na první bod tvar uzavřete, klávesou Enter ho dokončíte."],"Click the point that should be 0,0 in Fusion.":["Klik op die punt wat 0,0 in Fusion moet wees.","Klikněte na bod, který má být ve Fusion 0,0."],"Click the first corner of the rectangle.":["Klik op die eerste hoek van die reghoek.","Klikněte na první roh obdélníku."],"Click the next corner, going around the rectangle.":["Klik op die volgende hoek, om die reghoek heen.","Klikněte na další roh, postupně kolem obdélníku."],"Click the third corner.":["Klik op die derde hoek.","Klikněte na třetí roh."],"Click the last corner.":["Klik op die laaste hoek.","Klikněte na poslední roh."],"Click one end of an edge that should be level or upright.":["Klik op die een punt van ’n rand wat gelyk of regop moet wees.","Klikněte na jeden konec hrany, která má být vodorovná nebo svislá."],"Click one corner of a box around the part. Leave some background showing on every side.":["Klik op een hoek van ’n blokkie om die onderdeel. Laat aan elke kant ’n bietjie agtergrond sigbaar.","Klikněte na jeden roh rámečku kolem dílu. Na každé straně nechte kousek pozadí."],"Click a shape, then drag its points. Drag across empty space to select several. Double-click a line to add a point.":["Klik op ’n vorm en sleep dan sy punte. Sleep oor leë ruimte om verskeie te kies. Dubbelklik op ’n lyn om ’n punt by te voeg.","Klikněte na tvar a táhněte jeho body. Tažením přes prázdné místo vyberete více bodů. Dvojklikem na čáru přidáte bod."],"Hold Shift to lock the angle.":["Hou Shift in om die hoek te sluit.","Podržením Shift zamknete úhel."],"Adjust the sliders in step 4, then choose “Add to drawing”. Or click to draw a new box.":["Stel die skuiwers in stap 4 en kies dan “Voeg by tekening”. Of klik om ’n nuwe blokkie te trek.","Upravte posuvníky v kroku 4 a zvolte „Přidat do výkresu“. Nebo klikněte a nakreslete nový rámeček."],"Drag corners to fine-tune, then choose “Apply correction”.":["Sleep die hoeke om fyn aan te pas, en kies dan “Pas korreksie toe”.","Přetažením rohů je dolaďte a pak zvolte „Použít opravu“."],"Reference set. Drag its ends to fine-tune, or click to draw a new one.":["Verwysing gestel. Sleep die punte om fyn aan te pas, of klik om ’n nuwe een te trek.","Reference je nastavena. Přetažením konců ji dolaďte, nebo klikněte a nakreslete novou."],"Now type the real length in step 3.":["Tik nou die werklike lengte in stap 3 in.","Nyní zadejte skutečnou délku v kroku 3."],"Photo":["Foto","Foto"],"Angle":["Hoek","Úhel"],"Trace":["Natrek","Obrys"],"Refine":["Verfyn","Doladit"],"Fit":["Pas","Tisk"],"Export":["Uitvoer","Export"],"Skip ›":["Slaan oor ›","Přeskočit ›"],"Skip to export ›":["Gaan na uitvoer ›","Přejít k exportu ›"],"Load a photo to continue.":["Laai ’n foto om voort te gaan.","Pro pokračování nahrajte fotografii."],"Enter the real length of the reference line to continue.":["Tik die werklike lengte van die verwysingslyn in om voort te gaan.","Pro pokračování zadejte skutečnou délku referenční čáry."],"Draw a reference line on the photo to continue.":["Trek ’n verwysingslyn op die foto om voort te gaan.","Pro pokračování nakreslete na fotografii referenční čáru."],"Step {n}: {name}":["Stap {n}: {name}","Krok {n}: {name}"],"Load a photo first":["Laai eers ’n foto","Nejprve nahrajte fotografii"],"Set the scale first":["Stel eers die skaal","Nejprve nastavte měřítko"],"Nothing to undo.":["Niks om te ontdoen nie.","Není co vrátit."],"That file isn’t an image. Use a JPG, PNG or WebP photo.":["Daardie lêer is nie ’n prent nie. Gebruik ’n JPG-, PNG- of WebP-foto.","Tento soubor není obrázek. Použijte fotografii JPG, PNG nebo WebP."],"This browser can’t open that image. HEIC photos need converting to JPG first.":["Hierdie blaaier kan nie daardie prent oopmaak nie. HEIC-foto’s moet eers na JPG omgeskakel word.","Tento prohlížeč obrázek neotevře. Fotografie HEIC je nejprve potřeba převést na JPG."],"Photo loaded. It was reduced to {w} × {h} px to stay responsive.":["Foto gelaai. Dit is na {w} × {h} px verklein sodat die program vinnig bly.","Fotografie načtena. Byla zmenšena na {w} × {h} px, aby aplikace zůstala svižná."],"Origin set. DXF coordinates are now measured from this point.":["Oorsprong gestel. DXF-koördinate word nou vanaf hierdie punt gemeet.","Počátek nastaven. Souřadnice DXF se nyní měří od tohoto bodu."],"Reference {v}":["Verwysing {v}","Reference {v}"],"Reference: enter its length":["Verwysing: tik die lengte in","Reference: zadejte délku"],"Radius {r}, Ø {d}":["Radius {r}, Ø {d}","Poloměr {r}, Ø {d}"],"Length {l} at {a}°":["Lengte {l} teen {a}°","Délka {l} pod úhlem {a}°"],"{n} pts, {len}":["{n} punte, {len}","bodů: {n}, {len}"],"Delete {item}":["Vee {item} uit","Smazat: {item}"],"Print: {v}":["Druk: {v}","Tisk: {v}"],"Loaded {name} ({w} × {h} px).":["{name} gelaai ({w} × {h} px).","Načteno: {name} ({w} × {h} px)."],"All 4 corners marked. Drag them to fine-tune if needed.":["Al 4 hoeke is gemerk. Sleep hulle om fyn aan te pas indien nodig.","Všechny 4 rohy jsou označeny. V případě potřeby je přetažením dolaďte."],"{n} of 4 corners marked.":["{n} van 4 hoeke gemerk.","Označeno {n} ze 4 rohů."],"{v} px per mm":["{v} px per mm","{v} px na mm"],"Scale set: {s}. Photo covers {w} × {h}.":["Skaal gestel: {s}. Die foto dek {w} × {h}.","Měřítko nastaveno: {s}. Fotografie pokrývá {w} × {h}."],"The reference is only {px} px long. Clicking 1 px off gives about {e}% error, so use a longer reference if you can.":["Die verwysing is net {px} px lank. As jy 1 px mis klik, gee dit sowat {e}% fout, so gebruik ’n langer verwysing as jy kan.","Reference je dlouhá jen {px} px. Chyba kliknutí o 1 px znamená asi {e}% odchylku, proto použijte delší referenci, pokud můžete."],"Reference drawn. Enter its real length above.":["Verwysing getrek. Tik die werklike lengte hierbo in.","Reference nakreslena. Výše zadejte její skutečnou délku."],"Exports are true to scale: 1 unit = 1 mm.":["Uitvoere is skaalgetrou: 1 eenheid = 1 mm.","Exporty jsou ve skutečném měřítku: 1 jednotka = 1 mm."],"Set the scale in step 3 to unlock exports.":["Stel die skaal in stap 3 om uitvoere te ontsluit.","Pro odemčení exportů nastavte měřítko v kroku 3."],"Set the scale first, so the grid can be drawn in real units.":["Stel eers die skaal sodat die rooster in ware eenhede geteken kan word.","Nejprve nastavte měřítko, aby se mřížka mohla vykreslit ve skutečných jednotkách."],"That edge is already level.":["Daardie rand is reeds gelyk.","Tato hrana už je vyrovnaná."],"Rotated by {a}°.":["Gedraai met {a}°.","Otočeno o {a}°."],"Enter the rectangle’s real width and height first.":["Tik eers die reghoek se werklike wydte en hoogte in.","Nejprve zadejte skutečnou šířku a výšku obdélníku."],"Those corners don’t form a usable rectangle. Check that no three are in a line.":["Daardie hoeke vorm nie ’n bruikbare reghoek nie. Maak seker dat geen drie in ’n lyn lê nie.","Tyto rohy netvoří použitelný obdélník. Zkontrolujte, že žádné tři neleží na jedné přímce."],"Correcting perspective…":["Korrigeer perspektief…","Opravuji perspektivu…"],"Perspective corrected and scale set, so step 3 is done. Check it any time with Measure (M).":["Perspektief gekorrigeer en skaal gestel, dus is stap 3 klaar. Toets dit enige tyd met Meet (M).","Perspektiva opravena a měřítko nastaveno, krok 3 je tedy hotový. Kdykoli ho můžete ověřit nástrojem Měřit (M)."],"No outline found. Raise the sensitivity, or redraw the box with background showing on every side.":["Geen buitelyn gevind nie. Verhoog die sensitiwiteit, of trek die blokkie weer met agtergrond sigbaar aan elke kant.","Nebyl nalezen žádný obrys. Zvyšte citlivost nebo nakreslete rámeček znovu tak, aby na každé straně bylo vidět pozadí."],"Found {list}.":["{list} gevind.","Nalezeno: {list}."]," and ":[" en "," a "],", 1 recognised as a circle":[", waarvan 1 as ’n sirkel herken is",", z toho 1 rozpoznán jako kružnice"],", {n} recognised as circles":[", waarvan {n} as sirkels herken is",", z toho rozpoznáno jako kružnice: {n}"],"Draw a bigger box around the part.":["Trek ’n groter blokkie om die onderdeel.","Nakreslete kolem dílu větší rámeček."],"Finding edges…":["Soek rande…","Hledám hrany…"],"Outline found. Fine-tune with the sliders, then choose “Add to drawing”.":["Buitelyn gevind. Stel fyn met die skuiwers en kies dan “Voeg by tekening”.","Obrys nalezen. Dolaďte ho posuvníky a zvolte „Přidat do výkresu“."],"No clear outline in that box. Try raising the sensitivity.":["Geen duidelike buitelyn in daardie blokkie nie. Probeer die sensitiwiteit verhoog.","V rámečku není zřetelný obrys. Zkuste zvýšit citlivost."],"Added {shapes}. Trace more, or choose Next to tidy and smooth the outline.":["{shapes} bygevoeg. Trek meer na, of kies Volgende om die buitelyn reg en glad te maak.","Přidáno: {shapes}. Obtáhněte další, nebo zvolte Další a obrys upravte a vyhlaďte."],"Point added. Drag it into place.":["Punt bygevoeg. Sleep dit op sy plek.","Bod přidán. Přetáhněte ho na místo."],"Only outline and polyline points can be deleted. Use “Delete shape” instead.":["Net punte van buitelyne en polilyne kan uitgevee word. Gebruik eerder “Vee vorm uit”.","Smazat lze jen body obrysů a lomených čar. Místo toho použijte „Smazat tvar“."],"That would leave too few points. Use “Delete shape” instead.":["Dan bly te min punte oor. Gebruik eerder “Vee vorm uit”.","Zůstalo by příliš málo bodů. Místo toho použijte „Smazat tvar“."],"Off":["Af","Vyp."],"No shape selected. Click one on the photo or in the list below.":["Geen vorm gekies nie. Klik op een op die foto of in die lys hieronder.","Není vybrán žádný tvar. Klikněte na některý na fotografii nebo v seznamu níže."],"Nothing to edit yet. Trace or draw a shape first.":["Nog niks om te wysig nie. Trek of teken eers ’n vorm.","Zatím není co upravovat. Nejprve obtáhněte nebo nakreslete tvar."],"{shape} with {points}, {n} selected.":["{shape} met {points}, {n} gekies.","{shape}: {points}, vybráno {n}."],"{shape} with {points}. Drag across points to select several.":["{shape} met {points}. Sleep oor punte om verskeie te kies.","{shape}: {points}. Tažením přes body jich vyberete více."],"Applies to the selected shape.":["Geld vir die gekose vorm.","Platí pro vybraný tvar."],"Applies to all outlines ({n}). Select one with Edit points to smooth just that shape.":["Geld vir alle buitelyne ({n}). Kies een met Wysig punte om net daardie vorm glad te maak.","Platí pro všechny obrysy ({n}). Chcete-li vyhladit jen jeden tvar, vyberte ho nástrojem Upravit body."],"Trace a shape to see its print size.":["Trek ’n vorm na om sy drukgrootte te sien.","Obtáhněte tvar a uvidíte jeho tiskovou velikost."],"Print size {w} × {h}.":["Drukgrootte {w} × {h}.","Tisková velikost {w} × {h}."],"Print size {w} × {h}, traced {w0} × {h0}.":["Drukgrootte {w} × {h}, nagetrek {w0} × {h0}.","Tisková velikost {w} × {h}, obtaženo {w0} × {h0}."],"Trace or draw a shape first.":["Trek of teken eers ’n vorm.","Nejprve obtáhněte nebo nakreslete tvar."],"The photo is too large to export as PNG in this browser.":["Die foto is te groot om in hierdie blaaier as PNG uit te voer.","Fotografie je pro export do PNG v tomto prohlížeči příliš velká."],"The scale bar is {l} mm long.":["Die skaalstaaf is {l} mm lank.","Měřítková úsečka je dlouhá {l} mm."],"That file isn’t a Trace to Scale project.":["Daardie lêer is nie ’n Trace to Scale-projek nie.","Tento soubor není projekt Trace to Scale."],"Project opened.":["Projek oopgemaak.","Projekt otevřen."],"The photo inside that project couldn’t be read.":["Die foto in daardie projek kon nie gelees word nie.","Fotografii v projektu nelze načíst."],"Saved {f}.":["{f} gestoor.","Uloženo: {f}."],"Unzip it to get {f}.":["Pak dit uit om {f} te kry.","Po rozbalení získáte {f}."],"Download cancelled.":["Aflaai gekanselleer.","Stahování zrušeno."],"A download prompt is already open. Try again in a moment.":["’n Aflaaivenster is reeds oop. Probeer weer oor ’n oomblik.","Okno stahování je už otevřené. Zkuste to za chvíli znovu."],"Downloads aren’t available in this view.":["Aflaaie is nie in hierdie aansig beskikbaar nie.","V tomto zobrazení není stahování k dispozici."],"Drawing cleared. Press Ctrl+Z to bring it back.":["Tekening skoongemaak. Druk Ctrl+Z om dit terug te kry.","Výkres vymazán. Obnovíte ho pomocí Ctrl+Z."],"Trace some lines, rectangles or circles first. The DXF only contains traced geometry.":["Trek eers ’n paar lyne, reghoeke of sirkels. Die DXF bevat net nagetrekte geometrie.","Nejprve obtáhněte nějaké čáry, obdélníky nebo kružnice. DXF obsahuje jen obtaženou geometrii."],"Step 1 of 7":["Stap 1 van 7","Krok 1 ze 7"],"Step 2 of 7":["Stap 2 van 7","Krok 2 ze 7"],"Step 3 of 7":["Stap 3 van 7","Krok 3 ze 7"],"Step 4 of 7":["Stap 4 van 7","Krok 4 ze 7"],"Step 5 of 7":["Stap 5 van 7","Krok 5 ze 7"],"Step 6 of 7":["Stap 6 van 7","Krok 6 ze 7"],"Step 7 of 7":["Stap 7 van 7","Krok 7 ze 7"]};
+const L10N = {"Clean":["Skoon","Čištění"],"Beta":["Beta","Beta"],"Load a 3D scan":["Laai ’n 3D-skandering","Načtěte 3D sken"],"Open a PLY, OBJ or STL file. Point clouds and meshes from LiDAR scanning apps both work.":["Maak ’n PLY-, OBJ- of STL-lêer oop. Puntwolke en maase van LiDAR-skanderingsprogramme werk albei.","Otevřete soubor PLY, OBJ nebo STL. Fungují mračna bodů i sítě z aplikací pro skenování LiDARem."],"Choose 3D file":["Kies 3D-lêer","Vybrat 3D soubor"],"You can also drop a file onto the viewer.":["Jy kan ook ’n lêer op die kyker laat val.","Soubor můžete také přetáhnout do prohlížeče."],"File units":["Lêer-eenhede","Jednotky souboru"],"metres":["meter","metry"],"centimetres":["sentimeter","centimetry"],"millimetres":["millimeter","milimetry"],"inches (in)":["duim","palce"],"Scanning with an iPhone":["Skandeer met ’n iPhone","Skenování iPhonem"],"Use an iPhone or iPad Pro with LiDAR and a scanning app such as Scaniverse, Polycam or 3d Scanner App.":["Gebruik ’n iPhone of iPad Pro met LiDAR en ’n skanderingsprogram soos Scaniverse, Polycam of 3d Scanner App.","Použijte iPhone nebo iPad Pro s LiDARem a skenovací aplikaci, například Scaniverse, Polycam nebo 3d Scanner App."],"Choose the small-object or detail mode. Put the part on a plain table with space around it.":["Kies die modus vir klein voorwerpe of detail. Sit die onderdeel op ’n effe tafel met ruimte rondom.","Zvolte režim pro malé předměty nebo detaily. Položte díl na jednobarevný stůl s volným místem kolem."],"Move slowly all the way around, then scan from above as well.":["Beweeg stadig heeltemal rondom, en skandeer dan ook van bo af.","Pomalu obejděte celý díl dokola a pak ho naskenujte i shora."],"Export as PLY (point cloud) or as OBJ or STL (mesh), and send it to your computer with AirDrop or Files. You can also open this page on the phone itself.":["Voer uit as PLY (puntwolk) of as OBJ of STL (maas), en stuur dit na jou rekenaar met AirDrop of Files. Jy kan ook hierdie bladsy op die foon self oopmaak.","Exportujte jako PLY (mračno bodů) nebo jako OBJ či STL (síť) a pošlete do počítače přes AirDrop nebo Soubory. Tuto stránku můžete otevřít i přímo v telefonu."],"Clean up":["Skoonmaak","Čištění"],"Level the scan, then remove the table, stray points and anything else that isn’t the part.":["Maak die skandering gelyk en verwyder dan die tafel, los punte en enigiets anders wat nie die onderdeel is nie.","Vyrovnejte sken a pak odstraňte stůl, rozptýlené body a vše ostatní, co není díl."],"Orientation":["Oriëntasie","Orientace"],"Level to the table":["Maak gelyk met die tafel","Vyrovnat podle stolu"],"Centre":["Sentreer","Na střed"],"Table":["Tafel","Stůl"],"Remove the table":["Verwyder die tafel","Odstranit stůl"],"Stray points":["Los punte","Rozptýlené body"],"Strength":["Sterkte","Síla"],"Remove stray points":["Verwyder los punte","Odstranit rozptýlené body"],"Crop":["Snoei","Oříznutí"],"Crop box":["Snoeiblok","Ořezový kvádr"],"Apply crop":["Pas snoei toe","Použít oříznutí"],"Lasso":["Lasso","Laso"],"Lasso delete":["Lasso: vee uit","Laso: smazat"],"Lasso keep":["Lasso: behou","Laso: ponechat"],"Draw around points on the view. Turn the view first so the part you want to remove is clear of the rest.":["Trek ’n lyn om punte op die aansig. Draai eers die aansig sodat die deel wat jy wil verwyder los van die res is.","Obkreslete body v zobrazení. Nejprve pohled natočte tak, aby část, kterou chcete odstranit, byla oddělená od zbytku."],"Click two points on the scan to measure between them. The size box shows the overall dimensions.":["Klik op twee punte op die skandering om tussen hulle te meet. Die grootteblok wys die totale afmetings.","Kliknutím na dva body skenu změříte vzdálenost mezi nimi. Rámeček velikosti ukazuje celkové rozměry."],"No measurements yet.":["Nog geen metings nie.","Zatím žádná měření."],"Clear measurements":["Vee metings uit","Smazat měření"],"Section to 2D":["Snit na 2D","Řez do 2D"],"Turn a slice, or the outline seen from above, into a 2D drawing. Then refine and export it like a photo trace.":["Verander ’n snit, of die buitelyn van bo gesien, in ’n 2D-tekening. Verfyn en voer dit dan uit soos ’n foto-natrekking.","Převeďte řez nebo obrys při pohledu shora na 2D výkres. Pak ho dolaďte a exportujte jako obtaženou fotografii."],"Slice at a height":["Snit op ’n hoogte","Řez v dané výšce"],"Outline seen from above":["Buitelyn van bo gesien","Obrys při pohledu shora"],"Height":["Hoogte","Výška"],"Send to 2D tracing":["Stuur na 2D-natrekking","Odeslat do 2D obtažení"],"The drawing opens in the 2D tool at true scale, with the origin matching the scan, ready for Refine, Fit and Export.":["Die tekening maak in die 2D-program oop op ware skaal, met die oorsprong wat by die skandering pas, gereed vir Verfyn, Pas en Uitvoer.","Výkres se otevře ve 2D nástroji ve skutečném měřítku s počátkem odpovídajícím skenu, připravený na Doladit, Tisk a Export."],"Save the cleaned scan in millimetres.":["Stoor die skoongemaakte skandering in millimeter.","Uložte vyčištěný sken v milimetrech."],"Download PLY":["Laai PLY af","Stáhnout PLY"],"Point cloud or mesh with colours. Opens in FreeCAD, MeshLab, CloudCompare and Blender.":["Puntwolk of maas met kleure. Maak oop in FreeCAD, MeshLab, CloudCompare en Blender.","Mračno bodů nebo síť s barvami. Otevřete ve FreeCADu, MeshLabu, CloudCompare a Blenderu."],"Download STL":["Laai STL af","Stáhnout STL"],"Mesh for Fusion 360, FreeCAD, SolidWorks, Onshape and slicers. Only for meshes, not point clouds.":["Maas vir Fusion 360, FreeCAD, SolidWorks, Onshape en snyers. Net vir maase, nie puntwolke nie.","Síť pro Fusion 360, FreeCAD, SolidWorks, Onshape a slicery. Jen pro sítě, ne pro mračna bodů."],"Download XYZ points":["Laai XYZ-punte af","Stáhnout body XYZ"],"Plain text, one x y z point per line, in mm.":["Gewone teks, een x y z-punt per reël, in mm.","Prostý text, jeden bod x y z na řádek, v mm."],"A point cloud has no surface, so most CAD apps can’t edit it directly. For a CAD drawing, use step 4. For a solid model, export a mesh from your scanning app, or mesh the PLY in MeshLab or CloudCompare.":["’n Puntwolk het geen oppervlak nie, so die meeste CAD-programme kan dit nie direk wysig nie. Vir ’n CAD-tekening, gebruik stap 4. Vir ’n soliede model, voer ’n maas uit jou skanderingsprogram uit, of maak ’n maas van die PLY in MeshLab of CloudCompare.","Mračno bodů nemá povrch, takže většina CAD programů ho nedokáže přímo upravit. Pro CAD výkres použijte krok 4. Pro objemový model exportujte síť ze skenovací aplikace nebo vytvořte síť z PLY v MeshLabu či CloudCompare."],"Top":["Bo","Shora"],"Front":["Voor","Zepředu"],"Side":["Kant","Zboku"],"Fit view":["Pas aansig","Přizpůsobit"],"Point size":["Puntgrootte","Velikost bodů"],"Grid":["Rooster","Mřížka"],"3D view":["3D-aansig","3D zobrazení"],"Drop a 3D scan here":["Laat val ’n 3D-skandering hier","Přetáhněte sem 3D sken"],"PLY, OBJ or STL, from your iPhone’s LiDAR or any 3D scanner.":["PLY, OBJ of STL, van jou iPhone se LiDAR of enige 3D-skandeerder.","PLY, OBJ nebo STL z LiDARu iPhonu nebo libovolného 3D skeneru."],"No scan loaded":["Geen skandering gelaai nie","Není načten žádný sken"],"Load":["Laai","Načíst"],"To 2D":["Na 2D","Do 2D"],"The 3D viewer couldn’t load. Check your internet connection and try again.":["Die 3D-kyker kon nie laai nie. Kontroleer jou internetverbinding en probeer weer.","3D prohlížeč se nepodařilo načíst. Zkontrolujte připojení k internetu a zkuste to znovu."],"Use a PLY, OBJ or STL file.":["Gebruik ’n PLY-, OBJ- of STL-lêer.","Použijte soubor PLY, OBJ nebo STL."],"Reading the scan…":["Lees die skandering…","Načítám sken…"],"That file couldn’t be read: {e}":["Daardie lêer kon nie gelees word nie: {e}","Soubor nelze přečíst: {e}"],"No points found in that file.":["Geen punte in daardie lêer gevind nie.","V souboru nebyly nalezeny žádné body."],"Loaded {name}. File units guessed as {u}; change them if the size looks wrong.":["{name} gelaai. Lêer-eenhede geraai as {u}; verander dit as die grootte verkeerd lyk.","Načteno: {name}. Jednotky souboru odhadnuty na {u}; pokud velikost nesedí, změňte je."],"{v} vertices, {t} triangles":["{v} hoekpunte, {t} driehoeke","vrcholů: {v}, trojúhelníků: {t}"],"Size {w} × {d} × {h}":["Grootte {w} × {d} × {h}","Velikost {w} × {d} × {h}"],"Grid {g}":["Rooster {g}","Mřížka {g}"],"No flat table found in the scan.":["Geen plat tafel in die skandering gevind nie.","Ve skenu nebyl nalezen rovný stůl."],"Levelled. The table is now flat at height 0.":["Gelyk gemaak. Die tafel is nou plat op hoogte 0.","Vyrovnáno. Stůl je nyní rovně ve výšce 0."],"Removed {n} points.":["{n} punte verwyder.","Odstraněno bodů: {n}."],"Nothing to remove.":["Niks om te verwyder nie.","Není co odstranit."],"That would remove almost everything.":["Dit sal byna alles verwyder.","Tím byste odstranili téměř vše."],"Drag to turn, right-drag to pan, scroll to zoom.":["Sleep om te draai, sleep met regs om te skuif, rol om te zoem.","Tažením otáčíte, pravým tlačítkem posouváte, kolečkem přibližujete."],"Click two points on the scan to measure between them.":["Klik op twee punte op die skandering om tussen hulle te meet.","Kliknutím na dva body skenu změříte vzdálenost."],"Now click the second point.":["Klik nou op die tweede punt.","Nyní klikněte na druhý bod."],"Draw around the points to remove. Release to apply.":["Trek om die punte wat jy wil verwyder. Los om toe te pas.","Obkreslete body, které chcete odstranit. Uvolněním použijete."],"Draw around the points to keep. Release to apply.":["Trek om die punte wat jy wil behou. Los om toe te pas.","Obkreslete body, které chcete ponechat. Uvolněním použijete."],"No point there. Click directly on the scan.":["Geen punt daar nie. Klik direk op die skandering.","Tam není žádný bod. Klikněte přímo na sken."],"Measure {n}":["Meting {n}","Měření {n}"],"{n} points in the slice.":["{n} punte in die snit.","Bodů v řezu: {n}."],"Too few points in the slice. Try a thicker slice or another height.":["Te min punte in die snit. Probeer ’n dikker snit of ’n ander hoogte.","V řezu je příliš málo bodů. Zkuste silnější řez nebo jinou výšku."],"Uses every point, as seen from directly above.":["Gebruik elke punt, soos reg van bo gesien.","Použije všechny body při pohledu přímo shora."],"Sent to 2D. Check the outline, then choose “Add to drawing”.":["Na 2D gestuur. Kontroleer die buitelyn en kies dan “Voeg by tekening”.","Odesláno do 2D. Zkontrolujte obrys a zvolte „Přidat do výkresu“."],"Load a scan first":["Laai eers ’n skandering","Nejprve načtěte sken"],"Load a scan to continue.":["Laai ’n skandering om voort te gaan.","Pro pokračování načtěte sken."],"STL needs a mesh. This scan is a point cloud.":["STL het ’n maas nodig. Hierdie skandering is ’n puntwolk.","STL vyžaduje síť. Tento sken je mračno bodů."],"Step 1 of 5":["Stap 1 van 5","Krok 1 z 5"],"Step 2 of 5":["Stap 2 van 5","Krok 2 z 5"],"Step 3 of 5":["Stap 3 van 5","Krok 3 z 5"],"Step 4 of 5":["Stap 4 van 5","Krok 4 z 5"],"Step 5 of 5":["Stap 5 van 5","Krok 5 z 5"],"In Fusion 360: Insert › Insert DXF, pick a plane and set the units to mm. The geometry is placed relative to your origin.":["In Fusion 360: Insert › Insert DXF, kies ’n vlak en stel die eenhede op mm. Die geometrie word relatief tot jou oorsprong geplaas.","Ve Fusion 360: Insert › Insert DXF, zvolte rovinu a nastavte jednotky na mm. Geometrie se umístí vzhledem k vašemu počátku."],"Easiest: open the .FCMacro file with File › Open, then choose Macro › Execute macro. It builds an editable Sketcher sketch in mm, with closed outlines ready to pad. Or import the DXF with File › Import.":["Maklikste: maak die .FCMacro-lêer oop met File › Open en kies dan Macro › Execute macro. Dit bou ’n wysigbare Sketcher-skets in mm, met geslote buitelyne gereed vir Pad. Of voer die DXF in met File › Import.","Nejjednodušší: otevřete soubor .FCMacro přes File › Open a pak zvolte Macro › Execute macro. Vytvoří upravitelný náčrt Sketcher v mm s uzavřenými obrysy připravenými pro Pad. Nebo importujte DXF přes File › Import."],"Import the DXF into your Onshape document. In a sketch, click Insert DXF or DWG, choose the file and set the units to millimetre.":["Voer die DXF in jou Onshape-dokument in. Klik in ’n skets op Insert DXF or DWG, kies die lêer en stel die eenhede op millimeter.","Importujte DXF do dokumentu Onshape. V náčrtu klikněte na Insert DXF or DWG, vyberte soubor a nastavte jednotky na milimetry."],"Open the DXF with File › Open. In the import dialog, import it as a 2D sketch in a new part, with the units set to millimetres.":["Maak die DXF oop met File › Open. Voer dit in die invoervenster as ’n 2D-skets in ’n nuwe part in, met die eenhede op millimeter.","Otevřete DXF přes File › Open. V dialogu importu ho importujte jako 2D náčrt do nového dílu s jednotkami v milimetrech."],"In the PCB Editor: File › Import › Graphics. Choose the DXF, set the layer to Edge.Cuts and the units to mm. Holes become cut-outs in the board.":["In die PCB Editor: File › Import › Graphics. Kies die DXF, stel die laag op Edge.Cuts en die eenhede op mm. Gate word uitsnydings in die bord.","V editoru DPS: File › Import › Graphics. Vyberte DXF, nastavte vrstvu na Edge.Cuts a jednotky na mm. Otvory se stanou výřezy v desce."],"Open the .scad file in OpenSCAD and set the thickness at the top if needed. Outlines become a solid plate and holes are cut through. Press F6 to render, then export as STL.":["Maak die .scad-lêer in OpenSCAD oop en stel die dikte bo-aan indien nodig. Buitelyne word ’n soliede plaat en gate word deurgesny. Druk F6 om te render en voer dan as STL uit.","Otevřete soubor .scad v OpenSCAD a v případě potřeby nahoře upravte tloušťku. Z obrysů vznikne deska a otvory se vyříznou skrz. Stiskněte F6 pro výpočet a exportujte STL."],"Open the SVG in Inkscape, LightBurn or your laser software. It is drawn at true size in mm, with thin 0.3 mm lines ready for cutting.":["Maak die SVG oop in Inkscape, LightBurn of jou lasersagteware. Dit is op ware grootte in mm geteken, met dun 0.3 mm-lyne gereed om te sny.","Otevřete SVG v Inkscape, LightBurn nebo softwaru vaší laserové řezačky. Je nakreslené ve skutečné velikosti v mm, s tenkými čarami 0.3 mm připravenými k řezání."],"Export to your CAD app":["Voer uit na jou CAD-program","Export do vašeho CAD programu"],"Export for":["Voer uit vir","Exportovat pro"],"All downloads":["Alle aflaaie","Všechna stahování"],"KiCad (PCB outline)":["KiCad (PCB-buitelyn)","KiCad (obrys DPS)"],"Laser cutter or Inkscape":["Lasersnyer of Inkscape","Laserová řezačka nebo Inkscape"],"Download FreeCAD sketch (macro)":["Laai FreeCAD-skets af (makro)","Stáhnout náčrt pro FreeCAD (makro)"],"Download DXF":["Laai DXF af","Stáhnout DXF"],"Download OpenSCAD file":["Laai OpenSCAD-lêer af","Stáhnout soubor OpenSCAD"],"Download SVG":["Laai SVG af","Stáhnout SVG"],"Thickness":["Dikte","Tloušťka"],"Thickness in mm":["Dikte in mm","Tloušťka v mm"],"Open lines were left out, because OpenSCAD needs closed outlines.":["Oop lyne is weggelaat, want OpenSCAD het geslote buitelyne nodig.","Otevřené čáry byly vynechány, protože OpenSCAD potřebuje uzavřené obrysy."],"Alignment grid":["Belyningsrooster","Vyrovnávací mřížka"],"Mirror check":["Spieëltoets","Kontrola symetrie"],"Left ↔ right":["Links ↔ regs","Vlevo ↔ vpravo"],"Top ↔ bottom":["Bo ↔ onder","Nahoře ↔ dole"],"Straighten by symmetry":["Maak reguit volgens simmetrie","Narovnat podle symetrie"],"Symmetry difference: {v} on average. Lower is more symmetrical.":["Simmetrieverskil: gemiddeld {v}. Laer is meer simmetries.","Odchylka symetrie: průměrně {v}. Čím menší, tím symetričtější."],"The dashed pink copy is the outline mirrored across the yellow centre line. When the part is straight, they overlap.":["Die gestippelde pienk kopie is die buitelyn gespieël oor die geel middellyn. As die onderdeel reguit is, val hulle oor mekaar.","Čárkovaná růžová kopie je obrys zrcadlený podle žluté osy. Když je díl rovně, obě čáry se kryjí."],"Trace a closed outline first.":["Trek eers ’n geslote buitelyn na.","Nejprve obtáhněte uzavřený obrys."],"Already as straight as the outline allows.":["Reeds so reguit as wat die buitelyn toelaat.","Už je tak rovně, jak to obrys dovolí."],"Rotated by {a}°. Symmetry difference {b} → {c}.":["Gedraai met {a}°. Simmetrieverskil {b} → {c}.","Otočeno o {a}°. Odchylka symetrie {b} → {c}."],"Rotate the photo too":["Draai die foto ook","Otočit i fotografii"],"Line up the photo with the drawing":["Belyn die foto met die tekening","Srovnat fotografii s výkresem"],"Rotates the photo and everything on it together, so the drawing stays lined up and you can keep editing.":["Draai die foto en alles daarop saam, sodat die tekening in lyn bly en jy kan aanhou wysig.","Otáčí fotografii i vše na ní společně, takže výkres zůstane zarovnaný a můžete dál upravovat."],"The drawing was rotated on its own. Line up the photo to keep editing over it.":["Die tekening is alleen gedraai. Belyn die foto om bo-oor dit aan te hou wysig.","Výkres byl otočen samostatně. Srovnejte fotografii, abyste nad ní mohli dál upravovat."],"Photo lined up with the drawing.":["Foto is met die tekening belyn.","Fotografie srovnána s výkresem."],"Rotate":["Draai","Otočit"],"Level by two points":["Maak gelyk met twee punte","Vyrovnat podle dvou bodů"],"Rotates all shapes together around their centre. Select a shape with Edit points to rotate just that one.":["Draai alle vorms saam om hulle middelpunt. Kies ’n vorm met Wysig punte om net daardie een te draai.","Otáčí všechny tvary společně kolem jejich středu. Chcete-li otočit jen jeden tvar, vyberte ho nástrojem Upravit body."],"Rotates the selected shape around its centre.":["Draai die gekose vorm om sy middelpunt.","Otáčí vybraný tvar kolem jeho středu."],"You can also drag the round handle above the shapes. Hold Shift for 15° steps.":["Jy kan ook die ronde handvatsel bo die vorms sleep. Hou Shift in vir stappe van 15°.","Můžete také táhnout kulatý úchyt nad tvary. Se Shiftem se otáčí po 15°."],"Rotate left 1°":["Draai 1° links","Otočit o 1° doleva"],"Rotate left 0.1°":["Draai 0.1° links","Otočit o 0.1° doleva"],"Rotate right 0.1°":["Draai 0.1° regs","Otočit o 0.1° doprava"],"Rotate right 1°":["Draai 1° regs","Otočit o 1° doprava"],"Click one end of a straight edge on the part.":["Klik op die een punt van ’n reguit rand op die onderdeel.","Klikněte na jeden konec rovné hrany dílu."],"Click the other end. The shapes rotate to make it level or upright.":["Klik op die ander punt. Die vorms draai sodat dit gelyk of regop is.","Klikněte na druhý konec. Tvary se otočí tak, aby byla hrana vodorovná nebo svislá."],"View on GitHub":["Bekyk op GitHub","Zobrazit na GitHubu"],"Turn a photo into a to-scale CAD sketch":["Verander ’n foto in ’n skaalakkurate CAD-skets","Udělejte z fotografie přesný CAD náčrt v měřítku"],"2D from photo":["2D uit foto","2D z fotografie"],"3D model":["3D-model","3D model"],"Coming soon":["Kom binnekort","Již brzy"],"Load a photo":["Laai ’n foto","Nahrajte fotografii"],"Use a photo of the part with something of known size beside it, like a ruler, bank card or coin.":["Gebruik ’n foto van die onderdeel met iets van bekende grootte langsaan, soos ’n liniaal, bankkaart of muntstuk.","Použijte fotografii dílu, vedle kterého leží něco známé velikosti, například pravítko, platební karta nebo mince."],"Choose photo":["Kies foto","Vybrat fotografii"],"Open project":["Open projek","Otevřít projekt"],"You can also drop a photo onto the canvas, or paste one with Ctrl+V.":["Jy kan ook ’n foto op die werkarea laat val, of een met Ctrl+V plak.","Fotografii můžete také přetáhnout na plochu nebo vložit pomocí Ctrl+V."],"Next ›":["Volgende ›","Další ›"],"Straighten the photo":["Maak die foto reguit","Narovnejte fotografii"],"Optional":["Opsioneel","Volitelné"],"Shot at an angle? Mark the corners of a flat rectangle of known size lying beside the part. This removes the perspective":["Skuins afgeneem? Merk die hoeke van ’n plat reghoek van bekende grootte wat langs die onderdeel lê. Dit verwyder die perspektief","Fotili jste šikmo? Označte rohy plochého obdélníku známé velikosti, který leží vedle dílu. Tím odstraníte perspektivu"],"and":["en","a"],"sets the scale for you.":["stel sommer ook die skaal vir jou.","zároveň nastavíte měřítko."],"Bank card (85.60 × 53.98 mm)":["Bankkaart (85.60 × 53.98 mm)","Platební karta (85.60 × 53.98 mm)"],"A4 sheet (210 × 297 mm)":["A4-vel (210 × 297 mm)","List A4 (210 × 297 mm)"],"A5 sheet (148 × 210 mm)":["A5-vel (148 × 210 mm)","List A5 (148 × 210 mm)"],"Custom size":["Eie grootte","Vlastní velikost"],"Mark 4 corners":["Merk 4 hoeke","Označit 4 rohy"],"Apply correction":["Pas korreksie toe","Použít opravu"],"0 of 4 corners marked.":["0 van 4 hoeke gemerk.","Označeno 0 ze 4 rohů."],"Level an edge":["Maak ’n rand gelyk","Vyrovnat hranu"],"‹ Back":["‹ Terug","‹ Zpět"],"Set the scale":["Stel die skaal","Nastavte měřítko"],"Draw a line across something you know the size of, then enter its real length. The longer the reference, the more accurate the result.":["Trek ’n lyn oor iets waarvan jy die grootte ken, en tik dan die werklike lengte in. Hoe langer die verwysing, hoe akkurater die resultaat.","Nakreslete čáru přes něco, jehož velikost znáte, a zadejte jeho skutečnou délku. Čím delší reference, tím přesnější výsledek."],"Draw reference line":["Trek verwysingslyn","Nakreslit referenční čáru"],"Or pick a known object…":["Of kies ’n bekende voorwerp…","Nebo vyberte známý předmět…"],"Cards and paper":["Kaarte en papier","Karty a papír"],"Coins (diameter)":["Munte (deursnee)","Mince (průměr)"],"Other":["Ander","Ostatní"],"Bank card, long edge (85.60 mm)":["Bankkaart, lang kant (85.60 mm)","Platební karta, delší strana (85.60 mm)"],"Bank card, short edge (53.98 mm)":["Bankkaart, kort kant (53.98 mm)","Platební karta, kratší strana (53.98 mm)"],"A4 sheet, short edge (210 mm)":["A4-vel, kort kant (210 mm)","List A4, kratší strana (210 mm)"],"A4 sheet, long edge (297 mm)":["A4-vel, lang kant (297 mm)","List A4, delší strana (297 mm)"],"South African R5 (26.00 mm)":["Suid-Afrikaanse R5 (26.00 mm)","Jihoafrická mince R5 (26.00 mm)"],"South African R2 (23.00 mm)":["Suid-Afrikaanse R2 (23.00 mm)","Jihoafrická mince R2 (23.00 mm)"],"South African R1 (20.00 mm)":["Suid-Afrikaanse R1 (20.00 mm)","Jihoafrická mince R1 (20.00 mm)"],"US quarter (24.26 mm)":["VSA-kwartdollar (24.26 mm)","Americký quarter (24.26 mm)"],"€1 coin (23.25 mm)":["€1-muntstuk (23.25 mm)","Mince 1 € (23.25 mm)"],"AA battery, length (50.5 mm)":["AA-battery, lengte (50.5 mm)","Baterie AA, délka (50.5 mm)"],"Ruler, 100 mm span":["Liniaal, 100 mm-afstand","Pravítko, úsek 100 mm"],"No scale yet.":["Nog geen skaal nie.","Měřítko zatím není nastaveno."],"Trace the outline":["Trek die buitelyn na","Obtáhněte obrys"],"Let the tool find the outline for you, or draw it by hand.":["Laat die program die buitelyn vir jou vind, of teken dit met die hand.","Nechte nástroj najít obrys za vás, nebo ho nakreslete ručně."],"Auto trace outline":["Trek buitelyn outomaties na","Automaticky obtáhnout obrys"],"Draw a box around the part on the photo, or":["Trek ’n blokkie om die onderdeel op die foto, of","Nakreslete na fotografii rámeček kolem dílu, nebo"],"trace the whole photo":["trek die hele foto na","obtáhněte celou fotografii"],". A plain background that contrasts with the part works best.":[". ’n Effe agtergrond wat met die onderdeel kontrasteer, werk die beste.",". Nejlépe funguje jednolité pozadí, které s dílem kontrastuje."],"Sensitivity":["Sensitiwiteit","Citlivost"],"Simplify":["Vereenvoudig","Zjednodušit"],"Ignore specks":["Ignoreer spikkels","Ignorovat smítka"],"Include holes and cut-outs":["Sluit gate en uitsnydings in","Zahrnout otvory a výřezy"],"Turn round shapes into circles":["Maak ronde vorms sirkels","Převést kulaté tvary na kružnice"],"Reduce shadows":["Verminder skaduwees","Potlačit stíny"],"No box drawn yet.":["Nog geen blokkie getrek nie.","Zatím není nakreslen žádný rámeček."],"Add to drawing":["Voeg by tekening","Přidat do výkresu"],"Discard":["Gooi weg","Zahodit"],"Or draw by hand":["Of teken met die hand","Nebo kreslete ručně"],"Measure":["Meet","Měřit"],"Line":["Lyn","Čára"],"Polyline":["Polilyn","Lomená čára"],"Rectangle":["Reghoek","Obdélník"],"Circle":["Sirkel","Kružnice"],"Outline":["Buitelyn","Obrys"],"Set origin":["Stel oorsprong","Nastavit počátek"],"Refine the shape":["Verfyn die vorm","Dolaďte tvar"],"Fix glitches by moving or deleting points, and smooth out jagged edges.":["Herstel foutjies deur punte te skuif of uit te vee, en maak hoekige rande glad.","Opravte chyby posunutím nebo smazáním bodů a vyhlaďte zubaté okraje."],"Edit points":["Wysig punte","Upravit body"],"Click a shape to select it, then drag any point to move it. Drag across empty space to select several points. Double-click a line to add a point. Right-drag or hold Space to pan.":["Klik op ’n vorm om dit te kies, en sleep dan enige punt om dit te skuif. Sleep oor leë ruimte om verskeie punte te kies. Dubbelklik op ’n lyn om ’n punt by te voeg. Sleep met die regterknoppie, of hou Spasie in, om die aansig te skuif.","Kliknutím vyberte tvar a pak přetažením posuňte libovolný bod. Tažením přes prázdné místo vyberete více bodů. Dvojklikem na čáru přidáte bod. Zobrazení posunete tažením pravým tlačítkem nebo s podrženým mezerníkem."],"No shape selected.":["Geen vorm gekies nie.","Není vybrán žádný tvar."],"Smooth selected points":["Maak gekose punte glad","Vyhladit vybrané body"],"Delete points":["Vee punte uit","Smazat body"],"Delete shape":["Vee vorm uit","Smazat tvar"],"Smoothing":["Gladmaak","Vyhlazení"],"Fit for printing":["Pas aan vir 3D-druk","Úprava pro 3D tisk"],"Adjust the exported shape for your printer’s tolerances. The trace on the photo stays as it is.":["Pas die uitgevoerde vorm aan vir jou drukker se toleransies. Die natrekking op die foto bly soos dit is.","Upravte exportovaný tvar podle tolerancí vaší tiskárny. Obrys na fotografii zůstane beze změny."],"Scale":["Skaal","Měřítko"],"Outlines":["Buitelyne","Obrysy"],"Holes":["Gate","Otvory"],"Positive values make a shape bigger. For a case or pocket the part must fit into, grow outlines by your printer’s clearance, often 0.2 to 0.4 mm. Holes are shapes that sit inside another outline.":["Positiewe waardes maak ’n vorm groter. Vir ’n houer of holte waarin die onderdeel moet pas, vergroot die buitelyne met jou drukker se speling, gewoonlik 0.2 tot 0.4 mm. Gate is vorms wat binne ’n ander buitelyn lê.","Kladné hodnoty tvar zvětšují. U pouzdra nebo kapsy, do které musí díl zapadnout, zvětšete obrysy o vůli vaší tiskárny, obvykle 0.2 až 0.4 mm. Otvory jsou tvary, které leží uvnitř jiného obrysu."],"Show the print shape on the photo":["Wys die drukvorm op die foto","Zobrazit tiskový tvar na fotografii"],"Export to Fusion 360":["Voer uit na Fusion 360","Export do Fusion 360"],"Download sketch (DXF)":["Laai skets af (DXF)","Stáhnout náčrt (DXF)"],"Include measure lines on their own layer":["Sluit meetlyne op ’n eie laag in","Zahrnout měřicí čáry ve vlastní vrstvě"],"Works in almost any CAD app. Pick yours under Export for, above, to see its import steps.":["Werk in byna enige CAD-program. Kies joune onder Voer uit vir, hierbo, om die invoerstappe te sien.","Funguje téměř v každém CAD programu. Vyberte svůj nahoře v nabídce Exportovat pro a uvidíte postup importu."],"Download scaled photo (PNG)":["Laai geskaalde foto af (PNG)","Stáhnout fotografii v měřítku (PNG)"],"Add a scale bar":["Voeg ’n skaalstaaf by","Přidat měřítkovou úsečku"],"Include traced lines":["Sluit nagetrekte lyne in","Zahrnout obtažené čáry"],"Place it in your CAD app as a reference image and scale it so the scale bar matches its printed length.":["Plaas dit as verwysingsprent in jou CAD-program en skaal dit sodat die skaalstaaf sy gedrukte lengte pas.","Vložte ho do CAD programu jako referenční obrázek a změňte jeho velikost tak, aby měřítková úsečka odpovídala uvedené délce."],"Download vector drawing (SVG)":["Laai vektortekening af (SVG)","Stáhnout vektorový výkres (SVG)"],"Embed the photo":["Sluit die foto in","Vložit fotografii"],"Measurements (CSV)":["Metings (CSV)","Rozměry (CSV)"],"Save project":["Stoor projek","Uložit projekt"],"Start with a new photo":["Begin met ’n nuwe foto","Začít s novou fotografií"],"Your shapes":["Jou vorms","Vaše tvary"],"Nothing traced yet.":["Nog niks nagetrek nie.","Zatím nic není obtaženo."],"Undo":["Ontdoen","Vrátit"],"Clear drawing":["Maak tekening skoon","Vymazat výkres"],"View options":["Aansigopsies","Možnosti zobrazení"],"Show in":["Wys in","Zobrazit v"],"inches":["duim","palcích"],"Grid every":["Rooster elke","Mřížka po"],"Mouse and keyboard":["Muis en sleutelbord","Myš a klávesnice"],"Scroll":["Rol","Kolečko"],"Zoom at the cursor":["Zoem by die wyser","Přiblížení u kurzoru"],"Drag":["Sleep","Tažení"],"Pan (in any tool). Drag a point to move it":["Skuif die aansig (in enige hulpmiddel). Sleep ’n punt om dit te skuif","Posun zobrazení (v libovolném nástroji). Tažením bodu ho posunete"],"Lock angle to 15° steps":["Sluit die hoek in stappe van 15°","Zamknout úhel na kroky po 15°"],"Finish a polyline":["Voltooi ’n polilyn","Dokončit lomenou čáru"],"Cancel the current shape":["Kanselleer die huidige vorm","Zrušit rozkreslený tvar"],"Undo (Ctrl+Y redo)":["Ontdoen (Ctrl+Y herdoen)","Vrátit (Ctrl+Y znovu)"],"Edit points. Delete removes selected points":["Wysig punte. Delete vee gekose punte uit","Upravit body. Delete smaže vybrané body"],"Fit photo to view":["Pas foto in die aansig","Přizpůsobit fotografii zobrazení"],"Toggle grid":["Rooster aan/af","Zapnout/vypnout mřížku"],"Drop a photo here":["Laat val ’n foto hier","Přetáhněte sem fotografii"],"Or paste one with Ctrl+V, or choose a file.":["Of plak een met Ctrl+V, of kies ’n lêer.","Nebo ji vložte pomocí Ctrl+V či vyberte soubor."],"For accurate results, shoot straight down from as far away as you can and zoom in, so lens distortion stays low.":["Vir akkurate resultate, neem die foto reguit van bo af, so ver weg as moontlik, en zoem in sodat lensvervorming laag bly.","Pro přesné výsledky foťte kolmo shora z co největší vzdálenosti a přibližte zoomem, aby bylo zkreslení objektivu co nejmenší."],"Put the known object (a ruler, bank card or coin) flat beside the part, at the same height as the face you want to draw.":["Sit die bekende voorwerp (’n liniaal, bankkaart of muntstuk) plat langs die onderdeel, op dieselfde hoogte as die vlak wat jy wil teken.","Položte známý předmět (pravítko, platební kartu nebo minci) naplocho vedle dílu, do stejné výšky jako plocha, kterou chcete kreslit."],"not set":["nie gestel nie","nenastaveno"],"3D import is coming soon":["3D-invoer kom binnekort","3D import bude brzy k dispozici"],"The plan is to open STL, OBJ and 3MF files, measure them in true units, and slice them into section profiles you can bring into a CAD sketch.":["Die plan is om STL-, OBJ- en 3MF-lêers oop te maak, hulle in ware eenhede te meet, en hulle in deursnitprofiele te sny wat jy in ’n CAD-skets kan gebruik.","V plánu je otevírání souborů STL, OBJ a 3MF, jejich měření ve skutečných jednotkách a řezání na profily průřezů, které můžete přenést do náčrtu v CAD programu."],"For now, the 2D photo workflow is ready to use.":["Vir eers is die 2D-fotowerkvloei gereed vir gebruik.","Zatím je připraven pracovní postup 2D z fotografie."],"Go to 2D from photo":["Gaan na 2D uit foto","Přejít na 2D z fotografie"],"Language":["Taal","Jazyk"],"Import type":["Invoertipe","Typ importu"],"Steps":["Stappe","Kroky"],"Reference rectangle":["Verwysingsreghoek","Referenční obdélník"],"Rectangle width in mm":["Reghoekwydte in mm","Šířka obdélníku v mm"],"Rectangle height in mm":["Reghoekhoogte in mm","Výška obdélníku v mm"],"Click two points along an edge that should be horizontal or vertical":["Klik op twee punte langs ’n rand wat horisontaal of vertikaal moet wees","Klikněte na dva body na hraně, která má být vodorovná nebo svislá"],"Rotate 90° left":["Draai 90° links","Otočit o 90° doleva"],"Rotate 90 degrees left":["Draai 90 grade links","Otočit o 90 stupňů doleva"],"Rotate 90° right":["Draai 90° regs","Otočit o 90° doprava"],"Rotate 90 degrees right":["Draai 90 grade regs","Otočit o 90 stupňů doprava"],"Real length":["Werklike lengte","Skutečná délka"],"Real length of the reference":["Werklike lengte van die verwysing","Skutečná délka reference"],"Reference unit":["Verwysingseenheid","Jednotka reference"],"Known object sizes":["Groottes van bekende voorwerpe","Velikosti známých předmětů"],"Drawing tools":["Tekenhulpmiddels","Kreslicí nástroje"],"Decrease scale":["Verklein skaal","Zmenšit měřítko"],"Scale percent":["Skaal in persent","Měřítko v procentech"],"Increase scale":["Vergroot skaal","Zvětšit měřítko"],"Shrink outlines":["Krimp buitelyne","Zmenšit obrysy"],"Outline offset in mm":["Buitelynverskuiwing in mm","Odsazení obrysů v mm"],"Grow outlines":["Vergroot buitelyne","Zvětšit obrysy"],"Shrink holes":["Krimp gate","Zmenšit otvory"],"Hole offset in mm":["Gatverskuiwing in mm","Odsazení otvorů v mm"],"Grow holes":["Vergroot gate","Zvětšit otvory"],"Measurements and traced shapes":["Metings en nagetrekte vorms","Rozměry a obtažené tvary"],"Display unit":["Vertooneenheid","Zobrazovaná jednotka"],"Grid spacing in mm":["Roosterspasiëring in mm","Rozteč mřížky v mm"],"Tools":["Hulpmiddels","Nástroje"],"Pan (V)":["Skuif aansig (V)","Posun (V)"],"Pan":["Skuif aansig","Posun"],"Reference line (K)":["Verwysingslyn (K)","Referenční čára (K)"],"Reference line":["Verwysingslyn","Referenční čára"],"Measure (M)":["Meet (M)","Měřit (M)"],"Line (L)":["Lyn (L)","Čára (L)"],"Polyline (P)":["Polilyn (P)","Lomená čára (P)"],"Rectangle (R)":["Reghoek (R)","Obdélník (R)"],"Circle (C)":["Sirkel (C)","Kružnice (C)"],"Auto trace (A)":["Outomatiese natrekking (A)","Automatické obtažení (A)"],"Auto trace":["Outomatiese natrekking","Automatické obtažení"],"Edit points (E)":["Wysig punte (E)","Upravit body (E)"],"Set origin (O)":["Stel oorsprong (O)","Nastavit počátek (O)"],"Undo (Ctrl+Z)":["Ontdoen (Ctrl+Z)","Vrátit (Ctrl+Z)"],"Grid (G)":["Rooster (G)","Mřížka (G)"],"Zoom out (-)":["Zoem uit (-)","Oddálit (-)"],"Zoom out":["Zoem uit","Oddálit"],"Zoom in (+)":["Zoem in (+)","Přiblížit (+)"],"Zoom in":["Zoem in","Přiblížit"],"Fit to view (F)":["Pas in aansig (F)","Přizpůsobit zobrazení (F)"],"Fit to view":["Pas in aansig","Přizpůsobit zobrazení"],"Drag to move around. Scroll to zoom.":["Sleep om rond te beweeg. Rol om te zoem.","Tažením se posunete, kolečkem přiblížíte."],"Click one end of the object you know the size of.":["Klik op die een punt van die voorwerp waarvan jy die grootte ken.","Klikněte na jeden konec předmětu, jehož velikost znáte."],"Click the other end.":["Klik op die ander punt.","Klikněte na druhý konec."],"Click the start of the distance to measure.":["Klik op die begin van die afstand wat jy wil meet.","Klikněte na začátek měřené vzdálenosti."],"Click the end.":["Klik op die einde.","Klikněte na konec."],"Click the start of the line.":["Klik op die begin van die lyn.","Klikněte na začátek čáry."],"Click the end of the line.":["Klik op die einde van die lyn.","Klikněte na konec čáry."],"Click one corner of the rectangle.":["Klik op een hoek van die reghoek.","Klikněte na jeden roh obdélníku."],"Click the opposite corner.":["Klik op die teenoorgestelde hoek.","Klikněte na protější roh."],"Click the centre of the circle.":["Klik op die middelpunt van die sirkel.","Klikněte na střed kružnice."],"Click any point on its edge.":["Klik op enige punt op die rand.","Klikněte na libovolný bod na jejím obvodu."],"Click the first point.":["Klik op die eerste punt.","Klikněte na první bod."],"Keep clicking. Click the first point to close, or press Enter to finish.":["Hou aan klik. Klik op die eerste punt om die vorm toe te maak, of druk Enter om klaar te maak.","Pokračujte v klikání. Kliknutím na první bod tvar uzavřete, klávesou Enter ho dokončíte."],"Click the point that should be 0,0 in Fusion.":["Klik op die punt wat 0,0 in Fusion moet wees.","Klikněte na bod, který má být ve Fusion 0,0."],"Click the first corner of the rectangle.":["Klik op die eerste hoek van die reghoek.","Klikněte na první roh obdélníku."],"Click the next corner, going around the rectangle.":["Klik op die volgende hoek, om die reghoek heen.","Klikněte na další roh, postupně kolem obdélníku."],"Click the third corner.":["Klik op die derde hoek.","Klikněte na třetí roh."],"Click the last corner.":["Klik op die laaste hoek.","Klikněte na poslední roh."],"Click one end of an edge that should be level or upright.":["Klik op die een punt van ’n rand wat gelyk of regop moet wees.","Klikněte na jeden konec hrany, která má být vodorovná nebo svislá."],"Click one corner of a box around the part. Leave some background showing on every side.":["Klik op een hoek van ’n blokkie om die onderdeel. Laat aan elke kant ’n bietjie agtergrond sigbaar.","Klikněte na jeden roh rámečku kolem dílu. Na každé straně nechte kousek pozadí."],"Click a shape, then drag its points. Drag across empty space to select several. Double-click a line to add a point.":["Klik op ’n vorm en sleep dan sy punte. Sleep oor leë ruimte om verskeie te kies. Dubbelklik op ’n lyn om ’n punt by te voeg.","Klikněte na tvar a táhněte jeho body. Tažením přes prázdné místo vyberete více bodů. Dvojklikem na čáru přidáte bod."],"Hold Shift to lock the angle.":["Hou Shift in om die hoek te sluit.","Podržením Shift zamknete úhel."],"Adjust the sliders in step 4, then choose “Add to drawing”. Or click to draw a new box.":["Stel die skuiwers in stap 4 en kies dan “Voeg by tekening”. Of klik om ’n nuwe blokkie te trek.","Upravte posuvníky v kroku 4 a zvolte „Přidat do výkresu“. Nebo klikněte a nakreslete nový rámeček."],"Drag corners to fine-tune, then choose “Apply correction”.":["Sleep die hoeke om fyn aan te pas, en kies dan “Pas korreksie toe”.","Přetažením rohů je dolaďte a pak zvolte „Použít opravu“."],"Reference set. Drag its ends to fine-tune, or click to draw a new one.":["Verwysing gestel. Sleep die punte om fyn aan te pas, of klik om ’n nuwe een te trek.","Reference je nastavena. Přetažením konců ji dolaďte, nebo klikněte a nakreslete novou."],"Now type the real length in step 3.":["Tik nou die werklike lengte in stap 3 in.","Nyní zadejte skutečnou délku v kroku 3."],"Photo":["Foto","Foto"],"Angle":["Hoek","Úhel"],"Trace":["Natrek","Obrys"],"Refine":["Verfyn","Doladit"],"Fit":["Pas","Tisk"],"Export":["Uitvoer","Export"],"Skip ›":["Slaan oor ›","Přeskočit ›"],"Skip to export ›":["Gaan na uitvoer ›","Přejít k exportu ›"],"Load a photo to continue.":["Laai ’n foto om voort te gaan.","Pro pokračování nahrajte fotografii."],"Enter the real length of the reference line to continue.":["Tik die werklike lengte van die verwysingslyn in om voort te gaan.","Pro pokračování zadejte skutečnou délku referenční čáry."],"Draw a reference line on the photo to continue.":["Trek ’n verwysingslyn op die foto om voort te gaan.","Pro pokračování nakreslete na fotografii referenční čáru."],"Step {n}: {name}":["Stap {n}: {name}","Krok {n}: {name}"],"Load a photo first":["Laai eers ’n foto","Nejprve nahrajte fotografii"],"Set the scale first":["Stel eers die skaal","Nejprve nastavte měřítko"],"Nothing to undo.":["Niks om te ontdoen nie.","Není co vrátit."],"That file isn’t an image. Use a JPG, PNG or WebP photo.":["Daardie lêer is nie ’n prent nie. Gebruik ’n JPG-, PNG- of WebP-foto.","Tento soubor není obrázek. Použijte fotografii JPG, PNG nebo WebP."],"This browser can’t open that image. HEIC photos need converting to JPG first.":["Hierdie blaaier kan nie daardie prent oopmaak nie. HEIC-foto’s moet eers na JPG omgeskakel word.","Tento prohlížeč obrázek neotevře. Fotografie HEIC je nejprve potřeba převést na JPG."],"Photo loaded. It was reduced to {w} × {h} px to stay responsive.":["Foto gelaai. Dit is na {w} × {h} px verklein sodat die program vinnig bly.","Fotografie načtena. Byla zmenšena na {w} × {h} px, aby aplikace zůstala svižná."],"Origin set. DXF coordinates are now measured from this point.":["Oorsprong gestel. DXF-koördinate word nou vanaf hierdie punt gemeet.","Počátek nastaven. Souřadnice DXF se nyní měří od tohoto bodu."],"Reference {v}":["Verwysing {v}","Reference {v}"],"Reference: enter its length":["Verwysing: tik die lengte in","Reference: zadejte délku"],"Radius {r}, Ø {d}":["Radius {r}, Ø {d}","Poloměr {r}, Ø {d}"],"Length {l} at {a}°":["Lengte {l} teen {a}°","Délka {l} pod úhlem {a}°"],"{n} pts, {len}":["{n} punte, {len}","bodů: {n}, {len}"],"Delete {item}":["Vee {item} uit","Smazat: {item}"],"Print: {v}":["Druk: {v}","Tisk: {v}"],"Loaded {name} ({w} × {h} px).":["{name} gelaai ({w} × {h} px).","Načteno: {name} ({w} × {h} px)."],"All 4 corners marked. Drag them to fine-tune if needed.":["Al 4 hoeke is gemerk. Sleep hulle om fyn aan te pas indien nodig.","Všechny 4 rohy jsou označeny. V případě potřeby je přetažením dolaďte."],"{n} of 4 corners marked.":["{n} van 4 hoeke gemerk.","Označeno {n} ze 4 rohů."],"{v} px per mm":["{v} px per mm","{v} px na mm"],"Scale set: {s}. Photo covers {w} × {h}.":["Skaal gestel: {s}. Die foto dek {w} × {h}.","Měřítko nastaveno: {s}. Fotografie pokrývá {w} × {h}."],"The reference is only {px} px long. Clicking 1 px off gives about {e}% error, so use a longer reference if you can.":["Die verwysing is net {px} px lank. As jy 1 px mis klik, gee dit sowat {e}% fout, so gebruik ’n langer verwysing as jy kan.","Reference je dlouhá jen {px} px. Chyba kliknutí o 1 px znamená asi {e}% odchylku, proto použijte delší referenci, pokud můžete."],"Reference drawn. Enter its real length above.":["Verwysing getrek. Tik die werklike lengte hierbo in.","Reference nakreslena. Výše zadejte její skutečnou délku."],"Exports are true to scale: 1 unit = 1 mm.":["Uitvoere is skaalgetrou: 1 eenheid = 1 mm.","Exporty jsou ve skutečném měřítku: 1 jednotka = 1 mm."],"Set the scale in step 3 to unlock exports.":["Stel die skaal in stap 3 om uitvoere te ontsluit.","Pro odemčení exportů nastavte měřítko v kroku 3."],"Set the scale first, so the grid can be drawn in real units.":["Stel eers die skaal sodat die rooster in ware eenhede geteken kan word.","Nejprve nastavte měřítko, aby se mřížka mohla vykreslit ve skutečných jednotkách."],"That edge is already level.":["Daardie rand is reeds gelyk.","Tato hrana už je vyrovnaná."],"Rotated by {a}°.":["Gedraai met {a}°.","Otočeno o {a}°."],"Enter the rectangle’s real width and height first.":["Tik eers die reghoek se werklike wydte en hoogte in.","Nejprve zadejte skutečnou šířku a výšku obdélníku."],"Those corners don’t form a usable rectangle. Check that no three are in a line.":["Daardie hoeke vorm nie ’n bruikbare reghoek nie. Maak seker dat geen drie in ’n lyn lê nie.","Tyto rohy netvoří použitelný obdélník. Zkontrolujte, že žádné tři neleží na jedné přímce."],"Correcting perspective…":["Korrigeer perspektief…","Opravuji perspektivu…"],"Perspective corrected and scale set, so step 3 is done. Check it any time with Measure (M).":["Perspektief gekorrigeer en skaal gestel, dus is stap 3 klaar. Toets dit enige tyd met Meet (M).","Perspektiva opravena a měřítko nastaveno, krok 3 je tedy hotový. Kdykoli ho můžete ověřit nástrojem Měřit (M)."],"No outline found. Raise the sensitivity, or redraw the box with background showing on every side.":["Geen buitelyn gevind nie. Verhoog die sensitiwiteit, of trek die blokkie weer met agtergrond sigbaar aan elke kant.","Nebyl nalezen žádný obrys. Zvyšte citlivost nebo nakreslete rámeček znovu tak, aby na každé straně bylo vidět pozadí."],"Found {list}.":["{list} gevind.","Nalezeno: {list}."]," and ":[" en "," a "],", 1 recognised as a circle":[", waarvan 1 as ’n sirkel herken is",", z toho 1 rozpoznán jako kružnice"],", {n} recognised as circles":[", waarvan {n} as sirkels herken is",", z toho rozpoznáno jako kružnice: {n}"],"Draw a bigger box around the part.":["Trek ’n groter blokkie om die onderdeel.","Nakreslete kolem dílu větší rámeček."],"Finding edges…":["Soek rande…","Hledám hrany…"],"Outline found. Fine-tune with the sliders, then choose “Add to drawing”.":["Buitelyn gevind. Stel fyn met die skuiwers en kies dan “Voeg by tekening”.","Obrys nalezen. Dolaďte ho posuvníky a zvolte „Přidat do výkresu“."],"No clear outline in that box. Try raising the sensitivity.":["Geen duidelike buitelyn in daardie blokkie nie. Probeer die sensitiwiteit verhoog.","V rámečku není zřetelný obrys. Zkuste zvýšit citlivost."],"Added {shapes}. Trace more, or choose Next to tidy and smooth the outline.":["{shapes} bygevoeg. Trek meer na, of kies Volgende om die buitelyn reg en glad te maak.","Přidáno: {shapes}. Obtáhněte další, nebo zvolte Další a obrys upravte a vyhlaďte."],"Point added. Drag it into place.":["Punt bygevoeg. Sleep dit op sy plek.","Bod přidán. Přetáhněte ho na místo."],"Only outline and polyline points can be deleted. Use “Delete shape” instead.":["Net punte van buitelyne en polilyne kan uitgevee word. Gebruik eerder “Vee vorm uit”.","Smazat lze jen body obrysů a lomených čar. Místo toho použijte „Smazat tvar“."],"That would leave too few points. Use “Delete shape” instead.":["Dan bly te min punte oor. Gebruik eerder “Vee vorm uit”.","Zůstalo by příliš málo bodů. Místo toho použijte „Smazat tvar“."],"Off":["Af","Vyp."],"No shape selected. Click one on the photo or in the list below.":["Geen vorm gekies nie. Klik op een op die foto of in die lys hieronder.","Není vybrán žádný tvar. Klikněte na některý na fotografii nebo v seznamu níže."],"Nothing to edit yet. Trace or draw a shape first.":["Nog niks om te wysig nie. Trek of teken eers ’n vorm.","Zatím není co upravovat. Nejprve obtáhněte nebo nakreslete tvar."],"{shape} with {points}, {n} selected.":["{shape} met {points}, {n} gekies.","{shape}: {points}, vybráno {n}."],"{shape} with {points}. Drag across points to select several.":["{shape} met {points}. Sleep oor punte om verskeie te kies.","{shape}: {points}. Tažením přes body jich vyberete více."],"Applies to the selected shape.":["Geld vir die gekose vorm.","Platí pro vybraný tvar."],"Applies to all outlines ({n}). Select one with Edit points to smooth just that shape.":["Geld vir alle buitelyne ({n}). Kies een met Wysig punte om net daardie vorm glad te maak.","Platí pro všechny obrysy ({n}). Chcete-li vyhladit jen jeden tvar, vyberte ho nástrojem Upravit body."],"Trace a shape to see its print size.":["Trek ’n vorm na om sy drukgrootte te sien.","Obtáhněte tvar a uvidíte jeho tiskovou velikost."],"Print size {w} × {h}.":["Drukgrootte {w} × {h}.","Tisková velikost {w} × {h}."],"Print size {w} × {h}, traced {w0} × {h0}.":["Drukgrootte {w} × {h}, nagetrek {w0} × {h0}.","Tisková velikost {w} × {h}, obtaženo {w0} × {h0}."],"Trace or draw a shape first.":["Trek of teken eers ’n vorm.","Nejprve obtáhněte nebo nakreslete tvar."],"The photo is too large to export as PNG in this browser.":["Die foto is te groot om in hierdie blaaier as PNG uit te voer.","Fotografie je pro export do PNG v tomto prohlížeči příliš velká."],"The scale bar is {l} mm long.":["Die skaalstaaf is {l} mm lank.","Měřítková úsečka je dlouhá {l} mm."],"That file isn’t a Trace to Scale project.":["Daardie lêer is nie ’n Trace to Scale-projek nie.","Tento soubor není projekt Trace to Scale."],"Project opened.":["Projek oopgemaak.","Projekt otevřen."],"The photo inside that project couldn’t be read.":["Die foto in daardie projek kon nie gelees word nie.","Fotografii v projektu nelze načíst."],"Saved {f}.":["{f} gestoor.","Uloženo: {f}."],"Unzip it to get {f}.":["Pak dit uit om {f} te kry.","Po rozbalení získáte {f}."],"Download cancelled.":["Aflaai gekanselleer.","Stahování zrušeno."],"A download prompt is already open. Try again in a moment.":["’n Aflaaivenster is reeds oop. Probeer weer oor ’n oomblik.","Okno stahování je už otevřené. Zkuste to za chvíli znovu."],"Downloads aren’t available in this view.":["Aflaaie is nie in hierdie aansig beskikbaar nie.","V tomto zobrazení není stahování k dispozici."],"Drawing cleared. Press Ctrl+Z to bring it back.":["Tekening skoongemaak. Druk Ctrl+Z om dit terug te kry.","Výkres vymazán. Obnovíte ho pomocí Ctrl+Z."],"Trace some lines, rectangles or circles first. The DXF only contains traced geometry.":["Trek eers ’n paar lyne, reghoeke of sirkels. Die DXF bevat net nagetrekte geometrie.","Nejprve obtáhněte nějaké čáry, obdélníky nebo kružnice. DXF obsahuje jen obtaženou geometrii."],"Step 1 of 7":["Stap 1 van 7","Krok 1 ze 7"],"Step 2 of 7":["Stap 2 van 7","Krok 2 ze 7"],"Step 3 of 7":["Stap 3 van 7","Krok 3 ze 7"],"Step 4 of 7":["Stap 4 van 7","Krok 4 ze 7"],"Step 5 of 7":["Stap 5 van 7","Krok 5 ze 7"],"Step 6 of 7":["Stap 6 van 7","Krok 6 ze 7"],"Step 7 of 7":["Stap 7 van 7","Krok 7 ze 7"]};
 const PLURALS = {"en":{"outline":["outline","outlines"],"hole":["hole","holes"],"shape":["shape","shapes"],"point":["point","points"]},"af":{"outline":["buitelyn","buitelyne"],"hole":["gat","gate"],"shape":["vorm","vorms"],"point":["punt","punte"]},"cs":{"outline":["obrys","obrysy","obrysů"],"hole":["otvor","otvory","otvorů"],"shape":["tvar","tvary","tvarů"],"point":["bod","body","bodů"]}};
 let LANG = 'en';
 function tx(key, vars){
@@ -659,8 +794,8 @@ function setLang(l){
   document.documentElement.lang = LANG;
   $('#lang').value = LANG;
   try { localStorage.setItem('trace-to-scale-lang', LANG); } catch {}
-  $('#wizSteps').textContent = '';
-  translateDOM(); updateUI();
+  $('#wizSteps').textContent = ''; $('#m3Steps').textContent = '';
+  translateDOM(); updateUI(); m3UI();
 }
 function initLang(){
   let l = null;
@@ -1058,7 +1193,7 @@ window.addEventListener('keydown', e => {
   if (e.key === 'Shift'){ shift = true; }
   const tag = (e.target.tagName || '').toLowerCase();
   if (tag === 'input' || tag === 'select' || tag === 'textarea') return;
-  if ($('#view2d').hidden) return;
+  if ($('#view2d').hidden){ m3Key(e); return; }
   const k = e.key.toLowerCase();
   if ((e.ctrlKey || e.metaKey) && k === 'z'){ e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
   if ((e.ctrlKey || e.metaKey) && k === 'y'){ e.preventDefault(); redo(); return; }
@@ -2649,11 +2784,700 @@ function showTab(which){
   const is2d = which === '2d';
   $('#tab2d').setAttribute('aria-selected', is2d); $('#tab3d').setAttribute('aria-selected', !is2d);
   $('#view2d').hidden = !is2d; $('#view3d').hidden = is2d;
-  if (is2d) requestAnimationFrame(resize);
+  if (is2d) requestAnimationFrame(resize); else init3D();
 }
 $('#tab2d').onclick = () => showTab('2d');
 $('#tab3d').onclick = () => showTab('3d');
-$('#back2d').onclick = () => showTab('2d');
+
+/* ================= 3D scans ================= */
+const M = { pos:null, col:null, idx:null, name:'scan', units:'m', hist:[], step:1, tool:'orbit', meas:[], pend:null, leveled:false, spacing:1, bbox:null, crop:null };
+const UNITF = { m:1000, cm:10, mm:1, in:25.4 };
+const UNITNAME = { m:'metres', cm:'centimetres', mm:'millimetres', in:'inches (in)' };
+let T3 = null, m3Loading = null;
+function m3Script(src){ return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => rej(new Error(src)); document.head.appendChild(s); }); }
+function m3Deps(){
+  if (window.THREE && THREE.OrbitControls) return Promise.resolve();
+  if (!m3Loading) m3Loading = (window.THREE ? Promise.resolve() : m3Script('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js'))
+    .then(() => m3Script('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js'))
+    .catch(e => { m3Loading = null; throw e; });
+  return m3Loading;
+}
+function init3D(){
+  m3UI();
+  if (T3){ m3Resize(); return; }
+  m3Deps().then(m3Setup).catch(() => toast(tx('The 3D viewer couldn’t load. Check your internet connection and try again.'), 6000));
+}
+function m3Setup(){
+  if (T3) return;
+  const wrap = $('#m3Wrap');
+  const renderer = new THREE.WebGLRenderer({ antialias:true });
+  renderer.setPixelRatio(window.devicePixelRatio || 1);
+  renderer.localClippingEnabled = true;
+  renderer.setClearColor(0x1b2523, 1);
+  renderer.domElement.className = 'm3gl';
+  wrap.prepend(renderer.domElement);
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100000);
+  camera.up.set(0, 0, 1); camera.position.set(300, -300, 250);
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.screenSpacePanning = true;
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x445555, 0.9));
+  const dl = new THREE.DirectionalLight(0xffffff, 0.6); dl.position.set(1, -1, 2); scene.add(dl);
+  const planes = [0,1,2,3,4,5].map(i => new THREE.Plane(new THREE.Vector3(i < 2 ? (i ? -1 : 1) : 0, i === 2 || i === 3 ? (i === 3 ? -1 : 1) : 0, i > 3 ? (i === 5 ? -1 : 1) : 0), 0));
+  T3 = { renderer, scene, camera, controls, planes, obj:null, grid:null, axes:null, meas:new THREE.Group(), slice:null, plane:null, box:null, pending:false, gridStep:10 };
+  scene.add(T3.meas);
+  controls.addEventListener('change', m3Req);
+  new ResizeObserver(m3Resize).observe(wrap);
+  const el = renderer.domElement; let down = null;
+  el.addEventListener('pointerdown', e => { down = { x:e.clientX, y:e.clientY, b:e.button }; });
+  el.addEventListener('pointerup', e => { if (!down) return; const mv = Math.hypot(e.clientX-down.x, e.clientY-down.y), b = down.b; down = null; if (mv < 4 && b === 0 && M.tool === 'measure' && M.pos) m3Pick(e); });
+  const lc = $('#m3Lasso'); let path = null;
+  lc.addEventListener('pointerdown', e => { if (!M.tool.startsWith('lasso')) return; lc.setPointerCapture(e.pointerId); const r = lc.getBoundingClientRect(); path = [{ x:e.clientX-r.left, y:e.clientY-r.top }]; m3DrawLasso(path); });
+  lc.addEventListener('pointermove', e => { if (!path) return; const r = lc.getBoundingClientRect(); path.push({ x:e.clientX-r.left, y:e.clientY-r.top }); m3DrawLasso(path); });
+  lc.addEventListener('pointerup', () => { if (!path) return; const p = path; path = null; m3DrawLasso(null); if (p.length > 2) m3LassoApply(p, M.tool === 'lassoKeep'); m3SetTool('orbit'); });
+  m3Resize(); m3UI();
+}
+function m3Req(){ if (!T3 || T3.pending) return; T3.pending = true; requestAnimationFrame(() => { T3.pending = false; T3.renderer.render(T3.scene, T3.camera); m3PlaceLabels(); }); }
+function m3Resize(){
+  if (!T3) return;
+  const w = $('#m3Wrap'), W = Math.max(1, w.clientWidth), H = Math.max(1, w.clientHeight), d = window.devicePixelRatio || 1;
+  T3.renderer.setSize(W, H); T3.camera.aspect = W/H; T3.camera.updateProjectionMatrix();
+  const lc = $('#m3Lasso'); lc.width = W*d; lc.height = H*d;
+  m3Req();
+}
+
+/* ---- file parsing ---- */
+function parsePLY(buf){
+  const u8 = new Uint8Array(buf), lim = Math.min(u8.length, 65536);
+  let hs = ''; for (let i=0;i<lim;i++) hs += String.fromCharCode(u8[i]);
+  const end = hs.indexOf('end_header'); if (end < 0) throw new Error('no PLY header');
+  let o = end + 10; if (u8[o] === 13) o++; if (u8[o] === 10) o++;
+  let fmt = 'ascii'; const els = []; let cur = null;
+  for (const L of hs.slice(0, end).split(/\r?\n/)){
+    const t = L.trim().split(/\s+/);
+    if (t[0] === 'format') fmt = t[1];
+    else if (t[0] === 'element'){ cur = { name:t[1], count:+t[2], props:[] }; els.push(cur); }
+    else if (t[0] === 'property' && cur) cur.props.push(t[1] === 'list' ? { list:true, ct:t[2], it:t[3], name:t[4] } : { type:t[1], name:t[2] });
+  }
+  const vEl = els.find(e => e.name === 'vertex'); if (!vEl) throw new Error('no vertices');
+  const n = vEl.count, names = vEl.props.map(p => p.name), pos = new Float32Array(n*3);
+  const ix = ['x','y','z'].map(k => names.indexOf(k)); if (ix.some(i => i < 0)) throw new Error('no x y z');
+  const sets = [['red','green','blue'], ['r','g','b'], ['diffuse_red','diffuse_green','diffuse_blue'], ['f_dc_0','f_dc_1','f_dc_2']];
+  let ci = null, splat = false;
+  for (const s of sets){ const k = s.map(c => names.indexOf(c)); if (k.every(i => i >= 0)){ ci = k; splat = s[0] === 'f_dc_0'; break; } }
+  const col = ci ? new Uint8Array(n*3) : null;
+  const isF = t => /float|double/.test(t);
+  const cv = (v, t) => splat ? Math.max(0, Math.min(255, (0.5 + 0.28209479*v)*255)) : isF(t) ? Math.max(0, Math.min(255, v*255)) : (t === 'ushort' || t === 'uint16') ? v >> 8 : v;
+  const faces = [];
+  if (fmt === 'ascii'){
+    const tok = new TextDecoder().decode(u8.subarray(o)).split(/\s+/).filter(Boolean); let k = 0;
+    for (const el of els){
+      for (let i=0;i<el.count;i++){
+        if (el === vEl){
+          const vals = el.props.map(p => p.list ? (k += 1 + (+tok[k]), 0) : +tok[k++]);
+          for (let a=0;a<3;a++) pos[i*3+a] = vals[ix[a]];
+          if (col) for (let a=0;a<3;a++) col[i*3+a] = cv(vals[ci[a]], el.props[ci[a]].type);
+        } else for (const p of el.props){
+          if (p.list){ const c = +tok[k++], ids = tok.slice(k, k+c).map(Number); k += c; if (el.name === 'face' && /vertex_ind/.test(p.name)) for (let a=1;a<c-1;a++) faces.push(ids[0], ids[a], ids[a+1]); }
+          else k++;
+        }
+      }
+    }
+  } else {
+    const le = fmt === 'binary_little_endian', dv = new DataView(buf);
+    const SZ = { char:1, int8:1, uchar:1, uint8:1, short:2, int16:2, ushort:2, uint16:2, int:4, int32:4, uint:4, uint32:4, float:4, float32:4, double:8, float64:8 };
+    const rd = (t, q) => { switch (t){ case 'char': case 'int8': return dv.getInt8(q); case 'uchar': case 'uint8': return dv.getUint8(q); case 'short': case 'int16': return dv.getInt16(q, le); case 'ushort': case 'uint16': return dv.getUint16(q, le); case 'int': case 'int32': return dv.getInt32(q, le); case 'uint': case 'uint32': return dv.getUint32(q, le); case 'float': case 'float32': return dv.getFloat32(q, le); default: return dv.getFloat64(q, le); } };
+    for (const el of els){
+      if (el === vEl && el.props.every(p => !p.list)){
+        let stride = 0; const offs = el.props.map(p => { const s = stride; stride += SZ[p.type] || 4; return s; });
+        for (let i=0;i<n;i++){
+          const b = o + i*stride;
+          for (let a=0;a<3;a++) pos[i*3+a] = rd(el.props[ix[a]].type, b + offs[ix[a]]);
+          if (col) for (let a=0;a<3;a++) col[i*3+a] = cv(rd(el.props[ci[a]].type, b + offs[ci[a]]), el.props[ci[a]].type);
+        }
+        o += n*stride;
+      } else {
+        for (let i=0;i<el.count;i++){
+          for (let pi=0; pi<el.props.length; pi++){
+            const p = el.props[pi];
+            if (p.list){
+              const c = rd(p.ct, o); o += SZ[p.ct];
+              if (el.name === 'face' && /vertex_ind/.test(p.name)){ const ids = []; for (let a=0;a<c;a++){ ids.push(rd(p.it, o)); o += SZ[p.it]; } for (let a=1;a<c-1;a++) faces.push(ids[0], ids[a], ids[a+1]); }
+              else o += c*SZ[p.it];
+            } else {
+              if (el === vEl){ const v = rd(p.type, o), a = ix.indexOf(pi); if (a >= 0) pos[i*3+a] = v; if (col && ci.indexOf(pi) >= 0) col[i*3+ci.indexOf(pi)] = cv(v, p.type); }
+              o += SZ[p.type];
+            }
+          }
+        }
+      }
+    }
+  }
+  return { pos, col, idx:faces.length ? Uint32Array.from(faces) : null };
+}
+function parseOBJ(buf){
+  const txt = new TextDecoder().decode(new Uint8Array(buf)), P = [], C = [], F = []; let hasC = false;
+  for (const line of txt.split('\n')){
+    if (line.startsWith('v ')){ const t = line.trim().split(/\s+/); P.push(+t[1], +t[2], +t[3]); if (t.length >= 7){ hasC = true; C.push(+t[4], +t[5], +t[6]); } else C.push(0.75, 0.75, 0.75); }
+    else if (line.startsWith('f ')){ const nv = P.length/3, t = line.trim().split(/\s+/).slice(1).map(s => { const v = parseInt(s.split('/')[0], 10); return v < 0 ? nv + v : v - 1; }); for (let k=1;k<t.length-1;k++) F.push(t[0], t[k], t[k+1]); }
+  }
+  let col = null;
+  if (hasC){ const mx = Math.max(...C.slice(0, 3000)); col = Uint8Array.from(C.map(v => Math.max(0, Math.min(255, mx > 1.5 ? v : v*255)))); }
+  return { pos:Float32Array.from(P), col, idx:F.length ? Uint32Array.from(F) : null };
+}
+function parseSTL(buf){
+  const dv = new DataView(buf), tri = buf.byteLength >= 84 ? dv.getUint32(80, true) : 0;
+  let pos;
+  if (84 + tri*50 === buf.byteLength){
+    pos = new Float32Array(tri*9);
+    for (let i=0;i<tri;i++){ const o = 84 + i*50 + 12; for (let k=0;k<9;k++) pos[i*9+k] = dv.getFloat32(o + k*4, true); }
+  } else {
+    const P = [], re = /vertex\s+([-+\d.eE]+)\s+([-+\d.eE]+)\s+([-+\d.eE]+)/g, txt = new TextDecoder().decode(new Uint8Array(buf)); let m;
+    while ((m = re.exec(txt))) P.push(+m[1], +m[2], +m[3]);
+    pos = Float32Array.from(P);
+  }
+  const n = pos.length/3, idx = new Uint32Array(n); for (let i=0;i<n;i++) idx[i] = i;
+  return { pos, col:null, idx };
+}
+
+/* ---- model ---- */
+function m3LoadFile(file){
+  if (!file) return;
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  if (!['ply','obj','stl'].includes(ext)){ toast(tx('Use a PLY, OBJ or STL file.')); return; }
+  toast(tx('Reading the scan…'), 30000);
+  Promise.all([file.arrayBuffer(), m3Deps()]).then(([buf]) => {
+    m3Setup();
+    let r;
+    try { r = ext === 'ply' ? parsePLY(buf) : ext === 'obj' ? parseOBJ(buf) : parseSTL(buf); }
+    catch (err){ toast(tx('That file couldn’t be read: {e}', { e:err.message }), 6000); return; }
+    if (!r.pos.length){ toast(tx('No points found in that file.')); return; }
+    m3SetModel(r, file.name.replace(/\.[^.]+$/, ''));
+  }).catch(() => toast(tx('The 3D viewer couldn’t load. Check your internet connection and try again.'), 6000));
+}
+function m3SetModel(r, name){
+  let mx = 0; for (let i=0;i<r.pos.length;i++){ const a = Math.abs(r.pos[i]); if (a > mx && isFinite(a)) mx = a; }
+  const units = mx < 5 ? 'm' : 'mm', f = UNITF[units];
+  for (let i=0;i<r.pos.length;i++) r.pos[i] *= f;
+  Object.assign(M, { pos:r.pos, col:r.col, idx:r.idx, name, units, hist:[], meas:[], pend:null, leveled:false, crop:null });
+  $('#m3Units').value = units; $('#m3Crop').checked = false;
+  m3Rebuild(true); m3Go(2);
+  toast(tx('Loaded {name}. File units guessed as {u}; change them if the size looks wrong.', { name, u:tx(UNITNAME[units]) }), 6000);
+}
+function m3BBox(){
+  const p = M.pos, mn = [Infinity, Infinity, Infinity], mx = [-Infinity, -Infinity, -Infinity];
+  for (let i=0;i<p.length;i+=3) for (let a=0;a<3;a++){ const v = p[i+a]; if (v < mn[a]) mn[a] = v; if (v > mx[a]) mx[a] = v; }
+  const size = [0,1,2].map(a => mx[a]-mn[a]);
+  return { min:mn, max:mx, size, c:[0,1,2].map(a => (mn[a]+mx[a])/2) };
+}
+function m3Spacing(){
+  const bb = M.bbox, diag = Math.hypot(...bb.size) || 1, n = M.pos.length/3;
+  let s;
+  if (M.idx && M.idx.length >= 3){
+    let sum = 0, c = 0; const step = Math.max(3, Math.floor(M.idx.length/3/2000)*3);
+    for (let t=0; t<M.idx.length; t+=step){ const a = M.idx[t]*3, b = M.idx[t+1]*3; sum += Math.hypot(M.pos[a]-M.pos[b], M.pos[a+1]-M.pos[b+1], M.pos[a+2]-M.pos[b+2]); c++; }
+    s = sum/Math.max(1, c);
+  } else {
+    const cell = diag/120, cells = new Map();
+    for (let i=0;i<M.pos.length;i+=3){ const k = Math.floor((M.pos[i]-bb.min[0])/cell) + 4096*(Math.floor((M.pos[i+1]-bb.min[1])/cell) + 4096*Math.floor((M.pos[i+2]-bb.min[2])/cell)); cells.set(k, 1); }
+    s = cell/Math.sqrt(Math.max(1, n/cells.size));
+  }
+  return Math.min(Math.max(s, diag/5000), diag/20);
+}
+function m3PtSize(){ return M.spacing * (+$('#m3Pt').value/100) * 4; }
+function m3Rebuild(refit){
+  if (!T3 || !M.pos) return;
+  const sc = T3.scene;
+  if (T3.obj){ sc.remove(T3.obj); T3.obj.geometry.dispose(); T3.obj.material.dispose(); }
+  M.bbox = m3BBox(); M.spacing = m3Spacing();
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(M.pos, 3));
+  if (M.col) g.setAttribute('color', new THREE.BufferAttribute(M.col, 3, true));
+  let obj;
+  if (M.idx){
+    g.setIndex(new THREE.BufferAttribute(M.idx, 1)); g.computeVertexNormals();
+    obj = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ vertexColors:!!M.col, color:M.col ? 0xffffff : 0xbfd9d3, side:THREE.DoubleSide, roughness:0.85, metalness:0 }));
+  } else obj = new THREE.Points(g, new THREE.PointsMaterial({ size:m3PtSize(), vertexColors:!!M.col, color:M.col ? 0xffffff : 0xbfd9d3, sizeAttenuation:true }));
+  obj.material.clippingPlanes = M.crop ? T3.planes : [];
+  T3.obj = obj; sc.add(obj);
+  m3Grid(); m3DrawMeas(); m3Slice();
+  if (refit) m3View('iso');
+  m3UI(); m3Req();
+}
+function m3Grid(){
+  if (T3.grid){ T3.scene.remove(T3.grid); T3.scene.remove(T3.axes); }
+  const bb = M.bbox, maxD = Math.max(...bb.size) || 1;
+  const step = [1,2,5,10,20,50,100,200,500].find(s => maxD/s <= 24) || 1000;
+  const ext = Math.max(Math.abs(bb.min[0]), Math.abs(bb.max[0]), Math.abs(bb.min[1]), Math.abs(bb.max[1]));
+  const half = Math.max(step*2, Math.ceil(ext*1.15/step)*step), z = M.leveled ? 0 : bb.min[2];
+  const g = new THREE.GridHelper(half*2, Math.round(half*2/step), 0x6f8f87, 0x34504a);
+  g.rotation.x = Math.PI/2; g.position.z = z; g.visible = $('#m3Grid').checked;
+  const ax = new THREE.AxesHelper(step*3); ax.position.z = z + 0.01; ax.visible = g.visible;
+  T3.grid = g; T3.axes = ax; T3.gridStep = step; T3.scene.add(g); T3.scene.add(ax);
+}
+function m3View(v){
+  if (!T3 || !M.bbox) return;
+  const bb = M.bbox, c = new THREE.Vector3(...bb.c), diag = Math.hypot(...bb.size) || 1;
+  const d = diag*0.62/Math.tan(T3.camera.fov*Math.PI/360);
+  let dir;
+  if (v === 'fit') dir = T3.camera.position.clone().sub(T3.controls.target).normalize();
+  else dir = new THREE.Vector3(...({ top:[0,-0.002,1], front:[0,-1,0.002], side:[1,0,0.002], iso:[0.8,-1,0.7] })[v]).normalize();
+  T3.camera.near = diag/400; T3.camera.far = diag*80; T3.camera.updateProjectionMatrix();
+  T3.camera.position.copy(c).addScaledVector(dir, d); T3.controls.target.copy(c); T3.controls.update(); m3Req();
+}
+
+/* ---- history and editing ---- */
+function m3Push(){ M.hist.push({ pos:M.pos.slice(), col:M.col ? M.col.slice() : null, idx:M.idx ? M.idx.slice() : null, leveled:M.leveled }); if (M.hist.length > 12) M.hist.shift(); }
+function m3Undo(){
+  const h = M.hist.pop(); if (!h){ toast(tx('Nothing to undo.')); return; }
+  Object.assign(M, h); M.meas = []; M.pend = null; m3Rebuild(false);
+}
+function m3Keep(mask){
+  const n = M.pos.length/3; let k = 0; for (let i=0;i<n;i++) if (mask[i]) k++;
+  if (k === n){ toast(tx('Nothing to remove.')); return 0; }
+  if (k < 3){ toast(tx('That would remove almost everything.')); return 0; }
+  m3Push();
+  const pos = new Float32Array(k*3), col = M.col ? new Uint8Array(k*3) : null, map = M.idx ? new Int32Array(n).fill(-1) : null; let j = 0;
+  for (let i=0;i<n;i++) if (mask[i]){
+    pos[j*3] = M.pos[i*3]; pos[j*3+1] = M.pos[i*3+1]; pos[j*3+2] = M.pos[i*3+2];
+    if (col){ col[j*3] = M.col[i*3]; col[j*3+1] = M.col[i*3+1]; col[j*3+2] = M.col[i*3+2]; }
+    if (map) map[i] = j; j++;
+  }
+  if (M.idx){
+    const out = new Uint32Array(M.idx.length); let c = 0;
+    for (let t=0;t<M.idx.length;t+=3){ const a = map[M.idx[t]], b = map[M.idx[t+1]], d = map[M.idx[t+2]]; if (a >= 0 && b >= 0 && d >= 0){ out[c++] = a; out[c++] = b; out[c++] = d; } }
+    M.idx = out.slice(0, c);
+  }
+  M.pos = pos; M.col = col; M.pend = null;
+  m3Rebuild(false); m3View('fit');
+  toast(tx('Removed {n} points.', { n:(n-k).toLocaleString() }));
+  return n - k;
+}
+function m3Transform(R, t){
+  const p = M.pos, f = q => { const x = q[0], y = q[1], z = q[2]; q[0] = R[0]*x+R[1]*y+R[2]*z+t[0]; q[1] = R[3]*x+R[4]*y+R[5]*z+t[1]; q[2] = R[6]*x+R[7]*y+R[8]*z+t[2]; };
+  const q = [0,0,0];
+  for (let i=0;i<p.length;i+=3){ q[0] = p[i]; q[1] = p[i+1]; q[2] = p[i+2]; f(q); p[i] = q[0]; p[i+1] = q[1]; p[i+2] = q[2]; }
+  M.meas.forEach(m => { f(m.a); f(m.b); });
+}
+function m3RotMat(ax, deg){
+  const a = deg*Math.PI/180, c = Math.cos(a), s = Math.sin(a);
+  return ax === 'x' ? [1,0,0, 0,c,-s, 0,s,c] : ax === 'y' ? [c,0,s, 0,1,0, -s,0,c] : [c,-s,0, s,c,0, 0,0,1];
+}
+function m3Rotate(code){
+  if (!M.pos) return;
+  const ax = code[0], deg = parseFloat(code.slice(1));
+  m3Push();
+  const R = m3RotMat(ax, deg), c = M.bbox.c;
+  const t = [0,1,2].map(r => c[r] - (R[r*3]*c[0] + R[r*3+1]*c[1] + R[r*3+2]*c[2]));
+  if (M.leveled && ax === 'z') t[2] = 0;
+  m3Transform(R, t);
+  if (ax !== 'z') M.leveled = false;
+  m3Rebuild(false); m3View('fit');
+}
+function m3Center(){
+  if (!M.pos) return;
+  m3Push();
+  const bb = M.bbox; m3Transform([1,0,0,0,1,0,0,0,1], [-bb.c[0], -bb.c[1], M.leveled ? 0 : -bb.min[2]]);
+  m3Rebuild(false); m3View('fit');
+}
+function m3Eig3(A){
+  const a = A.map(r => r.slice()), V = [[1,0,0],[0,1,0],[0,0,1]];
+  for (let sweep=0; sweep<30; sweep++){
+    for (const [p, q] of [[0,1],[0,2],[1,2]]){
+      if (Math.abs(a[p][q]) < 1e-12) continue;
+      const th = (a[q][q]-a[p][p])/(2*a[p][q]), t = Math.sign(th || 1)/(Math.abs(th) + Math.sqrt(th*th+1)), c = 1/Math.sqrt(t*t+1), s = t*c;
+      for (let k=0;k<3;k++){ const akp = a[k][p], akq = a[k][q]; a[k][p] = c*akp - s*akq; a[k][q] = s*akp + c*akq; }
+      for (let k=0;k<3;k++){ const apk = a[p][k], aqk = a[q][k]; a[p][k] = c*apk - s*aqk; a[q][k] = s*apk + c*aqk; }
+      for (let k=0;k<3;k++){ const vkp = V[k][p], vkq = V[k][q]; V[k][p] = c*vkp - s*vkq; V[k][q] = s*vkp + c*vkq; }
+    }
+  }
+  let mi = 0; for (let i=1;i<3;i++) if (a[i][i] < a[mi][mi]) mi = i;
+  return [V[0][mi], V[1][mi], V[2][mi]];
+}
+function m3FindPlane(){
+  const p = M.pos, n = p.length/3, S_ = Math.min(n, 40000), idx = new Uint32Array(S_);
+  for (let i=0;i<S_;i++) idx[i] = Math.floor(Math.random()*n);
+  const th = Math.max(0.5, M.spacing*1.2); let best = null;
+  for (let it=0; it<350; it++){
+    const a = idx[Math.floor(Math.random()*S_)]*3, b = idx[Math.floor(Math.random()*S_)]*3, c = idx[Math.floor(Math.random()*S_)]*3;
+    const ux = p[b]-p[a], uy = p[b+1]-p[a+1], uz = p[b+2]-p[a+2], vx = p[c]-p[a], vy = p[c+1]-p[a+1], vz = p[c+2]-p[a+2];
+    let nx = uy*vz-uz*vy, ny = uz*vx-ux*vz, nz = ux*vy-uy*vx; const L = Math.hypot(nx, ny, nz); if (L < 1e-9) continue;
+    nx /= L; ny /= L; nz /= L; const d = nx*p[a]+ny*p[a+1]+nz*p[a+2];
+    let cnt = 0; for (let i=0;i<S_;i++){ const q = idx[i]*3; if (Math.abs(nx*p[q]+ny*p[q+1]+nz*p[q+2]-d) < th) cnt++; }
+    if (!best || cnt > best.cnt) best = { cnt, nx, ny, nz, d };
+  }
+  if (!best) return null;
+  let cx = 0, cy = 0, cz = 0, m = 0; const inl = [];
+  for (let i=0;i<S_;i++){ const q = idx[i]*3; if (Math.abs(best.nx*p[q]+best.ny*p[q+1]+best.nz*p[q+2]-best.d) < th){ inl.push(q); cx += p[q]; cy += p[q+1]; cz += p[q+2]; m++; } }
+  cx /= m; cy /= m; cz /= m;
+  const C = [[0,0,0],[0,0,0],[0,0,0]];
+  for (const q of inl){ const v = [p[q]-cx, p[q+1]-cy, p[q+2]-cz]; for (let r=0;r<3;r++) for (let s=0;s<3;s++) C[r][s] += v[r]*v[s]; }
+  let nv = m3Eig3(C); if (nv[0]*best.nx + nv[1]*best.ny + nv[2]*best.nz < 0) nv = nv.map(v => -v);
+  const d = nv[0]*cx + nv[1]*cy + nv[2]*cz;
+  let above = 0; for (let i=0;i<S_;i++){ const q = idx[i]*3; if (nv[0]*p[q]+nv[1]*p[q+1]+nv[2]*p[q+2]-d > th) above++; else if (nv[0]*p[q]+nv[1]*p[q+1]+nv[2]*p[q+2]-d < -th) above--; }
+  return above >= 0 ? { n:nv, d, ratio:m/S_ } : { n:nv.map(v => -v), d:-d, ratio:m/S_ };
+}
+function m3Level(){
+  if (!M.pos) return false;
+  const pl = m3FindPlane();
+  if (!pl || pl.ratio < 0.04){ toast(tx('No flat table found in the scan.')); return false; }
+  m3Push();
+  const [ax, ay, az] = pl.n; let R;
+  if (az < -0.99999) R = [1,0,0, 0,-1,0, 0,0,-1];
+  else { const vx = ay, vy = -ax, k = 1/(1+az); R = [1 - vy*vy*k, vx*vy*k, vy, vx*vy*k, 1 - vx*vx*k, -vx, -vy, vx, 1 - (vx*vx+vy*vy)*k]; }
+  m3Transform(R, [0, 0, -pl.d]);
+  M.leveled = true; m3Rebuild(false); m3View('iso');
+  toast(tx('Levelled. The table is now flat at height 0.'));
+  return true;
+}
+const m3FloorMM = () => 0.5 + Math.pow(+$('#m3FloorT').value/100, 1.5)*20;
+function m3Floor(){
+  if (!M.pos) return;
+  if (!M.leveled && !m3Level()) return;
+  const t = m3FloorMM(), n = M.pos.length/3, mask = new Uint8Array(n);
+  for (let i=0;i<n;i++) mask[i] = M.pos[i*3+2] >= t ? 1 : 0;
+  m3Keep(mask);
+}
+function m3Outliers(){
+  if (!M.pos) return;
+  const r = M.spacing*2.5, kmin = 2 + Math.round(+$('#m3OutS').value/100*14), p = M.pos, n = p.length/3, bb = M.bbox;
+  const nx = Math.ceil(bb.size[0]/r) + 3, ny = Math.ceil(bb.size[1]/r) + 3;
+  const key = (i, j, k) => i + nx*(j + ny*k), cellOf = new Float64Array(n), cnt = new Map();
+  for (let i=0;i<n;i++){ const k = key(Math.floor((p[i*3]-bb.min[0])/r)+1, Math.floor((p[i*3+1]-bb.min[1])/r)+1, Math.floor((p[i*3+2]-bb.min[2])/r)+1); cellOf[i] = k; cnt.set(k, (cnt.get(k) || 0) + 1); }
+  const mask = new Uint8Array(n), memo = new Map();
+  for (let i=0;i<n;i++){
+    const k = cellOf[i]; let s = memo.get(k);
+    if (s === undefined){ s = 0; for (let dz=-1; dz<=1; dz++) for (let dy=-1; dy<=1; dy++) for (let dx=-1; dx<=1; dx++) s += cnt.get(k + dx + nx*(dy + ny*dz)) || 0; memo.set(k, s); }
+    mask[i] = s - 1 >= kmin ? 1 : 0;
+  }
+  m3Keep(mask);
+}
+function m3CropVals(){
+  const bb = M.crop, v = [...document.querySelectorAll('.m3c')].map(e => +e.value/1000);
+  return [bb.min[0] + v[0]*bb.size[0], bb.min[0] + v[1]*bb.size[0], bb.min[1] + v[2]*bb.size[1], bb.min[1] + v[3]*bb.size[1], bb.min[2] + v[4]*bb.size[2], bb.min[2] + v[5]*bb.size[2]];
+}
+function m3CropUpdate(){
+  if (!T3 || !M.pos) return;
+  if (T3.box){ T3.scene.remove(T3.box); T3.box = null; }
+  if (M.crop){
+    const c = m3CropVals();
+    T3.planes[0].constant = -c[0]; T3.planes[1].constant = c[1]; T3.planes[2].constant = -c[2]; T3.planes[3].constant = c[3]; T3.planes[4].constant = -c[4]; T3.planes[5].constant = c[5];
+    T3.box = new THREE.Box3Helper(new THREE.Box3(new THREE.Vector3(c[0], c[2], c[4]), new THREE.Vector3(c[1], c[3], c[5])), 0xffc21a);
+    T3.scene.add(T3.box);
+    document.querySelectorAll('.m3c').forEach((e, i) => { e.nextElementSibling.textContent = fmtMM(c[i]); });
+  }
+  if (T3.obj){ T3.obj.material.clippingPlanes = M.crop ? T3.planes : []; T3.obj.material.needsUpdate = true; }
+  m3Req();
+}
+function m3InCrop(x, y, z){ if (!M.crop) return true; const c = m3CropVals(); return x >= c[0] && x <= c[1] && y >= c[2] && y <= c[3] && z >= c[4] && z <= c[5]; }
+function m3CropApply(){
+  if (!M.crop) return;
+  const n = M.pos.length/3, mask = new Uint8Array(n);
+  for (let i=0;i<n;i++) mask[i] = m3InCrop(M.pos[i*3], M.pos[i*3+1], M.pos[i*3+2]) ? 1 : 0;
+  M.crop = null; $('#m3Crop').checked = false; $('#m3CropBox').hidden = true;
+  if (!m3Keep(mask)) m3CropUpdate();
+}
+function m3DrawLasso(path){
+  const lc = $('#m3Lasso'), c = lc.getContext('2d'), d = window.devicePixelRatio || 1;
+  c.setTransform(d, 0, 0, d, 0, 0); c.clearRect(0, 0, lc.width, lc.height);
+  if (!path) return;
+  c.beginPath(); path.forEach((p, i) => i ? c.lineTo(p.x, p.y) : c.moveTo(p.x, p.y)); c.closePath();
+  c.fillStyle = 'rgba(255,194,26,.15)'; c.fill(); c.setLineDash([6,4]); c.strokeStyle = '#FFC21A'; c.lineWidth = 2; c.stroke();
+}
+function m3LassoApply(path, keep){
+  const cam = T3.camera; cam.updateMatrixWorld();
+  const m = new THREE.Matrix4().multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse).elements;
+  const lc = $('#m3Lasso'), W = lc.clientWidth, H = lc.clientHeight, p = M.pos, n = p.length/3, mask = new Uint8Array(n);
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity; path.forEach(q => { x0 = Math.min(x0, q.x); x1 = Math.max(x1, q.x); y0 = Math.min(y0, q.y); y1 = Math.max(y1, q.y); });
+  for (let i=0;i<n;i++){
+    const x = p[i*3], y = p[i*3+1], z = p[i*3+2], w = m[3]*x + m[7]*y + m[11]*z + m[15];
+    let inside = false;
+    if (w > 0 && m3InCrop(x, y, z)){
+      const sx = ((m[0]*x + m[4]*y + m[8]*z + m[12])/w + 1)/2*W, sy = (1 - (m[1]*x + m[5]*y + m[9]*z + m[13])/w)/2*H;
+      if (sx >= x0 && sx <= x1 && sy >= y0 && sy <= y1) inside = pointInPoly({ x:sx, y:sy }, path);
+    }
+    mask[i] = keep ? (inside ? 1 : 0) : (inside ? 0 : 1);
+  }
+  m3Keep(mask);
+}
+
+/* ---- measuring ---- */
+function m3Pick(e){
+  const r = T3.renderer.domElement.getBoundingClientRect();
+  const ndc = new THREE.Vector2(((e.clientX-r.left)/r.width)*2 - 1, -((e.clientY-r.top)/r.height)*2 + 1);
+  const rc = new THREE.Raycaster(); rc.params.Points.threshold = Math.max(M.spacing*2, m3PtSize());
+  rc.setFromCamera(ndc, T3.camera);
+  const hit = rc.intersectObject(T3.obj).find(h => { const q = h.index != null && !M.idx ? [M.pos[h.index*3], M.pos[h.index*3+1], M.pos[h.index*3+2]] : [h.point.x, h.point.y, h.point.z]; return m3InCrop(...q); });
+  if (!hit){ toast(tx('No point there. Click directly on the scan.')); return; }
+  const q = !M.idx && hit.index != null ? [M.pos[hit.index*3], M.pos[hit.index*3+1], M.pos[hit.index*3+2]] : [hit.point.x, hit.point.y, hit.point.z];
+  if (!M.pend) M.pend = q; else { M.meas.push({ a:M.pend, b:q }); M.pend = null; }
+  m3DrawMeas(); m3UI(); m3Req();
+}
+function m3DrawMeas(){
+  if (!T3) return;
+  while (T3.meas.children.length){ const c = T3.meas.children.pop(); c.geometry.dispose(); c.material.dispose(); }
+  const pts = [], segs = [];
+  M.meas.forEach(m => { segs.push(...m.a, ...m.b); pts.push(...m.a, ...m.b); });
+  if (M.pend) pts.push(...M.pend);
+  if (segs.length){ const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(segs, 3)); const l = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color:0xff5e95, depthTest:false })); l.renderOrder = 10; T3.meas.add(l); }
+  if (pts.length){ const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3)); const pp = new THREE.Points(g, new THREE.PointsMaterial({ color:0xffc21a, size:9, sizeAttenuation:false, depthTest:false })); pp.renderOrder = 11; T3.meas.add(pp); }
+  const box = $('#m3Labels'); box.textContent = '';
+  M.meas.forEach(m => { const d = document.createElement('div'); d.className = 'm3lab'; d.textContent = fmtMM(Math.hypot(m.a[0]-m.b[0], m.a[1]-m.b[1], m.a[2]-m.b[2])); box.appendChild(d); });
+}
+function m3PlaceLabels(){
+  const labs = $('#m3Labels').children; if (!labs.length) return;
+  const W = $('#m3Wrap').clientWidth, H = $('#m3Wrap').clientHeight, v = new THREE.Vector3();
+  M.meas.forEach((m, i) => {
+    v.set((m.a[0]+m.b[0])/2, (m.a[1]+m.b[1])/2, (m.a[2]+m.b[2])/2).project(T3.camera);
+    const el = labs[i]; if (!el) return;
+    el.style.display = v.z < 1 ? 'block' : 'none';
+    el.style.left = ((v.x+1)/2*W) + 'px'; el.style.top = ((1-v.y)/2*H - 16) + 'px';
+  });
+}
+
+/* ---- section to 2D ---- */
+const m3SecMode = () => document.querySelector('input[name="m3Sec"]:checked').value;
+function m3SecRange(){
+  const bb = M.bbox, h = bb.min[2] + (+$('#m3SecH').value/1000)*bb.size[2];
+  const t = M.spacing*(0.6 + (+$('#m3SecT').value/100)*8);
+  return { h, t };
+}
+function m3SecPoints(){
+  const p = M.pos, n = p.length/3, xs = [], ys = [], mode = m3SecMode(), { h, t } = m3SecRange();
+  for (let i=0;i<n;i++){
+    const x = p[i*3], y = p[i*3+1], z = p[i*3+2];
+    if (!m3InCrop(x, y, z)) continue;
+    if (mode === 'slice' && Math.abs(z - h) > t/2) continue;
+    xs.push(x); ys.push(y);
+  }
+  return { xs, ys };
+}
+function m3Slice(){
+  if (!T3) return;
+  if (T3.slice){ T3.scene.remove(T3.slice); T3.slice.geometry.dispose(); T3.slice.material.dispose(); T3.slice = null; }
+  if (T3.plane){ T3.scene.remove(T3.plane); T3.plane.geometry.dispose(); T3.plane.material.dispose(); T3.plane = null; }
+  if (!M.pos || M.step !== 4 || m3SecMode() !== 'slice'){ m3Req(); return; }
+  const { h } = m3SecRange(), s = m3SecPoints(), arr = new Float32Array(s.xs.length*3);
+  for (let i=0;i<s.xs.length;i++){ arr[i*3] = s.xs[i]; arr[i*3+1] = s.ys[i]; arr[i*3+2] = h; }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(arr, 3));
+  T3.slice = new THREE.Points(g, new THREE.PointsMaterial({ color:0xffc21a, size:m3PtSize()*1.6, sizeAttenuation:true, depthTest:false }));
+  T3.slice.renderOrder = 5; T3.scene.add(T3.slice);
+  const bb = M.bbox, pg = new THREE.PlaneGeometry(bb.size[0]*1.3 + 1, bb.size[1]*1.3 + 1);
+  T3.plane = new THREE.Mesh(pg, new THREE.MeshBasicMaterial({ color:0x3fd3e3, transparent:true, opacity:0.12, side:THREE.DoubleSide, depthWrite:false }));
+  T3.plane.position.set(bb.c[0], bb.c[1], h); T3.scene.add(T3.plane);
+  m3Req();
+}
+function m3Morph(m, W, H, r, dil){
+  const tmp = new Uint8Array(W*H), out = new Uint8Array(W*H), row = new Int32Array(Math.max(W, H) + 1);
+  for (let y=0;y<H;y++){
+    row[0] = 0; for (let x=0;x<W;x++) row[x+1] = row[x] + m[y*W+x];
+    for (let x=0;x<W;x++){ const a = Math.max(0, x-r), b = Math.min(W, x+r+1), s = row[b]-row[a]; tmp[y*W+x] = dil ? (s > 0 ? 1 : 0) : (s === b-a ? 1 : 0); }
+  }
+  for (let x=0;x<W;x++){
+    row[0] = 0; for (let y=0;y<H;y++) row[y+1] = row[y] + tmp[y*W+x];
+    for (let y=0;y<H;y++){ const a = Math.max(0, y-r), b = Math.min(H, y+r+1), s = row[b]-row[a]; out[y*W+x] = dil ? (s > 0 ? 1 : 0) : (s === b-a ? 1 : 0); }
+  }
+  return out;
+}
+function m3Send(){
+  if (!M.pos) return;
+  const mode = m3SecMode(), s = m3SecPoints();
+  if (s.xs.length < 10){ toast(tx('Too few points in the slice. Try a thicker slice or another height.'), 5000); return; }
+  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+  for (let i=0;i<s.xs.length;i++){ x0 = Math.min(x0, s.xs[i]); x1 = Math.max(x1, s.xs[i]); y0 = Math.min(y0, s.ys[i]); y1 = Math.max(y1, s.ys[i]); }
+  const cell = Math.max(0.05, Math.max(x1-x0, y1-y0)/1400), pad = 40;
+  const W = Math.ceil((x1-x0)/cell) + 2*pad, H = Math.ceil((y1-y0)/cell) + 2*pad;
+  let m = new Uint8Array(W*H);
+  const rd = Math.max(1, Math.round(M.spacing/cell*0.8));
+  for (let i=0;i<s.xs.length;i++){
+    const cx = Math.round((s.xs[i]-x0)/cell) + pad, cy = Math.round((y1-s.ys[i])/cell) + pad;
+    for (let dy=-rd; dy<=rd; dy++) for (let dx=-rd; dx<=rd; dx++) if (dx*dx + dy*dy <= rd*rd){ const X = cx+dx, Y = cy+dy; if (X >= 0 && Y >= 0 && X < W && Y < H) m[Y*W+X] = 1; }
+  }
+  const c = Math.max(1, Math.round(M.spacing*(mode === 'slice' ? 2.5 : 1.5)/cell));
+  m = m3Morph(m3Morph(m, W, H, c, true), W, H, c, false);
+  const outside = new Uint8Array(W*H), st = [];
+  for (let x=0;x<W;x++){ st.push(x, (H-1)*W + x); } for (let y=0;y<H;y++){ st.push(y*W, y*W + W-1); }
+  while (st.length){ const k = st.pop(); if (outside[k] || m[k]) continue; outside[k] = 1; const x = k % W, y = (k - x)/W; if (x > 0) st.push(k-1); if (x < W-1) st.push(k+1); if (y > 0) st.push(k-W); if (y < H-1) st.push(k+W); }
+  const cv = mk(W, H), cx2 = cv.getContext('2d'), img = cx2.createImageData(W, H), d = img.data;
+  for (let k=0;k<W*H;k++){ const on = !outside[k]; d[k*4] = on ? 200 : 32; d[k*4+1] = on ? 235 : 32; d[k*4+2] = on ? 230 : 34; d[k*4+3] = 255; }
+  cx2.putImageData(img, 0, 0);
+  const name = M.name + (mode === 'slice' ? '_slice_' + Math.round(m3SecRange().h) + 'mm' : '_top');
+  showTab('2d'); resize();
+  setImage(cv, name);
+  S.calLine = [{ x:pad, y:H - pad/2 }, { x:W - pad, y:H - pad/2 }];
+  $('#calLen').value = +((W - 2*pad)*cell).toFixed(4); $('#calUnit').value = 'mm';
+  S.origin = { x:(0 - x0)/cell + pad, y:(y1 - 0)/cell + pad };
+  goStep(4); fit();
+  runAuto({ x:0, y:0 }, { x:W, y:H });
+  setTimeout(() => toast(tx('Sent to 2D. Check the outline, then choose “Add to drawing”.'), 6000), 1200);
+}
+
+/* ---- export ---- */
+function m3ExportPLY(){
+  if (!M.pos) return;
+  const n = M.pos.length/3, f = M.idx ? M.idx.length/3 : 0, hasC = !!M.col;
+  const head = 'ply\nformat binary_little_endian 1.0\ncomment Exported by Trace to Scale (units: mm)\nelement vertex ' + n + '\nproperty float x\nproperty float y\nproperty float z\n'
+    + (hasC ? 'property uchar red\nproperty uchar green\nproperty uchar blue\n' : '') + (f ? 'element face ' + f + '\nproperty list uchar int vertex_indices\n' : '') + 'end_header\n';
+  const hb = new TextEncoder().encode(head), vs = 12 + (hasC ? 3 : 0), buf = new ArrayBuffer(hb.length + n*vs + f*13), dv = new DataView(buf), u8 = new Uint8Array(buf);
+  u8.set(hb, 0); let o = hb.length;
+  for (let i=0;i<n;i++){ dv.setFloat32(o, M.pos[i*3], true); dv.setFloat32(o+4, M.pos[i*3+1], true); dv.setFloat32(o+8, M.pos[i*3+2], true); o += 12; if (hasC){ u8[o] = M.col[i*3]; u8[o+1] = M.col[i*3+1]; u8[o+2] = M.col[i*3+2]; o += 3; } }
+  for (let t=0;t<f;t++){ u8[o] = 3; dv.setInt32(o+1, M.idx[t*3], true); dv.setInt32(o+5, M.idx[t*3+1], true); dv.setInt32(o+9, M.idx[t*3+2], true); o += 13; }
+  saveFile(safeName3() + '_clean.ply', new Blob([buf]));
+}
+function m3ExportSTL(){
+  if (!M.pos) return;
+  if (!M.idx){ toast(tx('STL needs a mesh. This scan is a point cloud.'), 5000); return; }
+  const f = M.idx.length/3, buf = new ArrayBuffer(84 + f*50), dv = new DataView(buf), p = M.pos;
+  dv.setUint32(80, f, true); let o = 84;
+  for (let t=0;t<f;t++){
+    const a = M.idx[t*3]*3, b = M.idx[t*3+1]*3, c = M.idx[t*3+2]*3;
+    const ux = p[b]-p[a], uy = p[b+1]-p[a+1], uz = p[b+2]-p[a+2], vx = p[c]-p[a], vy = p[c+1]-p[a+1], vz = p[c+2]-p[a+2];
+    let nx = uy*vz-uz*vy, ny = uz*vx-ux*vz, nz = ux*vy-uy*vx; const L = Math.hypot(nx, ny, nz) || 1;
+    dv.setFloat32(o, nx/L, true); dv.setFloat32(o+4, ny/L, true); dv.setFloat32(o+8, nz/L, true); o += 12;
+    for (const q of [a, b, c]){ dv.setFloat32(o, p[q], true); dv.setFloat32(o+4, p[q+1], true); dv.setFloat32(o+8, p[q+2], true); o += 12; }
+    o += 2;
+  }
+  saveFile(safeName3() + '_clean.stl', new Blob([buf]));
+}
+function m3ExportXYZ(){
+  if (!M.pos) return;
+  const p = M.pos, parts = [];
+  for (let i=0;i<p.length;i+=3) parts.push(p[i].toFixed(3) + ' ' + p[i+1].toFixed(3) + ' ' + p[i+2].toFixed(3));
+  saveFile(safeName3() + '_clean.xyz', parts.join('\n') + '\n');
+}
+const safeName3 = () => (M.name || 'scan').replace(/[^\w\-]+/g, '_').slice(0, 60) || 'scan';
+
+/* ---- wizard and UI ---- */
+const M3STEPS = [['m3s1','Load'], ['m3s2','Clean'], ['m3s3','Measure'], ['m3s4','To 2D'], ['m3s5','Export']];
+function m3Go(n){
+  if (n > 1 && !M.pos) return;
+  M.step = n; m3SetTool(n === 3 ? 'measure' : 'orbit');
+  $('#side3').scrollTop = 0; m3Slice(); m3UI();
+}
+function m3SetTool(t){
+  M.tool = t;
+  const lasso = t.startsWith('lasso');
+  $('#m3Lasso').style.pointerEvents = lasso ? 'auto' : 'none';
+  $('#m3Lasso').style.cursor = lasso ? 'crosshair' : '';
+  if (T3){ T3.controls.enabled = !lasso; T3.renderer.domElement.style.cursor = t === 'measure' ? 'crosshair' : 'grab'; }
+  if (t !== 'measure') M.pend = null;
+  m3DrawMeas(); m3UI(); m3Req();
+}
+function m3UI(){
+  const has = !!M.pos;
+  $('#m3Empty').hidden = has;
+  const ol = $('#m3Steps');
+  if (!ol.children.length){
+    M3STEPS.forEach((st, i) => {
+      const li = document.createElement('li'), b = document.createElement('button'); b.type = 'button';
+      const d = document.createElement('span'); d.className = 'dot'; d.textContent = i + 1;
+      const l = document.createElement('span'); l.className = 'lbl'; l.textContent = tx(st[1]);
+      b.append(d, l); b.addEventListener('click', () => m3Go(i + 1)); li.appendChild(b); ol.appendChild(li);
+    });
+  }
+  [...ol.children].forEach((li, i) => {
+    const n = i + 1, ok = n === 1 || has, b = li.firstChild;
+    li.classList.toggle('current', n === M.step); li.classList.toggle('done', n !== M.step && (n === 1 ? has : n === 2 ? M.leveled : n === 3 ? M.meas.length > 0 : false));
+    li.classList.toggle('locked', !ok); b.disabled = !ok;
+    b.title = ok ? tx('Step {n}: {name}', { n, name:tx(M3STEPS[i][1]) }) : tx('Load a scan first');
+  });
+  M3STEPS.forEach((st, i) => $('#' + st[0]).classList.toggle('current', i + 1 === M.step));
+  const why = $('#m3s1 .why'); why.hidden = has; why.textContent = has ? '' : tx('Load a scan to continue.');
+  document.querySelectorAll('#side3 [data-next3]').forEach(b => b.disabled = !has);
+  ['#m3Level','#m3Center','#m3Floor','#m3Outliers','#m3LassoDel','#m3LassoKeep','#m3Undo','#m3MeasureBtn','#m3MeasClear','#m3Send','#m3ExpPly','#m3ExpXyz','#m3CropApply'].forEach(id => $(id).disabled = !has);
+  $('#m3ExpStl').disabled = !has || !M.idx;
+  document.querySelectorAll('[data-r3]').forEach(b => b.disabled = !has);
+  $('#m3Crop').disabled = !has;
+  $('#m3LassoDel').classList.toggle('active', M.tool === 'lassoDel');
+  $('#m3LassoKeep').classList.toggle('active', M.tool === 'lassoKeep');
+  $('#m3MeasureBtn').classList.toggle('active', M.tool === 'measure');
+  $('#m3FloorOut').textContent = fmtMM(m3FloorMM());
+  $('#m3OutOut').textContent = (2 + Math.round(+$('#m3OutS').value/100*14)) + '';
+  const n = has ? M.pos.length/3 : 0;
+  const count = !has ? '' : M.idx ? tx('{v} vertices, {t} triangles', { v:n.toLocaleString(), t:(M.idx.length/3).toLocaleString() }) : plu(n, 'point').replace(/^\d+/, n.toLocaleString());
+  const sz = has ? tx('Size {w} × {d} × {h}', { w:fmtMM(M.bbox.size[0]), d:fmtMM(M.bbox.size[1]), h:fmtMM(M.bbox.size[2]) }) : '';
+  if (has) $('#m3Info').textContent = M.name + ': ' + count + '. ' + sz + '.';
+  $('#m3Size').textContent = has ? sz : '';
+  $('#m3Stat').textContent = has ? count + '     ' + sz + (T3 ? '     ' + tx('Grid {g}', { g:fmtMM(T3.gridStep) }) : '') : tx('No scan loaded');
+  const ul = $('#m3Meas'); ul.textContent = '';
+  M.meas.forEach((m, i) => {
+    const li = document.createElement('li');
+    const sw = document.createElement('span'); sw.className = 'sw'; sw.style.background = C.meas;
+    const l = document.createElement('span'); l.className = 'lbl'; l.textContent = tx('Measure {n}', { n:i + 1 });
+    const v = document.createElement('span'); v.className = 'val'; v.textContent = fmtMM(Math.hypot(m.a[0]-m.b[0], m.a[1]-m.b[1], m.a[2]-m.b[2]));
+    const del = document.createElement('button'); del.textContent = '×'; del.setAttribute('aria-label', tx('Delete {item}', { item:tx('Measure {n}', { n:i + 1 }) }));
+    del.addEventListener('click', () => { M.meas.splice(i, 1); m3DrawMeas(); m3UI(); m3Req(); });
+    li.append(sw, l, v, del); ul.appendChild(li);
+  });
+  $('#m3MeasEmpty').hidden = M.meas.length > 0;
+  const mode = document.querySelector('input[name="m3Sec"]:checked').value;
+  $('#m3SliceCtl').hidden = mode !== 'slice';
+  if (has){
+    const r = m3SecRange();
+    $('#m3SecHOut').textContent = fmtMM(r.h); $('#m3SecTOut').textContent = fmtMM(r.t);
+    $('#m3SecInfo').textContent = mode === 'slice' ? tx('{n} points in the slice.', { n:m3SecPoints().xs.length.toLocaleString() }) : tx('Uses every point, as seen from directly above.');
+  } else $('#m3SecInfo').textContent = '';
+  const hints = { orbit:'Drag to turn, right-drag to pan, scroll to zoom.', measure:M.pend ? 'Now click the second point.' : 'Click two points on the scan to measure between them.', lassoDel:'Draw around the points to remove. Release to apply.', lassoKeep:'Draw around the points to keep. Release to apply.' };
+  $('#m3Hint').textContent = has ? tx(hints[M.tool]) : '';
+}
+function m3Key(e){
+  if (!M.pos) return;
+  const k = e.key.toLowerCase();
+  if ((e.ctrlKey || e.metaKey) && k === 'z'){ e.preventDefault(); m3Undo(); return; }
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.key === 'Escape'){ m3SetTool('orbit'); return; }
+  if (k === 'm'){ m3SetTool(M.tool === 'measure' ? 'orbit' : 'measure'); return; }
+  if (k === 'f'){ m3View('fit'); return; }
+}
+
+/* ---- 3D wiring ---- */
+$('#m3Open').onclick = $('#m3Open2').onclick = () => $('#m3File').click();
+$('#m3File').onchange = e => { m3LoadFile(e.target.files[0]); e.target.value = ''; };
+['dragenter','dragover'].forEach(ev => $('#m3Wrap').addEventListener(ev, e => { e.preventDefault(); $('#m3Wrap').classList.add('dragover'); }));
+['dragleave','drop'].forEach(ev => $('#m3Wrap').addEventListener(ev, e => { e.preventDefault(); if (ev === 'dragleave' && $('#m3Wrap').contains(e.relatedTarget)) return; $('#m3Wrap').classList.remove('dragover'); }));
+$('#m3Wrap').addEventListener('drop', e => { const f = e.dataTransfer && e.dataTransfer.files[0]; if (f) m3LoadFile(f); });
+$('#m3Units').addEventListener('change', e => {
+  if (!M.pos) return;
+  const f = UNITF[e.target.value]/UNITF[M.units]; M.units = e.target.value;
+  for (let i=0;i<M.pos.length;i++) M.pos[i] *= f;
+  M.meas = []; M.pend = null; M.hist = []; m3Rebuild(true);
+});
+document.querySelectorAll('[data-next3]').forEach(b => b.addEventListener('click', () => m3Go(M.step + 1)));
+document.querySelectorAll('[data-back3]').forEach(b => b.addEventListener('click', () => m3Go(M.step - 1)));
+document.querySelectorAll('[data-v3]').forEach(b => b.addEventListener('click', () => m3View(b.dataset.v3)));
+document.querySelectorAll('[data-r3]').forEach(b => b.addEventListener('click', () => m3Rotate(b.dataset.r3)));
+$('#m3Pt').addEventListener('input', () => { if (T3 && T3.obj && T3.obj.isPoints){ T3.obj.material.size = m3PtSize(); if (T3.slice) T3.slice.material.size = m3PtSize()*1.6; m3Req(); } });
+$('#m3Grid').addEventListener('change', e => { if (T3 && T3.grid){ T3.grid.visible = T3.axes.visible = e.target.checked; m3Req(); } });
+$('#m3Level').onclick = () => m3Level();
+$('#m3Center').onclick = m3Center;
+$('#m3Floor').onclick = m3Floor;
+$('#m3Outliers').onclick = m3Outliers;
+$('#m3FloorT').addEventListener('input', m3UI);
+$('#m3OutS').addEventListener('input', m3UI);
+$('#m3Crop').addEventListener('change', e => {
+  M.crop = e.target.checked && M.pos ? JSON.parse(JSON.stringify(M.bbox)) : null;
+  $('#m3CropBox').hidden = !M.crop;
+  document.querySelectorAll('.m3c').forEach(el => { el.value = +el.dataset.c % 2 ? 1000 : 0; });
+  m3CropUpdate(); m3UI();
+});
+document.querySelectorAll('.m3c').forEach(el => el.addEventListener('input', () => {
+  const v = [...document.querySelectorAll('.m3c')].map(e => +e.value), i = +el.dataset.c, pair = i % 2 ? i - 1 : i + 1;
+  if (i % 2 ? v[i] < v[pair] + 5 : v[i] > v[pair] - 5) el.value = i % 2 ? v[pair] + 5 : v[pair] - 5;
+  m3CropUpdate();
+}));
+$('#m3CropApply').onclick = m3CropApply;
+$('#m3LassoDel').onclick = () => m3SetTool(M.tool === 'lassoDel' ? 'orbit' : 'lassoDel');
+$('#m3LassoKeep').onclick = () => m3SetTool(M.tool === 'lassoKeep' ? 'orbit' : 'lassoKeep');
+$('#m3Undo').onclick = m3Undo;
+$('#m3MeasureBtn').onclick = () => m3SetTool(M.tool === 'measure' ? 'orbit' : 'measure');
+$('#m3MeasClear').onclick = () => { M.meas = []; M.pend = null; m3DrawMeas(); m3UI(); m3Req(); };
+document.querySelectorAll('input[name="m3Sec"]').forEach(r => r.addEventListener('change', () => { m3Slice(); m3UI(); }));
+['#m3SecH','#m3SecT'].forEach(id => $(id).addEventListener('input', () => { m3Slice(); m3UI(); }));
+$('#m3Send').onclick = m3Send;
+$('#m3ExpPly').onclick = m3ExportPLY;
+$('#m3ExpStl').onclick = m3ExportSTL;
+$('#m3ExpXyz').onclick = m3ExportXYZ;
+
 
 getDL();
 $('#lang').addEventListener('change', e => setLang(e.target.value));
